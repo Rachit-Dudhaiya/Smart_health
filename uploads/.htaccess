@@ -1,0 +1,10 @@
+# Disable CGI/PHP script execution inside uploads directory
+<Files *.php>
+    deny from all
+</Files>
+<FilesMatch "\.(php|php3|php4|php5|phtml|pl|py|jsp|asp|sh|cgi)$">
+    ForceType text/plain
+</FilesMatch>
+
+# Disable folder directories listing
+Options -Indexes
