@@ -79,47 +79,145 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 6. Generic Form Validation Guard
-    const forms = document.querySelectorAll('form');
-    forms.forEach(form => {
-        // Skip validation if not requested
-        if (form.classList.contains('no-validate')) return;
-        
-        form.addEventListener('submit', (e) => {
-            let isValid = true;
+    // 6. jQuery Validation Integration
+    if (typeof $.fn.validate !== 'undefined') {
+        // Custom file extension validator
+        $.validator.addMethod("fileExtension", function(value, element, param) {
+            if (element.files.length === 0) return true;
+            const ext = value.split('.').pop().toLowerCase();
+            return param.indexOf(ext) !== -1;
+        }, "Invalid file format.");
+
+        // Custom file size validator
+        $.validator.addMethod("fileSize", function(value, element, param) {
+            if (element.files.length === 0) return true;
+            return element.files[0].size <= param;
+        }, "File size exceeds the limit.");
+
+        // Setup validation globally for all forms
+        $('form').each(function() {
+            const $form = $(this);
             
-            // Check password match fields
-            const password = form.querySelector('input[name="password"]');
-            const confirmPassword = form.querySelector('input[name="confirm_password"]');
+            if ($form.hasClass('no-validate')) return;
             
-            if (password && confirmPassword && password.value !== confirmPassword.value) {
-                isValid = false;
-                showToast("Passwords do not match!", "error");
-            }
-            
-            // Check file upload extensions if exists
-            const fileInputs = form.querySelectorAll('input[type="file"]');
-            fileInputs.forEach(input => {
-                if (input.files.length > 0) {
-                    const file = input.files[0];
-                    const extension = file.name.split('.').pop().toLowerCase();
-                    const allowed = ['jpg', 'jpeg', 'png', 'webp'];
-                    if (!allowed.includes(extension)) {
-                        isValid = false;
-                        showToast("Invalid file type. Only JPG, PNG, and WEBP allowed.", "error");
+            $form.validate({
+                errorElement: 'label',
+                errorClass: 'error',
+                highlight: function(element, errorClass, validClass) {
+                    $(element).addClass(errorClass).removeClass(validClass);
+                },
+                unhighlight: function(element, errorClass, validClass) {
+                    $(element).removeClass(errorClass).addClass(validClass);
+                },
+                rules: {
+                    name: {
+                        required: true,
+                        minlength: 2
+                    },
+                    email: {
+                        required: true,
+                        email: true
+                    },
+                    password: {
+                        required: true,
+                        minlength: 8
+                    },
+                    confirm_password: {
+                        required: true,
+                        minlength: 8,
+                        equalTo: "input[name='password']"
+                    },
+                    subject: {
+                        required: true,
+                        minlength: 4
+                    },
+                    message: {
+                        required: true,
+                        minlength: 10
+                    },
+                    caption: {
+                        required: true
+                    },
+                    stock: {
+                        required: true,
+                        digits: true
+                    },
+                    threshold: {
+                        required: true,
+                        digits: true
+                    },
+                    expiry_date: {
+                        required: true,
+                        date: true
+                    },
+                    notes: {
+                        required: true,
+                        minlength: 10
+                    },
+                    profile_photo: {
+                        fileExtension: ['jpg', 'jpeg', 'png', 'webp'],
+                        fileSize: 2 * 1024 * 1024
+                    },
+                    gallery_file: {
+                        required: true,
+                        fileExtension: ['jpg', 'jpeg', 'png', 'webp'],
+                        fileSize: 3 * 1024 * 1024
                     }
-                    if (file.size > 2 * 1024 * 1024) {
-                        isValid = false;
-                        showToast("File is too large! Maximum limit is 2MB.", "error");
+                },
+                messages: {
+                    name: {
+                        required: "Please enter your full name",
+                        minlength: "Name must be at least 2 characters"
+                    },
+                    email: {
+                        required: "Please enter your email address",
+                        email: "Please enter a valid email address"
+                    },
+                    password: {
+                        required: "Please enter your password",
+                        minlength: "Password must be at least 8 characters long"
+                    },
+                    confirm_password: {
+                        required: "Please repeat your password",
+                        equalTo: "Passwords do not match"
+                    },
+                    subject: {
+                        required: "Please specify a subject",
+                        minlength: "Subject must be at least 4 characters long"
+                    },
+                    message: {
+                        required: "Please enter a detailed message",
+                        minlength: "Message must be at least 10 characters long"
+                    },
+                    stock: {
+                        required: "Specify initial stock count",
+                        digits: "Stock must be a positive integer"
+                    },
+                    threshold: {
+                        required: "Specify safety warning threshold limit",
+                        digits: "Threshold must be a positive integer"
+                    },
+                    expiry_date: {
+                        required: "Please specify a valid expiration date",
+                        date: "Invalid date format"
+                    },
+                    notes: {
+                        required: "Please add medical diagnosis/prescription details",
+                        minlength: "Prescription must be at least 10 characters long"
+                    },
+                    profile_photo: {
+                        fileExtension: "Only JPG, PNG, and WEBP formats are allowed",
+                        fileSize: "Avatar image size must be less than 2MB"
+                    },
+                    gallery_file: {
+                        required: "Please select an image file to upload",
+                        fileExtension: "Only JPG, PNG, and WEBP formats are allowed",
+                        fileSize: "Gallery image size must be less than 3MB"
                     }
                 }
             });
-
-            if (!isValid) {
-                e.preventDefault();
-            }
         });
-    });
+    }
 });
 
 /**

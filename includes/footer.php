@@ -47,6 +47,8 @@ $jsPath = $jsPath ?? get_relative_url('assets/js/main.js');
     </footer>
 
     <!-- Site Core Client Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.20.0/jquery.validate.min.js"></script>
     <script src="<?php echo $jsPath; ?>"></script>
 </body>
 </html>

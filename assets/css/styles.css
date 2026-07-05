@@ -1095,3 +1095,25 @@ tr:last-child td {
         text-align: center;
     }
 }
+
+/* jQuery Validate Error Styling */
+input.error, select.error, textarea.error {
+    border-color: var(--color-danger) !important;
+    box-shadow: 0 0 0 3px rgba(235, 87, 87, 0.15) !important;
+    background-color: #fef2f2 !important;
+}
+
+label.error {
+    color: var(--color-danger) !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    margin-top: 0.3rem !important;
+    display: block !important;
+    text-transform: none !important;
+    animation: slideInErr 0.2s ease-out;
+}
+
+@keyframes slideInErr {
+    from { transform: translateY(-5px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
