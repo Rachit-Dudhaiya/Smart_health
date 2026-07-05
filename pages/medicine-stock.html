@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Medicine Stock Inventory | Smart Health</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body data-path-prefix="../">
+    
+    <div class="container" style="padding: 4rem 0;">
+        <div class="page-header" style="text-align: center; margin-bottom: 3rem;">
+            <p class="eyebrow">Inventory Tracking</p>
+            <h1>Clinical Medicine Stock</h1>
+            <p class="auth-subtitle">Verify drug volumes, safety warning thresholds, and upcoming expiration cycles.</p>
+        </div>
+        
+        <!-- Stats row -->
+        <div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 3rem;">
+            <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main);">
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;">💊</span>
+                <strong id="stat-total-units">0</strong>
+                <span style="margin-top: 0.5rem;">Total Units In Stock</span>
+            </div>
+            <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main); border-bottom: 4px solid var(--color-accent);">
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;">⚠️</span>
+                <strong id="stat-below-threshold">0</strong>
+                <span style="margin-top: 0.5rem;">Below Safety Margin</span>
+            </div>
+            <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main); border-bottom: 4px solid var(--color-danger);">
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;">🚨</span>
+                <strong id="stat-expiring-soon">0</strong>
+                <span style="margin-top: 0.5rem;">Expiring Soon (Expired or within 30 days)</span>
+            </div>
+        </div>
+        
+        <!-- Filter bar -->
+        <div class="card" style="padding: 1.5rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;" id="filter-buttons">
+                <span>Filter View:</span>
+                <button class="btn btn-primary btn-filter" data-filter="all" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">All Items</button>
+                <button class="btn btn-secondary btn-filter" data-filter="low" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Critical Low</button>
+                <button class="btn btn-secondary btn-filter" data-filter="expired" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Expired</button>
+            </div>
+            
+            <div class="search-bar-wrap" style="margin:0; display: flex; gap: 0.5rem;">
+                <input type="text" id="search-input" placeholder="Search medicine..." style="padding: 0.4rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: var(--bg-surface); color: var(--color-text-main);" />
+                <button id="search-btn" class="btn btn-primary" style="padding: 0.4rem 1rem;">Search</button>
+            </div>
+        </div>
+        
+        <!-- Inventory table -->
+        <div class="card" style="padding: 2rem;">
+            <h3>Stock Registry</h3>
+            <div class="table-wrap" style="margin-top: 1rem;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Drug Item Name</th>
+                            <th>Available Stock</th>
+                            <th>Alert Threshold</th>
+                            <th>Expiration Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-tbody">
+                        <!-- Injected dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="manage-registry-link-container" style="margin-top: 1.5rem; text-align: right; display: none;">
+                <!-- Injected dynamically for admin/pharmacist -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Site Core Client Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../assets/js/db.js"></script>
+    <script src="../assets/js/layout.js"></script>
+    
+    <script>
+        let currentFilter = 'all';
+        let currentSearch = '';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const curUser = db.getCurrentUser();
+            
+            // Show registry link for pharmacists and admins
+            if (curUser && (curUser.role === 'pharmacist' || curUser.role === 'admin')) {
+                const manageLink = document.getElementById('manage-registry-link-container');
+                let dest = curUser.role === 'admin' ? 'dashboard/admin.html' : 'dashboard/pharmacist.html';
+                manageLink.innerHTML = `<a href="${dest}" class="btn btn-secondary">✏️ Manage Pharmacy Registry</a>`;
+                manageLink.style.display = 'block';
+            }
+            
+            // Set up search and filter listeners
+            const searchInput = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn');
+            
+            searchBtn.addEventListener('click', () => {
+                currentSearch = searchInput.value.trim().toLowerCase();
+                renderInventory();
+            });
+            
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    currentSearch = searchInput.value.trim().toLowerCase();
+                    renderInventory();
+                }
+            });
+            
+            const filterButtons = document.querySelectorAll('.btn-filter');
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterButtons.forEach(b => {
+                        b.classList.remove('btn-primary');
+                        b.classList.add('btn-secondary');
+                    });
+                    btn.classList.add('btn-primary');
+                    btn.classList.remove('btn-secondary');
+                    
+                    currentFilter = btn.getAttribute('data-filter');
+                    renderInventory();
+                });
+            });
+            
+            // Initial render
+            renderInventory();
+        });
+        
+        function renderInventory() {
+            const medicines = db.getMedicines();
+            
+            // Calculate stats
+            let totalUnits = 0;
+            let belowThreshold = 0;
+            let expiringSoon = 0;
+            
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+            
+            const thirtyDaysFromNow = new Date();
+            thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+            
+            medicines.forEach(m => {
+                totalUnits += m.stock;
+                
+                const exp = new Date(m.expiry_date);
+                if (m.stock <= m.threshold && exp >= now) {
+                    belowThreshold++;
+                }
+                
+                if (exp <= thirtyDaysFromNow) {
+                    expiringSoon++;
+                }
+            });
+            
+            document.getElementById('stat-total-units').textContent = totalUnits.toLocaleString();
+            document.getElementById('stat-below-threshold').textContent = belowThreshold;
+            document.getElementById('stat-expiring-soon').textContent = expiringSoon;
+            
+            // Filter list
+            let filtered = medicines;
+            
+            if (currentSearch) {
+                filtered = filtered.filter(m => m.name.toLowerCase().includes(currentSearch));
+            }
+            
+            if (currentFilter === 'low') {
+                filtered = filtered.filter(m => m.stock <= m.threshold && new Date(m.expiry_date) >= now);
+            } else if (currentFilter === 'expired') {
+                filtered = filtered.filter(m => new Date(m.expiry_date) < now);
+            }
+            
+            // Sort
+            filtered.sort((a, b) => a.name.localeCompare(b.name));
+            
+            const tbody = document.getElementById('inventory-tbody');
+            if (filtered.length > 0) {
+                tbody.innerHTML = filtered.map(med => {
+                    const expDateStr = new Date(med.expiry_date).toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+                    
+                    let statusClass = 'badge-success';
+                    if (med.status === 'expired') statusClass = 'badge-danger';
+                    else if (med.status === 'low' || med.status === 'critical') statusClass = 'badge-warning';
+                    
+                    return `
+                        <tr>
+                            <td style="font-weight: 700;">${med.name}</td>
+                            <td style="font-size: 1.05rem;"><strong>${med.stock}</strong> units</td>
+                            <td>${med.threshold}</td>
+                            <td>${expDateStr}</td>
+                            <td>
+                                <span class="badge ${statusClass}">
+                                    ${med.status.charAt(0).toUpperCase() + med.status.slice(1)}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="auth-subtitle" style="text-align: center; padding: 2rem;">No medicines matched in stock registry.</td>
+                    </tr>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

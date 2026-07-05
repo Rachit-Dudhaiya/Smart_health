@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Patient Feedback | Smart Health</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body data-path-prefix="../">
+    
+    <div class="container" style="padding: 4rem 0; max-width: 600px;">
+        <div class="page-header" style="text-align: center; margin-bottom: 3.5rem;">
+            <p class="eyebrow">Patient Voice</p>
+            <h1>Submit Feedback</h1>
+            <p class="auth-subtitle">Help us measure doctor attendance, ward bed conditions, and pharmacist response rates.</p>
+        </div>
+        
+        <div class="card" style="padding: 3rem;">
+            <h3>Feedback Form</h3>
+            
+            <form id="feedback-form" class="auth-form" style="margin-top: 1.5rem;">
+                <label>
+                    Full Name
+                    <input type="text" id="feedback-name" placeholder="Your name" required />
+                </label>
+                
+                <label>
+                    Email Address
+                    <input type="email" id="feedback-email" placeholder="you@example.com" required />
+                </label>
+                
+                <label>
+                    Experience Rating
+                    <select id="feedback-rating">
+                        <option value="5" selected>⭐⭐⭐⭐⭐ (Excellent Care)</option>
+                        <option value="4">⭐⭐⭐⭐ (Good Care)</option>
+                        <option value="3">⭐⭐⭐ (Average Care)</option>
+                        <option value="2">⭐⭐ (Needs Improvement)</option>
+                        <option value="1">⭐ (Unsatisfactory)</option>
+                    </select>
+                </label>
+                
+                <label>
+                    Feedback Message
+                    <textarea id="feedback-message" rows="5" placeholder="Share your experience with our services..." required></textarea>
+                </label>
+                
+                <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Submit Feedback</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Site Core Client Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../assets/js/db.js"></script>
+    <script src="../assets/js/layout.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('feedback-form');
+            
+            // Pre-fill user data if logged in
+            const curUser = db.getCurrentUser();
+            if (curUser) {
+                document.getElementById('feedback-name').value = curUser.name;
+                document.getElementById('feedback-email').value = curUser.email;
+            }
+            
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const name = document.getElementById('feedback-name').value.trim();
+                const email = document.getElementById('feedback-email').value.trim();
+                const rating = document.getElementById('feedback-rating').value;
+                const message = document.getElementById('feedback-message').value.trim();
+                
+                if (!name || !email || !message) {
+                    showToast('All fields are required.', 'error');
+                    return;
+                }
+                
+                const subject = `Rating: ${rating} Stars`;
+                const res = db.addFeedback(name, email, 'feedback', subject, message);
+                
+                if (res.success) {
+                    showToast('Thank you for sharing your feedback.', 'success');
+                    form.reset();
+                    // Keep user details filled
+                    if (curUser) {
+                        document.getElementById('feedback-name').value = curUser.name;
+                        document.getElementById('feedback-email').value = curUser.email;
+                    }
+                } else {
+                    showToast('Failed to submit feedback.', 'error');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Profile | Smart Health</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body data-path-prefix="../" data-restricted-roles="admin,doctor,pharmacist,patient">
+    
+    <div class="container" style="padding: 4rem 0;">
+        <div class="page-header" style="text-align: center; margin-bottom: 3.5rem;">
+            <p class="eyebrow">Settings</p>
+            <h1>Manage Profile</h1>
+            <p class="auth-subtitle">Update user credentials, profile pictures, and password credentials.</p>
+        </div>
+        
+        <div class="profile-shell" style="max-width: 900px; margin: 0 auto;">
+            
+            <!-- Sidebar Profile Card -->
+            <div class="profile-avatar-card">
+                <div class="profile-photo-wrap" id="avatar-container">
+                    <!-- Injected dynamically -->
+                </div>
+                
+                <h3 id="user-display-name">Loading...</h3>
+                <p class="badge badge-info" id="user-display-role" style="margin-top: 0.5rem; text-transform: capitalize;">Role</p>
+                <p id="user-display-date" style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 0.8rem;">Registered since: </p>
+                
+                <!-- Upload Photo Form -->
+                <form id="avatar-form" class="auth-form" style="margin-top: 2rem; width: 100%;">
+                    <label style="align-items: center; cursor: pointer; text-align: center; border: 1px dashed var(--color-border); padding: 1rem; border-radius: var(--radius-md); background-color: var(--bg-primary);">
+                        <span>📁 Choose Image</span>
+                        <input type="file" id="profile-photo-input" accept="image/jpeg, image/png, image/webp" style="display: none;" />
+                    </label>
+                </form>
+            </div>
+            
+            <!-- Edit Profile Details & Password -->
+            <div style="display: flex; flex-direction: column; gap: 2rem; width: 100%;">
+                
+                <!-- Card 1: Details -->
+                <div class="card" style="padding: 2.5rem;">
+                    <h3>Personal Information</h3>
+                    <form id="details-form" class="auth-form" style="margin-top: 1.5rem;">
+                        <label>
+                            Full Name
+                            <input type="text" id="profile-name" required />
+                        </label>
+                        
+                        <label>
+                            Email Address
+                            <input type="email" id="profile-email" required />
+                        </label>
+                        
+                        <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Save Details</button>
+                    </form>
+                </div>
+                
+                <!-- Card 2: Password -->
+                <div class="card" style="padding: 2.5rem;">
+                    <h3>Change Password</h3>
+                    <form id="password-form" class="auth-form" style="margin-top: 1.5rem;">
+                        <label>
+                            Current Password
+                            <input type="password" id="current-password" placeholder="••••••••" required />
+                        </label>
+                        
+                        <label>
+                            New Password (Min 8 characters)
+                            <input type="password" id="new-password" placeholder="••••••••" required minlength="8" />
+                        </label>
+                        
+                        <label>
+                            Confirm New Password
+                            <input type="password" id="confirm-password" placeholder="••••••••" required minlength="8" />
+                        </label>
+                        
+                        <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Change Password</button>
+                    </form>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- Site Core Client Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../assets/js/db.js"></script>
+    <script src="../assets/js/layout.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const curUser = db.getCurrentUser();
+            if (!curUser) return;
+            
+            // Populate profile
+            updateProfileView(curUser);
+            
+            // Photo upload
+            const fileInput = document.getElementById('profile-photo-input');
+            fileInput.addEventListener('change', () => {
+                const file = fileInput.files[0];
+                if (!file) return;
+                
+                // Max size check (2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    showToast('Photo size exceeds 2MB limit.', 'error');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Data = e.target.result;
+                    const res = db.updateProfile(curUser.id, curUser.name, base64Data);
+                    if (res.success) {
+                        showToast('Profile photo updated successfully.', 'success');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        showToast('Failed to update photo.', 'error');
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            // Save details
+            const detailsForm = document.getElementById('details-form');
+            detailsForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const name = document.getElementById('profile-name').value.trim();
+                const email = document.getElementById('profile-email').value.trim();
+                
+                if (!name || !email) {
+                    showToast('Name and Email are required.', 'error');
+                    return;
+                }
+                
+                // Email uniqueness validation
+                const users = db.getUsers();
+                const emailTaken = users.some(u => u.email.toLowerCase() === email.toLowerCase() && u.id !== curUser.id);
+                if (emailTaken) {
+                    showToast('This email is already taken by another user.', 'error');
+                    return;
+                }
+                
+                const res = db.updateProfile(curUser.id, name);
+                if (res.success) {
+                    // Update email in mock users array
+                    const usersList = db.getUsers();
+                    const idx = usersList.findIndex(u => u.id === curUser.id);
+                    if (idx !== -1) {
+                        usersList[idx].email = email;
+                        db.saveUsers(usersList);
+                    }
+                    
+                    // Update current user session
+                    curUser.email = email;
+                    curUser.name = name;
+                    sessionStorage.setItem('sh_current_user', JSON.stringify(curUser));
+                    
+                    showToast('Profile details updated successfully.', 'success');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showToast('Failed to update profile details.', 'error');
+                }
+            });
+            
+            // Save password
+            const passwordForm = document.getElementById('password-form');
+            passwordForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const currentPassword = document.getElementById('current-password').value;
+                const newPassword = document.getElementById('new-password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+                
+                if (!currentPassword || !newPassword || !confirmPassword) {
+                    showToast('All password fields are required.', 'error');
+                    return;
+                }
+                
+                if (newPassword.length < 8) {
+                    showToast('New password must be at least 8 characters long.', 'error');
+                    return;
+                }
+                
+                if (newPassword !== confirmPassword) {
+                    showToast('New passwords do not match.', 'error');
+                    return;
+                }
+                
+                // Verify current password
+                const users = db.getUsers();
+                const u = users.find(user => user.id === curUser.id);
+                if (!u || u.password !== currentPassword) {
+                    showToast('Current password is incorrect.', 'error');
+                    return;
+                }
+                
+                const res = db.changePassword(curUser.id, newPassword);
+                if (res.success) {
+                    showToast('Password changed successfully.', 'success');
+                    passwordForm.reset();
+                } else {
+                    showToast('Failed to change password.', 'error');
+                }
+            });
+        });
+        
+        function updateProfileView(user) {
+            const avatarContainer = document.getElementById('avatar-container');
+            if (user.profile_photo) {
+                avatarContainer.innerHTML = `<img src="${user.profile_photo}" alt="Avatar" class="profile-photo-img" />`;
+            } else {
+                avatarContainer.innerHTML = `<div class="profile-avatar-placeholder">${user.name.charAt(0).toUpperCase()}</div>`;
+            }
+            
+            document.getElementById('user-display-name').textContent = user.name;
+            document.getElementById('user-display-role').textContent = user.role;
+            
+            // Static mock registration date
+            document.getElementById('user-display-date').textContent = 'Registered since: 01 Jul 2026';
+            
+            document.getElementById('profile-name').value = user.name;
+            document.getElementById('profile-email').value = user.email;
+        }
+    </script>
+</body>
+</html>

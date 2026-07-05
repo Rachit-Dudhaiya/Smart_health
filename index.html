@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI-Powered Healthcare Management System | Smart Health</title>
+    <meta name="description" content="Smart Health brings medicine stock, patient footfall, bed availability, doctor attendance, AI predictions, and real-time alerts into one unified command center." />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-path-prefix="./">
+    
+    <!-- Hero Command Section -->
+    <section class="hero">
+        <div class="container hero-grid">
+            <div>
+                <div class="hero-badge">🏥 PHC & CHC Command Hub</div>
+                <p class="eyebrow">Real-time digital management for rural and urban healthcare nodes</p>
+                <h1>Smarter clinics. Faster care. Zero guesswork.</h1>
+                <p class="hero-text">
+                    Smart Health integrates medicine stocks, patient footfalls, bed occupancy, doctor rosters, and real-time emergency notifications into one elegant digital command center.
+                </p>
+                <div class="hero-actions" id="hero-actions-container">
+                    <a class="btn btn-primary" href="pages/medicine-stock.html">Explore Live Inventory</a>
+                    <!-- Injected dynamically based on auth status -->
+                </div>
+                
+                <div class="stats-strip" style="margin-top: 2rem;">
+                    <div class="stat-pill"><strong id="stats-wards">4</strong> <span>Care Wards</span></div>
+                    <div class="stat-pill"><strong id="stats-doctors">0</strong> <span>Staff Doctors</span></div>
+                    <div class="stat-pill"><strong id="stats-patients">0</strong> <span>Registered Patients</span></div>
+                    <div class="stat-pill"><strong>24/7</strong> <span>AI Alerts</span></div>
+                </div>
+            </div>
+            
+            <div class="hero-card">
+                <h3>Live Command Metrics</h3>
+                <div id="welcome-message-container"></div>
+                
+                <div class="stat-grid">
+                    <div class="mini-card">
+                        <strong id="metric-low-stock">0</strong>
+                        <span>Needs Attention</span>
+                    </div>
+                    <div class="mini-card">
+                        <strong id="metric-beds">0</strong>
+                        <span>Available Beds</span>
+                    </div>
+                    <div class="mini-card">
+                        <strong id="metric-roster">0%</strong>
+                        <span>Doctor Roster Rate</span>
+                    </div>
+                    <div class="mini-card">
+                        <strong>98.7%</strong>
+                        <span>Sync Accuracy</span>
+                    </div>
+                </div>
+                <p class="hero-text" style="font-size: 0.8rem; margin: 0;">* Automatically synchronizing with clinical records and active databases.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Modules Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-heading">
+                <p class="eyebrow">Operational Modules</p>
+                <h2>Everything required to run a smarter clinic</h2>
+            </div>
+            
+            <div class="card-grid">
+                <article class="card">
+                    <div class="card-icon">💊</div>
+                    <h3>Medicine Stock</h3>
+                    <p>Track stock levels, expiry alerts, and reorder needs instantly in real time.</p>
+                    <a href="pages/medicine-stock.html" class="btn btn-secondary" style="margin-top: 1rem; width: 100%;">View Live Data</a>
+                </article>
+                <article class="card">
+                    <div class="card-icon">👥</div>
+                    <h3>Patient Flow</h3>
+                    <p>Understand rush hours, registrations, and specialist consultation demand.</p>
+                    <a href="pages/patient-flow.html" class="btn btn-secondary" style="margin-top: 1rem; width: 100%;">View Live Data</a>
+                </article>
+                <article class="card">
+                    <div class="card-icon">🛏️</div>
+                    <h3>Bed Availability</h3>
+                    <p>Monitor ICU, general, pediatric, and emergency bed occupancy live.</p>
+                    <a href="pages/bed-availability.html" class="btn btn-secondary" style="margin-top: 1rem; width: 100%;">View Live Data</a>
+                </article>
+                <article class="card">
+                    <div class="card-icon">🩺</div>
+                    <h3>Doctor Attendance</h3>
+                    <p>Stay on top of shift rosters, punctuality, and staff coverage.</p>
+                    <a href="pages/doctor-attendance.html" class="btn btn-secondary" style="margin-top: 1rem; width: 100%;">View Live Data</a>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Role-Based Features Section -->
+    <section class="section alt-bg">
+        <div class="container">
+            <div class="section-heading">
+                <p class="eyebrow">Built for clinical roles</p>
+                <h2>One intelligent dashboard tailored to every worker</h2>
+            </div>
+            
+            <div class="card-grid">
+                <article class="card">
+                    <div class="badge badge-info" style="margin-bottom: 0.8rem;">Admin Panel</div>
+                    <h3>System Admin</h3>
+                    <p>Manage system configuration, add user profiles (CRUD), update CMS contents, and review security logs.</p>
+                </article>
+                <article class="card">
+                    <div class="badge badge-info" style="margin-bottom: 0.8rem;">Doctor Hub</div>
+                    <h3>Facility Doctor</h3>
+                    <p>Check in/out daily attendance rosters, view waiting queue sizes, and write diagnosis notes.</p>
+                </article>
+                <article class="card">
+                    <div class="badge badge-info" style="margin-bottom: 0.8rem;">Patient Space</div>
+                    <h3>OPD Patient</h3>
+                    <p>Search nearby facilities, check live bed capacity, submit emergency SOS requests, and edit profile photo.</p>
+                </article>
+                <article class="card">
+                    <div class="badge badge-info" style="margin-bottom: 0.8rem;">Inventory System</div>
+                    <h3>Pharmacist Staff</h3>
+                    <p>Manage stocks, get warnings on expired tablets, and adjust reorder alert triggers.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Predictions Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-heading">
+                <p class="eyebrow">AI-Powered Forecasting</p>
+                <h2>Predict shortages, rush hours, and occupancy before they impact patients</h2>
+            </div>
+            
+            <div class="card-grid">
+                <article class="card">
+                    <div class="card-icon">📈</div>
+                    <h3>Medicine Stock Forecasting</h3>
+                    <p>Calculates depletion velocity to suggest reorder cycles 14 days before stockouts.</p>
+                </article>
+                <article class="card">
+                    <div class="card-icon">📊</div>
+                    <h3>Patient Flow Prediction</h3>
+                    <p>Identifies historical seasonal peaks (e.g. flu seasons) to optimize check-in queues.</p>
+                </article>
+                <article class="card">
+                    <div class="card-icon">🚨</div>
+                    <h3>Emergency Bed Reservation</h3>
+                    <p>Frees up buffer emergency beds automatically during high local accident rates.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Audit Feed Section -->
+    <section class="section alt-bg">
+        <div class="container two-column">
+            <div>
+                <p class="eyebrow">System Auditing</p>
+                <h2>Live operations tracker and system logs</h2>
+                <p class="hero-text">
+                    All administrative and security actions are continuously logged for auditing. This maintains absolute compliance with medical standards and ensures patient safety.
+                </p>
+                <ul class="check-list">
+                    <li>Automated error logging of database issues.</li>
+                    <li>Session timeouts protect user terminals from physical snooping.</li>
+                    <li>Hashed encryption shields credentials in transfer.</li>
+                    <li>Role-based boundaries block privilege escalation.</li>
+                </ul>
+            </div>
+            
+            <div class="card" style="max-height: 400px; overflow-y: auto;">
+                <h3>Recent System Activities</h3>
+                <div class="data-list" id="recent-logs-container" style="margin-top: 1rem;">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Site Core Client Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="assets/js/db.js"></script>
+    <script src="assets/js/layout.js"></script>
+    
+    <script>
+        // Update stats and recent logs dynamically
+        document.addEventListener('DOMContentLoaded', () => {
+            const metrics = db.getLiveMetrics();
+            
+            // Stats strip
+            document.getElementById('stats-doctors').textContent = metrics.doctorsCount;
+            document.getElementById('stats-patients').textContent = metrics.patientsCount + 120; // adding seed offset
+            
+            // Metric cards
+            document.getElementById('metric-low-stock').textContent = metrics.lowStockCount;
+            document.getElementById('metric-beds').textContent = metrics.availableBeds;
+            document.getElementById('metric-roster').textContent = metrics.attendanceRate + '%';
+
+            // Welcome Message & Hero actions
+            const curUser = db.getCurrentUser();
+            const welcomeContainer = document.getElementById('welcome-message-container');
+            const heroActions = document.getElementById('hero-actions-container');
+
+            if (curUser) {
+                welcomeContainer.innerHTML = `
+                    <div class="auth-message" style="margin-bottom: 1.5rem;">
+                        👋 Welcome back, <strong>${curUser.name}</strong>! (Role: ${curUser.role.charAt(0).toUpperCase() + curUser.role.slice(1)})
+                    </div>
+                `;
+                
+                let dashboardPath = 'pages/dashboard/patient.html';
+                if (curUser.role === 'admin') dashboardPath = 'pages/dashboard/admin.html';
+                else if (curUser.role === 'doctor') dashboardPath = 'pages/dashboard/doctor.html';
+                else if (curUser.role === 'pharmacist') dashboardPath = 'pages/dashboard/pharmacist.html';
+                
+                heroActions.innerHTML += `
+                    <a class="btn btn-secondary" href="${dashboardPath}">My Dashboard</a>
+                `;
+            } else {
+                heroActions.innerHTML += `
+                    <a class="btn btn-secondary" href="pages/auth/login.html">Sign In</a>
+                    <a class="btn btn-secondary" href="pages/auth/register.html">Register Account</a>
+                `;
+            }
+
+            // Recent system activities
+            const logs = db.getLogs();
+            const logsContainer = document.getElementById('recent-logs-container');
+            
+            if (logs.length > 0) {
+                const users = db.getUsers();
+                const getUserName = (uid) => {
+                    if (!uid) return 'Guest';
+                    const u = users.find(user => user.id === uid);
+                    return u ? u.name : 'System';
+                };
+                
+                // Show latest 5 logs
+                const latestLogs = logs.slice(-5).reverse();
+                logsContainer.innerHTML = latestLogs.map(log => {
+                    const dt = new Date(log.created_at).toLocaleString();
+                    return `
+                        <div class="activity-log-item">
+                            <strong>${getUserName(log.user_id)}</strong>: ${log.action}<br/>
+                            <span class="activity-time">${dt} | IP: ${log.ip_address}</span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                logsContainer.innerHTML = '<p class="auth-subtitle">No activities logged yet.</p>';
+            }
+        });
+    </script>
+</body>
+</html>

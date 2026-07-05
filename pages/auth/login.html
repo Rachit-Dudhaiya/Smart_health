@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | Smart Health</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../assets/css/styles.css" />
+</head>
+<body data-path-prefix="../../">
+    
+    <div class="container auth-shell">
+        <div class="auth-card">
+            <p class="eyebrow">Secure Access</p>
+            <h1>Welcome Back</h1>
+            <p class="auth-subtitle">Sign in to check clinic stocks, ward vacancies, and doctor coverage.</p>
+            
+            <div id="login-error-msg" class="auth-message auth-message-error" style="display: none;"></div>
+            
+            <form id="login-form" class="auth-form">
+                <label>
+                    Email Address
+                    <input type="email" id="login-email" placeholder="you@example.com" required autofocus />
+                </label>
+                
+                <label>
+                    Password
+                    <input type="password" id="login-password" placeholder="••••••••" required />
+                </label>
+                
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <label style="flex-direction: row; gap: 0.5rem; cursor: pointer; align-items: center;">
+                        <input type="checkbox" id="login-remember" style="width: auto;" /> Remember me
+                    </label>
+                    <a href="forgot-password.html" style="font-size: 0.85rem; color: var(--color-primary); font-weight: 600;">Forgot Password?</a>
+                </div>
+                
+                <button class="btn btn-primary btn-full" type="submit">Sign In</button>
+            </form>
+            
+            <p class="auth-link">New to Smart Health? <a href="register.html">Create an Account</a></p>
+            
+            <div class="card" style="margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; border-color: var(--color-border); background-color: var(--bg-primary);">
+                <strong>Seed Credentials for Testing:</strong>
+                <ul style="margin-top: 0.3rem; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.2rem;">
+                    <li>Admin: <code>admin@smarthealth.com</code> / <code>Admin123!</code></li>
+                    <li>Doctor: <code>doctor@smarthealth.com</code> / <code>Doctor123!</code></li>
+                    <li>Pharmacist: <code>pharmacist@smarthealth.com</code> / <code>Pharmacist123!</code></li>
+                    <li>Patient: <code>patient@smarthealth.com</code> / <code>Patient123!</code></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Site Core Client Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../../assets/js/db.js"></script>
+    <script src="../../assets/js/layout.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Redirect if already logged in
+            if (db.getCurrentUser()) {
+                window.location.href = '../../index.html';
+                return;
+            }
+            
+            const form = document.getElementById('login-form');
+            const errorMsg = document.getElementById('login-error-msg');
+            
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const email = document.getElementById('login-email').value.trim();
+                const password = document.getElementById('login-password').value;
+                
+                if (!email || !password) {
+                    errorMsg.textContent = 'Please enter both email and password.';
+                    errorMsg.style.display = 'block';
+                    return;
+                }
+                
+                const res = db.login(email, password);
+                if (res.success) {
+                    errorMsg.style.display = 'none';
+                    setFlashMessage(`Welcome back, ${res.user.name}!`, 'success');
+                    
+                    // Redirect to correct dashboard
+                    let dashboardPath = 'pages/dashboard/patient.html';
+                    if (res.user.role === 'admin') dashboardPath = 'pages/dashboard/admin.html';
+                    else if (res.user.role === 'doctor') dashboardPath = 'pages/dashboard/doctor.html';
+                    else if (res.user.role === 'pharmacist') dashboardPath = 'pages/dashboard/pharmacist.html';
+                    
+                    window.location.href = '../../' + dashboardPath;
+                } else {
+                    errorMsg.textContent = res.message || 'Invalid email or password.';
+                    errorMsg.style.display = 'block';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

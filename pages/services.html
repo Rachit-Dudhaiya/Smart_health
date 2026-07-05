@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Core Services | Smart Health</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body data-path-prefix="../">
+    
+    <div class="container" style="padding: 4rem 0;">
+        <div class="page-header" style="text-align: center; margin-bottom: 4rem;">
+            <p class="eyebrow">Smart Infrastructure</p>
+            <h1 id="cms-title">Our Core Digital Services</h1>
+            <p class="auth-subtitle" id="cms-content" style="max-width: 600px; margin: 1rem auto 0; font-size: 1.05rem;">
+                <!-- Injected dynamically -->
+            </p>
+        </div>
+        
+        <div class="card-grid">
+            <article class="card">
+                <div class="card-icon" style="font-size: 2.5rem; margin-bottom: 1.5rem;">💊</div>
+                <h3>Real-Time Inventory</h3>
+                <p>Track stock levels, record transactions, and check upcoming expiry dates on medicine stock tables.</p>
+            </article>
+            <article class="card">
+                <div class="card-icon" style="font-size: 2.5rem; margin-bottom: 1.5rem;">👥</div>
+                <h3>Queue Analytics</h3>
+                <p>Allows clinicians to log consultation queues and tracks average client waiting time in out-patient wards.</p>
+            </article>
+            <article class="card">
+                <div class="card-icon" style="font-size: 2.5rem; margin-bottom: 1.5rem;">🚑</div>
+                <h3>Emergency SOS ambulance</h3>
+                <p>Allows patients to instantly alert the command center, booking available beds and sending notification details.</p>
+            </article>
+            <article class="card">
+                <div class="card-icon" style="font-size: 2.5rem; margin-bottom: 1.5rem;">🩺</div>
+                <h3>Roster Tracking</h3>
+                <p>Enables doctors to log daily attendance records, reducing manual payroll errors and tracking leaves.</p>
+            </article>
+        </div>
+        
+        <div class="card" style="margin-top: 4rem; padding: 3rem; text-align: center; background-color: var(--color-primary-light);">
+            <h2>Need to register your health facility?</h2>
+            <p style="margin: 1rem 0 2rem; color: var(--color-text-muted);">
+                Join our network of smart clinics. Set up custom alerts for your doctors, pharmacists, and local community.
+            </p>
+            <a class="btn btn-primary" href="auth/register.html">Create Free Account</a>
+        </div>
+    </div>
+
+    <!-- Site Core Client Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../assets/js/db.js"></script>
+    <script src="../assets/js/layout.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const contents = db.getPageContents();
+            const servicesData = contents.find(c => c.slug === 'services');
+            if (servicesData) {
+                document.getElementById('cms-title').textContent = servicesData.title;
+                document.getElementById('cms-content').textContent = servicesData.content;
+            }
+        });
+    </script>
+</body>
+</html>
