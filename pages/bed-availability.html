@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bed Availability | Smart Health</title>
+    <link rel="stylesheet" href="../styles.css" />
+</head>
+
+<body data-page="bed">
+    <header class="site-header">
+        <div class="container nav-row">
+            <a href="../index.html" class="brand">
+                <span class="brand-icon">🏥</span>
+                <span>Smart Health</span>
+            </a>
+            <button class="menu-toggle" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+            <nav class="site-nav">
+                <a href="../index.html">Home</a>
+                <a href="medicine-stock.html">Medicine Stock</a>
+                <a href="patient-flow.html">Patient Flow</a>
+                <a href="bed-availability.html" class="active">Bed Availability</a>
+                <a href="doctor-attendance.html">Doctor Attendance</a>
+                <a href="contact.html">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <div class="container">
+            <div class="page-header">
+                <p class="eyebrow">Bed availability tracking</p>
+                <h1>Monitor occupancy across wards and emergency care.</h1>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label" for="bed-filter">Focus</label>
+                <select id="bed-filter" class="filter-select">
+                    <option value="all">All wards</option>
+                    <option value="icu">ICU</option>
+                    <option value="general">General</option>
+                    <option value="pediatrics">Pediatrics</option>
+                </select>
+            </div>
+
+            <section id="stats-grid" class="stats-row"></section>
+
+            <section class="card-grid two-up">
+                <article class="card wide-card">
+                    <h3>Ward status</h3>
+                    <div id="ward-list" class="ward-list"></div>
+                </article>
+                <article class="card">
+                    <h3>Next actions</h3>
+                    <div id="bed-actions" class="data-list"></div>
+                </article>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-row">
+            <p>© <span id="year"></span> Smart Health</p>
+            <a href="contact.html">Contact us</a>
+        </div>
+    </footer>
+
+    <script src="../script.js"></script>
+</body>
+
+</html>

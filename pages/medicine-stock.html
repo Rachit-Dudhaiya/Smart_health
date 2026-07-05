@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Medicine Stock | Smart Health</title>
+    <link rel="stylesheet" href="../styles.css" />
+</head>
+
+<body data-page="medicine">
+    <header class="site-header">
+        <div class="container nav-row">
+            <a href="../index.html" class="brand">
+                <span class="brand-icon">🏥</span>
+                <span>Smart Health</span>
+            </a>
+            <button class="menu-toggle" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+            <nav class="site-nav">
+                <a href="../index.html">Home</a>
+                <a href="medicine-stock.html" class="active">Medicine Stock</a>
+                <a href="patient-flow.html">Patient Flow</a>
+                <a href="bed-availability.html">Bed Availability</a>
+                <a href="doctor-attendance.html">Doctor Attendance</a>
+                <a href="contact.html">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <div class="container">
+            <div class="page-header">
+                <p class="eyebrow">Medicine stock management</p>
+                <h1>Track inventory, expiry risk, and reorder needs.</h1>
+            </div>
+
+            <section id="stats-grid" class="stats-row"></section>
+
+            <div class="filter-group" id="medicine-filters"></div>
+
+            <section class="card-grid two-up">
+                <article class="card wide-card">
+                    <h3>Inventory overview</h3>
+                    <div id="inventory-table" class="table-wrap"></div>
+                </article>
+
+                <article class="card">
+                    <h3>Live alerts</h3>
+                    <div id="alert-list" class="data-list"></div>
+                </article>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-row">
+            <p>© <span id="year"></span> Smart Health</p>
+            <a href="contact.html">Contact us</a>
+        </div>
+    </footer>
+
+    <script src="../script.js"></script>
+</body>
+
+</html>

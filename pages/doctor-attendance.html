@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doctor Attendance | Smart Health</title>
+    <link rel="stylesheet" href="../styles.css" />
+</head>
+
+<body data-page="doctor">
+    <header class="site-header">
+        <div class="container nav-row">
+            <a href="../index.html" class="brand">
+                <span class="brand-icon">🏥</span>
+                <span>Smart Health</span>
+            </a>
+            <button class="menu-toggle" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+            <nav class="site-nav">
+                <a href="../index.html">Home</a>
+                <a href="medicine-stock.html">Medicine Stock</a>
+                <a href="patient-flow.html">Patient Flow</a>
+                <a href="bed-availability.html">Bed Availability</a>
+                <a href="doctor-attendance.html" class="active">Doctor Attendance</a>
+                <a href="contact.html">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <div class="container">
+            <div class="page-header">
+                <p class="eyebrow">Doctor attendance monitoring</p>
+                <h1>Track punctuality and daily coverage.</h1>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label" for="doctor-range">Range</label>
+                <select id="doctor-range" class="filter-select">
+                    <option value="today">Today</option>
+                    <option value="week">Week</option>
+                    <option value="month">Month</option>
+                </select>
+            </div>
+
+            <section id="stats-grid" class="stats-row"></section>
+
+            <section class="card-grid two-up">
+                <article class="card wide-card">
+                    <h3>Shift roster</h3>
+                    <div id="doctor-table" class="table-wrap"></div>
+                </article>
+                <article class="card">
+                    <h3>Coverage notes</h3>
+                    <div id="doctor-notes" class="data-list"></div>
+                </article>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-row">
+            <p>© <span id="year"></span> Smart Health</p>
+            <a href="contact.html">Contact us</a>
+        </div>
+    </footer>
+
+    <script src="../script.js"></script>
+</body>
+
+</html>

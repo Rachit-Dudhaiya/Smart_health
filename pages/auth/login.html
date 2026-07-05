@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | Smart Health</title>
+    <meta name="description" content="Login to your Smart Health account." />
+    <link rel="stylesheet" href="../../styles.css" />
+</head>
+
+<body data-page="login">
+    <header class="site-header">
+        <div class="container nav-row">
+            <a href="../../index.html" class="brand">
+                <span class="brand-icon">🏥</span>
+                <span>Smart Health</span>
+            </a>
+            <nav class="site-nav">
+                <a href="../../index.html">Home</a>
+                <a href="../medicine-stock.html">Medicine Stock</a>
+                <a href="../patient-flow.html">Patient Flow</a>
+                <a href="register.html">Register</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <div class="container auth-shell">
+            <div class="auth-card">
+                <p class="eyebrow">Secure access</p>
+                <h1>Welcome back</h1>
+                <p class="auth-subtitle">Sign in to access your healthcare dashboard and alerts.</p>
+                <form id="login-form" class="auth-form">
+                    <label>
+                        Email
+                        <input type="email" name="email" placeholder="you@example.com" required />
+                    </label>
+                    <label>
+                        Password
+                        <input type="password" name="password" placeholder="••••••••" required />
+                    </label>
+                    <button class="btn btn-primary btn-full" type="submit">Login</button>
+                </form>
+                <p class="auth-link">New here? <a href="register.html">Create account</a></p>
+                <p id="auth-message" class="auth-message"></p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-row">
+            <p>© <span id="year"></span> Smart Health</p>
+            <a href="../contact.html">Contact us</a>
+        </div>
+    </footer>
+
+    <script src="../../script.js"></script>
+</body>
+
+</html>

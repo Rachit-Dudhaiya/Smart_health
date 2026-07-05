@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register | Smart Health</title>
+    <meta name="description" content="Create a Smart Health account." />
+    <link rel="stylesheet" href="../../styles.css" />
+</head>
+
+<body data-page="register">
+    <header class="site-header">
+        <div class="container nav-row">
+            <a href="../../index.html" class="brand">
+                <span class="brand-icon">🏥</span>
+                <span>Smart Health</span>
+            </a>
+            <nav class="site-nav">
+                <a href="../../index.html">Home</a>
+                <a href="login.html">Login</a>
+                <a href="../medicine-stock.html">Medicine Stock</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <div class="container auth-shell">
+            <div class="auth-card">
+                <p class="eyebrow">Create account</p>
+                <h1>Join Smart Health</h1>
+                <p class="auth-subtitle">Sign up as an admin, doctor, patient, or pharmacist.</p>
+                <form id="register-form" class="auth-form">
+                    <label>
+                        Full name
+                        <input type="text" name="name" placeholder="Your name" required />
+                    </label>
+                    <label>
+                        Email
+                        <input type="email" name="email" placeholder="you@example.com" required />
+                    </label>
+                    <label>
+                        Password
+                        <input type="password" name="password" placeholder="Create password" required />
+                    </label>
+                    <label>
+                        Role
+                        <select name="role">
+                            <option value="Patient">Patient</option>
+                            <option value="Doctor">Doctor</option>
+                            <option value="Admin">Admin</option>
+                            <option value="Pharmacist">Pharmacist</option>
+                        </select>
+                    </label>
+                    <button class="btn btn-primary btn-full" type="submit">Register</button>
+                </form>
+                <p class="auth-link">Already have an account? <a href="login.html">Login</a></p>
+                <p id="auth-message" class="auth-message"></p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-row">
+            <p>© <span id="year"></span> Smart Health</p>
+            <a href="../contact.html">Contact us</a>
+        </div>
+    </footer>
+
+    <script src="../../script.js"></script>
+</body>
+
+</html>

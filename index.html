@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Health | AI-Powered Healthcare Operations</title>
+    <meta name="description"
+        content="Smart Health provides real-time AI monitoring for medicine stock, patient flow, bed availability, and doctor attendance for PHC and CHC facilities." />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body data-page="home">
+    <header class="site-header">
+        <div class="container nav-row">
+            <a href="index.html" class="brand">
+                <span class="brand-icon">🏥</span>
+                <span>Smart Health</span>
+            </a>
+            <button class="menu-toggle" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+            <nav class="site-nav">
+                <a href="index.html" class="active">Home</a>
+                <a href="pages/medicine-stock.html">Medicine Stock</a>
+                <a href="pages/patient-flow.html">Patient Flow</a>
+                <a href="pages/bed-availability.html">Bed Availability</a>
+                <a href="pages/doctor-attendance.html">Doctor Attendance</a>
+                <a href="pages/contact.html">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container hero-grid">
+                <div>
+                    <div class="hero-badge">🏥 AI Healthcare Management System • PHC & CHC</div>
+                    <p class="eyebrow">Real-time intelligence for rural and urban care centers</p>
+                    <h1>Smarter clinics. Faster care. Zero guesswork.</h1>
+                    <p class="hero-text">
+                        Smart Health brings medicine stock, patient footfall, bed availability, doctor attendance,
+                        AI predictions, emergency response, and real-time notifications into one elegant digital command
+                        center.
+                    </p>
+                    <div class="hero-actions">
+                        <a class="btn btn-primary" href="pages/medicine-stock.html">Explore Dashboard</a>
+                        <a class="btn btn-secondary" href="pages/auth/login.html">Login</a>
+                        <a class="btn btn-secondary" href="pages/auth/register.html">Register</a>
+                    </div>
+                    <div class="hero-badge bottom-badge">⚡ Secure • Intelligent • Real-time</div>
+                    <div class="stats-strip">
+                        <div class="stat-pill"><strong>120+</strong><span>Hospitals</span></div>
+                        <div class="stat-pill"><strong>500+</strong><span>Doctors</span></div>
+                        <div class="stat-pill"><strong>8k+</strong><span>Patients</span></div>
+                        <div class="stat-pill"><strong>24/7</strong><span>AI alerts</span></div>
+                    </div>
+                </div>
+                <div class="hero-card">
+                    <h3>Live facility command center</h3>
+                    <div id="welcome-banner" class="welcome-banner"></div>
+                    <div class="stat-grid">
+                        <div class="mini-card">
+                            <strong>98%</strong>
+                            <span>Stock accuracy</span>
+                        </div>
+                        <div class="mini-card">
+                            <strong>24/7</strong>
+                            <span>AI analytics</span>
+                        </div>
+                        <div class="mini-card">
+                            <strong>16</strong>
+                            <span>Available beds</span>
+                        </div>
+                        <div class="mini-card">
+                            <strong>92%</strong>
+                            <span>Attendance rate</span>
+                        </div>
+                    </div>
+                    <div class="tiny-note">Powered by smart predictions, instant alerts, and role-based access.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="features section">
+            <div class="container">
+                <div class="section-heading">
+                    <p class="eyebrow">Core modules</p>
+                    <h2>Everything required to run a smarter healthcare center</h2>
+                </div>
+                <div id="module-grid" class="card-grid"></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container">
+                <div class="section-heading">
+                    <p class="eyebrow">Built for every role</p>
+                    <h2>One intelligent system for admins, doctors, patients, and pharmacists</h2>
+                </div>
+                <div id="role-grid" class="role-grid"></div>
+            </div>
+        </section>
+
+        <section class="section alt-bg">
+            <div class="container">
+                <div class="section-heading">
+                    <p class="eyebrow">AI-powered intelligence</p>
+                    <h2>Predict shortages, rush hours, bed demand, and attendance patterns before they happen</h2>
+                </div>
+                <div id="feature-grid" class="feature-grid"></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container two-column">
+                <div>
+                    <p class="eyebrow">Emergency & notifications</p>
+                    <h2>Rapid response when every minute matters</h2>
+                    <ul class="check-list">
+                        <li>SOS and ambulance request workflow for patients</li>
+                        <li>Live emergency status and hospital notifications</li>
+                        <li>Appointment reminders, low-stock alerts, and doctor absence notifications</li>
+                        <li>Search across hospitals, doctors, medicines, and patients</li>
+                    </ul>
+                </div>
+                <div class="panel">
+                    <h3>Live response flow</h3>
+                    <div class="search-box">
+                        <input id="quick-search" type="text" placeholder="Search hospitals, doctors, medicines..." />
+                    </div>
+                    <div id="search-results" class="search-results"></div>
+                    <div id="feed-list" class="notification-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section alt-bg">
+            <div class="container">
+                <div class="section-heading">
+                    <p class="eyebrow">Secure & scalable architecture</p>
+                    <h2>Built with modern authentication, cloud data, and reporting in mind</h2>
+                </div>
+                <div class="system-grid">
+                    <article class="card">
+                        <h3>Authentication</h3>
+                        <ul class="check-list">
+                            <li>Email/password login</li>
+                            <li>Google sign-in support</li>
+                            <li>Firebase-authenticated user roles</li>
+                        </ul>
+                    </article>
+                    <article class="card">
+                        <h3>Data layer</h3>
+                        <ul class="check-list">
+                            <li>Users, hospitals, doctors, patients, appointments</li>
+                            <li>Medicines, beds, attendance, notifications</li>
+                            <li>Ambulance requests and real-time updates</li>
+                        </ul>
+                    </article>
+                    <article class="card">
+                        <h3>Reports & export</h3>
+                        <ul class="check-list">
+                            <li>Daily, weekly, and monthly reports</li>
+                            <li>PDF and Excel export support</li>
+                            <li>Actionable insights for decision-makers</li>
+                        </ul>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-row">
+            <p>© <span id="year"></span> Smart Health. Built for better care delivery.</p>
+            <a href="pages/contact.html">Contact us</a>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
