@@ -1,0 +1,18 @@
+# Python Virtual Environment
+.venv/
+__pycache__/
+
+# Code Editors Settings
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Local application logs and uploads
+/logs/*.log
+/uploads/profile_photos/user_*
+/uploads/gallery/gallery_*
+/data/users.json

@@ -1,0 +1,3 @@
+# Deny all public HTTP requests to logs directory
+Order deny,allow
+Deny from all
