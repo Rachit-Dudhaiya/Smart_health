@@ -206,6 +206,38 @@ a {
     border-radius: var(--radius-full);
 }
 
+/* Specificity overrides for buttons inside navigation */
+.site-nav a.btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius-full);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.site-nav a.btn-primary {
+    color: #ffffff !important;
+}
+
+.site-nav a.btn-primary:hover {
+    color: #ffffff !important;
+    background-color: var(--color-primary-hover);
+}
+
+.site-nav a.btn-secondary {
+    color: var(--color-text-main) !important;
+    border: 1px solid var(--color-border);
+}
+
+.site-nav a.btn-secondary:hover {
+    color: var(--color-primary) !important;
+    background-color: var(--bg-primary);
+}
+
+.site-nav a.btn::after {
+    display: none !important; /* Prevent active indicator bar on buttons */
+}
+
 .menu-toggle {
     display: none;
     background: none;
