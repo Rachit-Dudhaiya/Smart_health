@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doctor Portal | Smart Health</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../assets/css/styles.css" />
+</head>
+<body data-path-prefix="../../" data-restricted-roles="doctor,admin">
+    
+    <div class="container" style="padding: 2rem 0;">
+        <div class="dashboard-grid">
+            
+            <!-- Sidebar Clocking Module -->
+            <aside class="dashboard-sidebar">
+                <h4 style="margin-bottom: 1.5rem;">Clock Terminal</h4>
+                
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <div style="font-size: 3rem; margin-bottom: 0.5rem;">🩺</div>
+                    <h3 id="doctor-portal-name">Dr. Loading...</h3>
+                    <p class="badge badge-success" style="margin-top: 0.5rem;">On Call</p>
+                </div>
+                
+                <!-- Clock form block -->
+                <div class="card" style="padding: 1.5rem; text-align: center; background-color: var(--bg-primary);">
+                    <h4>Shift Roster Status</h4>
+                    <div style="margin: 1rem 0;" id="roster-status-container">
+                        <!-- Injected dynamically -->
+                    </div>
+                    
+                    <div id="roster-btn-container">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- Main Content Area -->
+            <main class="dashboard-main">
+                
+                <!-- Active Consultation Box -->
+                <div id="active-consultation-container">
+                    <!-- Injected dynamically when a checkup is running -->
+                </div>
+                
+                <!-- Out-Patient Waiting Queue -->
+                <section class="card" style="padding: 2rem; margin-bottom: 2rem;">
+                    <h3 id="queue-header">Out-Patient Waiting Queue (0 patients)</h3>
+                    
+                    <div class="table-wrap" style="margin-top: 1rem;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Patient Name</th>
+                                    <th>Email</th>
+                                    <th>Joined Queue At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="waiting-queue-tbody">
+                                <!-- Injected dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                
+                <!-- Completed Checkups History -->
+                <section class="card" style="padding: 2rem;">
+                    <h3>Recent Completed Checkups</h3>
+                    <div class="table-wrap" style="margin-top: 1rem;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Checkup Time</th>
+                                    <th>Wait Duration</th>
+                                    <th>Diagnosis Summary</th>
+                                </tr>
+                            </thead>
+                            <tbody id="completed-queue-tbody">
+                                <!-- Injected dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                
+            </main>
+            
+        </div>
+    </div>
+
+    <!-- Site Core Client Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../../assets/js/db.js"></script>
+    <script src="../../assets/js/layout.js"></script>
+    
+    <script>
+        let currentDoc = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            currentDoc = db.getCurrentUser();
+            if (!currentDoc) return;
+            
+            document.getElementById('doctor-portal-name').textContent = currentDoc.name;
+            
+            renderClockTerminal();
+            renderQueues();
+        });
+        
+        // --- 1. CLOCK TERMINAL ---
+        function renderClockTerminal() {
+            const attendance = db.getDoctorAttendance();
+            const todayStr = new Date().toISOString().split('T')[0];
+            const record = attendance.find(a => a.doctor_id === currentDoc.id && a.record_date === todayStr);
+            
+            const statusContainer = document.getElementById('roster-status-container');
+            const btnContainer = document.getElementById('roster-btn-container');
+            
+            const formatTime = (timeStr) => {
+                if (!timeStr) return '--:--';
+                const parts = timeStr.split(':');
+                let hrs = parseInt(parts[0]);
+                const mins = parts[1];
+                const ampm = hrs >= 12 ? 'PM' : 'AM';
+                hrs = hrs % 12;
+                hrs = hrs ? hrs : 12;
+                return `${hrs.toString().padStart(2, '0')}:${mins} ${ampm}`;
+            };
+            
+            if (!record) {
+                statusContainer.innerHTML = `<p class="badge badge-danger">Not Clocked In</p>`;
+                btnContainer.innerHTML = `<button class="btn btn-primary btn-full" onclick="clockIn()">⏰ Check In Shift</button>`;
+            } else if (!record.check_out) {
+                statusContainer.innerHTML = `<p class="badge badge-success">Clocked In at ${formatTime(record.check_in)}</p>`;
+                btnContainer.innerHTML = `<button class="btn btn-danger btn-full" onclick="clockOut()">⏰ Check Out Shift</button>`;
+            } else {
+                statusContainer.innerHTML = `<p class="badge badge-info">Shift Completed (In: ${formatTime(record.check_in)} | Out: ${formatTime(record.check_out)})</p>`;
+                btnContainer.innerHTML = `<button class="btn btn-secondary btn-full" disabled>Shift Ended</button>`;
+            }
+        }
+        
+        window.clockIn = function() {
+            const now = new Date();
+            const curTime = now.toTimeString().split(' ')[0].substring(0, 5); // HH:MM
+            
+            // Lateness check: > 09:15 AM
+            let status = 'present';
+            const boundary = new Date();
+            boundary.setHours(9, 15, 0, 0);
+            if (now > boundary) {
+                status = 'late';
+            }
+            
+            db.markAttendance(currentDoc.id, status, curTime);
+            showToast(`You checked in at ${formatTimeStr(curTime)} (${status}).`, 'success');
+            renderClockTerminal();
+        };
+        
+        window.clockOut = function() {
+            const now = new Date();
+            const curTime = now.toTimeString().split(' ')[0].substring(0, 5); // HH:MM
+            
+            db.markAttendance(currentDoc.id, 'present', null, curTime);
+            showToast(`You checked out at ${formatTimeStr(curTime)}.`, 'success');
+            renderClockTerminal();
+        };
+        
+        function formatTimeStr(timeStr) {
+            if (!timeStr) return '--:--';
+            const parts = timeStr.split(':');
+            let hrs = parseInt(parts[0]);
+            const mins = parts[1];
+            const ampm = hrs >= 12 ? 'PM' : 'AM';
+            hrs = hrs % 12;
+            hrs = hrs ? hrs : 12;
+            return `${hrs.toString().padStart(2, '0')}:${mins} ${ampm}`;
+        }
+        
+        // --- 2. QUEUES AND CONSULTATIONS ---
+        function renderQueues() {
+            const flow = db.getPatientFlow();
+            const users = db.getUsers();
+            
+            const getUserDetails = (uid) => {
+                const u = users.find(user => user.id === uid);
+                return u ? { name: u.name, email: u.email } : { name: 'Unknown', email: '--' };
+            };
+            
+            // 1. Waiting Queue
+            const waiting = flow.filter(f => f.doctor_id === currentDoc.id && f.status === 'waiting');
+            document.getElementById('queue-header').textContent = `Out-Patient Waiting Queue (${waiting.length} patients)`;
+            
+            const waitingTbody = document.getElementById('waiting-queue-tbody');
+            const activeConsult = flow.find(f => f.doctor_id === currentDoc.id && f.status === 'in-consultation');
+            
+            if (waiting.length > 0) {
+                waitingTbody.innerHTML = waiting.map(row => {
+                    const patient = getUserDetails(row.patient_id);
+                    const dt = new Date(row.queue_time).toLocaleString();
+                    const actionBtn = activeConsult
+                        ? `<button class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" disabled>Wait Active</button>`
+                        : `<button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="startConsult(${row.id})">Start Checkup</button>`;
+                    
+                    return `
+                        <tr>
+                            <td style="font-weight: 700;">${patient.name}</td>
+                            <td>${patient.email}</td>
+                            <td>${dt}</td>
+                            <td>${actionBtn}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                waitingTbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="auth-subtitle" style="text-align: center; padding: 2rem;">No patients waiting in queue currently.</td>
+                    </tr>
+                `;
+            }
+            
+            // 2. Active Consultation Container
+            const activeContainer = document.getElementById('active-consultation-container');
+            if (activeConsult) {
+                const patient = getUserDetails(activeConsult.patient_id);
+                const dt = new Date(activeConsult.queue_time).toLocaleString();
+                activeContainer.innerHTML = `
+                    <section class="card" style="border-color: var(--color-primary); border-width: 2px; padding: 2.5rem; margin-bottom: 2rem;">
+                        <div class="badge badge-success" style="margin-bottom: 0.8rem;">IN CONSULTATION</div>
+                        <h2>Active Patient: ${patient.name}</h2>
+                        <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Email: ${patient.email} | Queue Entry: ${dt}</p>
+                        
+                        <form id="active-consult-form" class="auth-form">
+                            <label>
+                                Diagnosis Notes & Prescriptions (Medicines to dispense)
+                                <textarea id="consult-notes" rows="6" placeholder="e.g. Diagnosed with seasonal flu. Prescribed: Paracetamol 650mg twice daily for 3 days. Take bed rest." required></textarea>
+                            </label>
+                            
+                            <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Complete Consultation & Upload Notes</button>
+                        </form>
+                    </section>
+                `;
+                
+                document.getElementById('active-consult-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const notes = document.getElementById('consult-notes').value.trim();
+                    if (!notes) {
+                        showToast('Diagnosis notes are required.', 'error');
+                        return;
+                    }
+                    completeConsult(activeConsult.id, notes);
+                });
+            } else {
+                activeContainer.innerHTML = '';
+            }
+            
+            // 3. Completed Consultations today
+            const completed = flow.filter(f => f.doctor_id === currentDoc.id && f.status === 'completed');
+            const completedTbody = document.getElementById('completed-queue-tbody');
+            
+            if (completed.length > 0) {
+                // Show latest 5 completed checkups
+                const latestCompleted = completed.slice(-5).reverse();
+                completedTbody.innerHTML = latestCompleted.map(c => {
+                    const patient = getUserDetails(c.patient_id);
+                    const dt = new Date(c.queue_time).toLocaleString();
+                    return `
+                        <tr>
+                            <td style="font-weight: 700;">${patient.name}</td>
+                            <td>${dt}</td>
+                            <td><span class="badge badge-info">${c.wait_time_minutes} min</span></td>
+                            <td style="font-size: 0.85rem; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${c.diagnosis_notes}">${c.diagnosis_notes}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                completedTbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="auth-subtitle" style="text-align: center; padding: 2rem;">No checkups completed today.</td>
+                    </tr>
+                `;
+            }
+        }
+        
+        window.startConsult = function(flowId) {
+            const flow = db.getPatientFlow();
+            const idx = flow.findIndex(f => f.id === flowId);
+            if (idx !== -1) {
+                const qTime = new Date(flow[idx].queue_time);
+                const waitSec = Math.floor((new Date() - qTime) / 1000);
+                const waitMin = Math.round(waitSec / 60);
+                
+                db.updateQueueStatus(flowId, 'in-consultation');
+                
+                // Update wait time minutes
+                const updatedFlow = db.getPatientFlow();
+                const uIdx = updatedFlow.findIndex(f => f.id === flowId);
+                if (uIdx !== -1) {
+                    updatedFlow[uIdx].wait_time_minutes = waitMin;
+                    db.savePatientFlow(updatedFlow);
+                }
+                
+                db.logActivity(`Started consultation for Flow ID: ${flowId}`, currentDoc.id);
+                showToast('Consultation session started.', 'success');
+                renderQueues();
+            }
+        };
+        
+        window.completeConsult = function(flowId, notes) {
+            const res = db.updateQueueStatus(flowId, 'completed', notes);
+            if (res.success) {
+                // Notify pharmacists to dispense medicines
+                const pharmacists = db.getUsers().filter(u => u.role === 'pharmacist');
+                const flow = db.getPatientFlow();
+                const record = flow.find(f => f.id === flowId);
+                const patient = db.getUsers().find(u => u.id === record.patient_id);
+                const patientName = patient ? patient.name : 'Unknown Patient';
+                
+                pharmacists.forEach(p => {
+                    db.addNotification(p.id, `💊 Prescriptions uploaded for Patient: ${patientName}. Please prepare dispensary stock.`);
+                });
+                
+                db.logActivity(`Completed consultation flow ID: ${flowId}`, currentDoc.id);
+                showToast('Consultation marked completed. Alerts sent.', 'success');
+                renderQueues();
+            } else {
+                showToast('Failed to complete consultation.', 'error');
+            }
+        };
+    </script>
+</body>
+</html>

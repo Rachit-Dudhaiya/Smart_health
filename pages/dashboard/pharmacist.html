@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pharmacist Hub | Smart Health</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../assets/css/styles.css" />
+</head>
+<body data-path-prefix="../../" data-restricted-roles="pharmacist,admin">
+    
+    <div class="container" style="padding: 2rem 0;">
+        <div class="dashboard-grid">
+            
+            <!-- Sidebar -->
+            <aside class="dashboard-sidebar">
+                <h4 style="margin-bottom: 1.5rem;">Inventory Alerts</h4>
+                
+                <div class="card" style="padding: 1.5rem; background-color: var(--bg-primary);">
+                    <h4>Low & Expired Drugs</h4>
+                    <div id="critical-meds-container" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.8rem;">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- Main Area -->
+            <main class="dashboard-main">
+                
+                <!-- Add Medicine Card -->
+                <section class="card" style="padding: 2rem; margin-bottom: 2rem;">
+                    <h3>Add New Medicine / Drug Item</h3>
+                    <form id="add-medicine-form" class="auth-form" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 1rem; align-items: end; margin-top: 1.2rem;">
+                        <label>
+                            Drug / Medicine Name
+                            <input type="text" id="add-med-name" placeholder="e.g. Paracetamol 500mg" required />
+                        </label>
+                        
+                        <label>
+                            Initial Stock
+                            <input type="number" id="add-med-stock" value="0" min="0" required />
+                        </label>
+                        
+                        <label>
+                            Alert Threshold
+                            <input type="number" id="add-med-threshold" value="10" min="0" required />
+                        </label>
+                        
+                        <label>
+                            Expiry Date
+                            <input type="date" id="add-med-expiry" required />
+                        </label>
+                        
+                        <button type="submit" class="btn btn-primary" style="grid-column: span 4; width: 100%;">Add to Inventory Database</button>
+                    </form>
+                </section>
+                
+                <!-- List Inventory -->
+                <section class="card" style="padding: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                        <h3>Dispensation & Stock Table</h3>
+                        
+                        <div class="search-bar-wrap" style="margin: 0; display: flex; gap: 0.5rem;">
+                            <input type="text" id="search-input" placeholder="Search medicine..." style="padding: 0.5rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: var(--bg-surface); color: var(--color-text-main);" />
+                            <button id="search-btn" class="btn btn-primary" style="padding: 0.5rem 1rem;">Search</button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Medicine Name</th>
+                                    <th>Stock Left</th>
+                                    <th>Warning Limit</th>
+                                    <th>Expiry Date</th>
+                                    <th>State</th>
+                                    <th>Adjust Stock</th>
+                                    <th>Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-tbody">
+                                <!-- Injected dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div id="pagination-container" style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 0.5rem;">
+                        <!-- Injected dynamically -->
+                    </div>
+                </section>
+                
+            </main>
+            
+        </div>
+    </div>
+
+    <!-- Site Core Client Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../../assets/js/db.js"></script>
+    <script src="../../assets/js/layout.js"></script>
+    
+    <script>
+        const itemsPerPage = 10;
+        let currentPage = 1;
+        let searchKeyword = '';
+        let pharmacistMeds = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('add-medicine-form');
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('add-med-name').value.trim();
+                const stock = parseInt(document.getElementById('add-med-stock').value);
+                const threshold = parseInt(document.getElementById('add-med-threshold').value);
+                const expiry = document.getElementById('add-med-expiry').value;
+                
+                if (!name || !expiry) {
+                    showToast('Name and Expiry date are required.', 'error');
+                    return;
+                }
+                
+                const res = db.addMedicine(name, stock, threshold, expiry);
+                if (res.success) {
+                    showToast(`Medicine '${name}' added successfully.`, 'success');
+                    form.reset();
+                    document.getElementById('add-med-stock').value = 0;
+                    document.getElementById('add-med-threshold').value = 10;
+                    loadData();
+                } else {
+                    showToast(res.message || 'Failed to add medicine.', 'error');
+                }
+            });
+            
+            // Search
+            const searchInput = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn');
+            
+            searchBtn.addEventListener('click', () => {
+                searchKeyword = searchInput.value.trim().toLowerCase();
+                currentPage = 1;
+                loadData();
+            });
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    searchKeyword = searchInput.value.trim().toLowerCase();
+                    currentPage = 1;
+                    loadData();
+                }
+            });
+            
+            // Initial load
+            loadData();
+        });
+        
+        function loadData() {
+            const medicines = db.getMedicines();
+            
+            // 1. Sidebar critical warnings
+            const critical = medicines.filter(m => m.status === 'low' || m.status === 'critical' || m.status === 'expired');
+            // Sort by state expired first, then low/critical
+            critical.sort((a, b) => {
+                if (a.status === 'expired' && b.status !== 'expired') return -1;
+                if (a.status !== 'expired' && b.status === 'expired') return 1;
+                return a.name.localeCompare(b.name);
+            });
+            
+            const sidebarContainer = document.getElementById('critical-meds-container');
+            if (critical.length > 0) {
+                sidebarContainer.innerHTML = critical.map(med => {
+                    let badgeClass = med.status === 'expired' ? 'badge-danger' : 'badge-warning';
+                    return `
+                        <div style="font-size: 0.8rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">
+                            <strong>${med.name}</strong><br/>
+                            <span>Stock: ${med.stock}</span> | 
+                            <span class="badge ${badgeClass}" style="font-size:0.6rem; padding: 1px 4px;">${med.status.toUpperCase()}</span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                sidebarContainer.innerHTML = '<p class="auth-subtitle" style="font-size: 0.8rem;">All medicines are in normal stock levels.</p>';
+            }
+            
+            // 2. Table filters
+            let filtered = medicines;
+            if (searchKeyword) {
+                filtered = filtered.filter(m => m.name.toLowerCase().includes(searchKeyword));
+            }
+            filtered.sort((a, b) => a.name.localeCompare(b.name));
+            pharmacistMeds = filtered;
+            
+            renderTable();
+        }
+        
+        function renderTable() {
+            const tbody = document.getElementById('inventory-tbody');
+            const pagContainer = document.getElementById('pagination-container');
+            
+            if (pharmacistMeds.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="auth-subtitle" style="text-align: center; padding: 2rem;">No medicines matched in inventory table.</td>
+                    </tr>
+                `;
+                pagContainer.innerHTML = '';
+                return;
+            }
+            
+            const totalPages = Math.ceil(pharmacistMeds.length / itemsPerPage);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+            
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, pharmacistMeds.length);
+            const pageItems = pharmacistMeds.slice(startIndex, endIndex);
+            
+            tbody.innerHTML = pageItems.map(med => {
+                const expDateStr = new Date(med.expiry_date).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                
+                let badgeClass = 'badge-success';
+                if (med.status === 'expired') badgeClass = 'badge-danger';
+                else if (med.status === 'low' || med.status === 'critical') badgeClass = 'badge-warning';
+                
+                return `
+                    <tr>
+                        <td style="font-weight: 700;">${med.name}</td>
+                        <td style="font-size: 1.1rem;"><strong>${med.stock}</strong> units</td>
+                        <td>${med.threshold}</td>
+                        <td>${expDateStr}</td>
+                        <td>
+                            <span class="badge ${badgeClass}">
+                                ${med.status.charAt(0).toUpperCase() + med.status.slice(1)}
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 0.4rem;">
+                                <button class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" title="Add 10" onclick="adjustStock(${med.id}, 10)">+10</button>
+                                <button class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" title="Deduct 10" onclick="adjustStock(${med.id}, -10)" ${med.stock <= 0 ? 'disabled' : ''}>-10</button>
+                            </div>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="deleteMed(${med.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            // Pagination
+            if (totalPages > 1) {
+                let pagHtml = '';
+                for (let i = 1; i <= totalPages; i++) {
+                    pagHtml += `<button class="btn ${i === currentPage ? 'btn-primary' : 'btn-secondary'}" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="changePage(${i})">${i}</button>`;
+                }
+                pagContainer.innerHTML = pagHtml;
+            } else {
+                pagContainer.innerHTML = '';
+            }
+        }
+        
+        window.changePage = function(pageNumber) {
+            currentPage = pageNumber;
+            renderTable();
+        };
+        
+        window.adjustStock = function(medId, delta) {
+            const medicines = db.getMedicines();
+            const med = medicines.find(m => m.id === medId);
+            if (med) {
+                const newStock = Math.max(0, med.stock + delta);
+                const res = db.updateMedicine(medId, newStock, med.threshold, med.expiry_date);
+                if (res.success) {
+                    showToast(`Stock adjusted successfully.`, 'success');
+                    loadData();
+                } else {
+                    showToast('Failed to adjust stock.', 'error');
+                }
+            }
+        };
+        
+        window.deleteMed = function(medId) {
+            if (confirm('Remove this drug entry?')) {
+                const res = db.deleteMedicine(medId);
+                if (res.success) {
+                    showToast('Medicine removed successfully.', 'success');
+                    loadData();
+                } else {
+                    showToast(res.message || 'Failed to delete medicine.', 'error');
+                }
+            }
+        };
+    </script>
+</body>
+</html>

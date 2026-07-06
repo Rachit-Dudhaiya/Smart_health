@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Help & FAQ | Smart Health</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body data-path-prefix="../">
+    
+    <div class="container" style="padding: 4rem 0; max-width: 800px;">
+        <div class="page-header" style="text-align: center; margin-bottom: 3.5rem;">
+            <p class="eyebrow">Support Center</p>
+            <h1>Frequently Asked Questions</h1>
+            <p class="auth-subtitle">Get instant answers regarding operations, accounts, and clinical features.</p>
+        </div>
+        
+        <div class="faq-list">
+            <div class="faq-item">
+                <div class="faq-question">
+                    What is Smart Health and who is it built for?
+                    <span>➕</span>
+                </div>
+                <div class="faq-answer">
+                    Smart Health is a dynamic healthcare administrative tool. It is built to coordinate operations inside Primary Health Centers (PHC) and Community Health Centers (CHC). It empowers facility admins, doctors, pharmacists, and visiting patients to access real-time operational data.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    How does the Medicine Stock threshold alert work?
+                    <span>➕</span>
+                </div>
+                <div class="faq-answer">
+                    Each medicine is registered with a minimum threshold limit. When stock falls below this number, the database flag switches status to "low" or "critical". Pharmacists are immediately warned on their dashboard to replenish the items.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    Can a patient request emergency support through the system?
+                    <span>➕</span>
+                </div>
+                <div class="faq-answer">
+                    Yes. Registered patients can log in to their dashboard and trigger an SOS ambulance request. The system marks a bed as pending and sends instant alerts to the center admin and on-duty doctors.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    How is data security handled inside the platform?
+                    <span>➕</span>
+                </div>
+                <div class="faq-answer">
+                    We follow strict secure coding practices: SQL injections are prevented using PDO prepared statements; inputs are escaped before rendering using special filters to prevent XSS; POST operations require a CSRF token; files are validated for size and MIME before storage; and sessions time out automatically after 30 minutes of inactivity.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    Can doctors check their attendance reports?
+                    <span>➕</span>
+                </div>
+                <div class="faq-answer">
+                    Yes. Doctors can check-in and check-out on their private dashboard. The logs automatically register timestamps in our database, which are paginated and searchable by the administrator.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" style="margin-top: 4rem; padding: 2.5rem; text-align: center;">
+            <h3>Still have questions?</h3>
+            <p style="margin: 0.5rem 0 1.5rem; color: var(--color-text-muted);">
+                If you could not find the solution you were looking for, please submit a query via our help desk.
+            </p>
+            <a class="btn btn-primary" href="contact.html">Contact Support</a>
+        </div>
+    </div>
+
+    <!-- Site Core Client Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../assets/js/db.js"></script>
+    <script src="../assets/js/layout.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Setup interactive accordion behavior
+            const faqItems = document.querySelectorAll('.faq-item');
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
+                question.addEventListener('click', () => {
+                    // Close others
+                    faqItems.forEach(i => {
+                        if (i !== item) {
+                            i.classList.remove('active');
+                            i.querySelector('.faq-question span').textContent = '➕';
+                        }
+                    });
+                    
+                    const isActive = item.classList.toggle('active');
+                    question.querySelector('span').textContent = isActive ? '➖' : '➕';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

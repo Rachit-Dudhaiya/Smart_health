@@ -1,52 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Contact | Smart Health</title>
-    <link rel="stylesheet" href="../styles.css" />
+    <title>Contact Support | Smart Health</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../assets/css/styles.css" />
 </head>
-
-<body data-page="contact">
-    <header class="site-header">
-        <div class="container nav-row">
-            <a href="../index.html" class="brand">
-                <span class="brand-icon">🏥</span>
-                <span>Smart Health</span>
-            </a>
-            <button class="menu-toggle" aria-label="Toggle menu">
-                <span></span><span></span><span></span>
-            </button>
-            <nav class="site-nav">
-                <a href="../index.html">Home</a>
-                <a href="medicine-stock.html">Medicine Stock</a>
-                <a href="patient-flow.html">Patient Flow</a>
-                <a href="bed-availability.html">Bed Availability</a>
-                <a href="doctor-attendance.html">Doctor Attendance</a>
-                <a href="contact.html" class="active">Contact</a>
-            </nav>
+<body data-path-prefix="../">
+    
+    <div class="container" style="padding: 4rem 0;">
+        <div class="page-header" style="text-align: center; margin-bottom: 3.5rem;">
+            <p class="eyebrow">Help Desk</p>
+            <h1>Get in Touch</h1>
+            <p class="auth-subtitle">Have questions or want to register a new clinical node? Submit your inquiry below.</p>
         </div>
-    </header>
-
-    <main class="page-content">
-        <div class="container">
-            <div class="page-header">
-                <p class="eyebrow">Contact</p>
-                <h1>Let’s build a smarter health center together.</h1>
+        
+        <div class="two-column" style="max-width: 900px; margin: 0 auto; align-items: start;">
+            <div class="card" style="padding: 2.5rem;">
+                <h3>Contact Information</h3>
+                <p style="margin: 1rem 0 2rem;">If you are an administrator trying to connect your CHC/PHC nodes, please mention your clinical code.</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <span style="font-size: 1.8rem;">📍</span>
+                        <div>
+                            <strong>Physical Location</strong>
+                            <p style="font-size: 0.85rem; color: var(--color-text-muted);">Smart Health HQ, Sect 62, Noida, UP, India</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <span style="font-size: 1.8rem;">📞</span>
+                        <div>
+                            <strong>Phone Support</strong>
+                            <p style="font-size: 0.85rem; color: var(--color-text-muted);">+91 98765 43210 (Mon-Sat, 9AM-6PM)</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <span style="font-size: 1.8rem;">✉️</span>
+                        <div>
+                            <strong>Electronic Mail</strong>
+                            <p style="font-size: 0.85rem; color: var(--color-text-muted);">support@smarthealth.com</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <section id="contact-grid" class="card-grid two-up"></section>
+            
+            <div class="card" style="padding: 2.5rem;">
+                <h3>Submit a Query</h3>
+                
+                <form id="contact-form" class="auth-form" style="margin-top: 1.5rem;">
+                    <label>
+                        Full Name
+                        <input type="text" id="contact-name" placeholder="e.g. Rahul Sen" required />
+                    </label>
+                    
+                    <label>
+                        Email Address
+                        <input type="email" id="contact-email" placeholder="you@example.com" required />
+                    </label>
+                    
+                    <label>
+                        Subject
+                        <input type="text" id="contact-subject" placeholder="What is this regarding?" required />
+                    </label>
+                    
+                    <label>
+                        Detailed Message
+                        <textarea id="contact-message" rows="5" placeholder="Write your question here..." required></textarea>
+                    </label>
+                    
+                    <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Submit Query</button>
+                </form>
+            </div>
         </div>
-    </main>
+    </div>
 
-    <footer class="site-footer">
-        <div class="container footer-row">
-            <p>© <span id="year"></span> Smart Health</p>
-            <a href="contact.html">Contact us</a>
-        </div>
-    </footer>
-
-    <script src="../script.js"></script>
+    <!-- Site Core Client Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../assets/js/db.js"></script>
+    <script src="../assets/js/layout.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('contact-form');
+            
+            // Pre-fill user data if logged in
+            const curUser = db.getCurrentUser();
+            if (curUser) {
+                document.getElementById('contact-name').value = curUser.name;
+                document.getElementById('contact-email').value = curUser.email;
+            }
+            
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const name = document.getElementById('contact-name').value.trim();
+                const email = document.getElementById('contact-email').value.trim();
+                const subject = document.getElementById('contact-subject').value.trim();
+                const message = document.getElementById('contact-message').value.trim();
+                
+                if (!name || !email || !subject || !message) {
+                    showToast('All fields are required.', 'error');
+                    return;
+                }
+                
+                const res = db.addFeedback(name, email, 'contact', subject, message);
+                if (res.success) {
+                    showToast('Your query has been submitted successfully.', 'success');
+                    form.reset();
+                    // Keep user details filled
+                    if (curUser) {
+                        document.getElementById('contact-name').value = curUser.name;
+                        document.getElementById('contact-email').value = curUser.email;
+                    }
+                } else {
+                    showToast('Failed to submit query.', 'error');
+                }
+            });
+        });
+    </script>
 </body>
-
 </html>

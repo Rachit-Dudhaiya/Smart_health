@@ -1,73 +1,173 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Doctor Attendance | Smart Health</title>
-    <link rel="stylesheet" href="../styles.css" />
+    <title>Doctor Roster & Attendance | Smart Health</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../assets/css/styles.css" />
 </head>
-
-<body data-page="doctor">
-    <header class="site-header">
-        <div class="container nav-row">
-            <a href="../index.html" class="brand">
-                <span class="brand-icon">🏥</span>
-                <span>Smart Health</span>
-            </a>
-            <button class="menu-toggle" aria-label="Toggle menu">
-                <span></span><span></span><span></span>
-            </button>
-            <nav class="site-nav">
-                <a href="../index.html">Home</a>
-                <a href="medicine-stock.html">Medicine Stock</a>
-                <a href="patient-flow.html">Patient Flow</a>
-                <a href="bed-availability.html">Bed Availability</a>
-                <a href="doctor-attendance.html" class="active">Doctor Attendance</a>
-                <a href="contact.html">Contact</a>
-            </nav>
+<body data-path-prefix="../">
+    
+    <div class="container" style="padding: 4rem 0;">
+        <div class="page-header" style="text-align: center; margin-bottom: 3.5rem;">
+            <p class="eyebrow">Roster Tracking</p>
+            <h1>Doctor Shift Attendance</h1>
+            <p class="auth-subtitle">Verify which clinical physicians are currently checked-in, on call, or off-duty today.</p>
         </div>
-    </header>
-
-    <main class="page-content">
-        <div class="container">
-            <div class="page-header">
-                <p class="eyebrow">Doctor attendance monitoring</p>
-                <h1>Track punctuality and daily coverage.</h1>
+        
+        <!-- Stats Row -->
+        <div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 3rem;">
+            <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main);">
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;">🩺</span>
+                <strong id="stat-total-doctors">0</strong>
+                <span style="margin-top: 0.5rem;">Total Staff Doctors</span>
             </div>
-
-            <div class="filter-group">
-                <label class="filter-label" for="doctor-range">Range</label>
-                <select id="doctor-range" class="filter-select">
-                    <option value="today">Today</option>
-                    <option value="week">Week</option>
-                    <option value="month">Month</option>
-                </select>
+            <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main); border-bottom: 4px solid var(--color-success);">
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;">🕒</span>
+                <strong id="stat-present-today">0</strong>
+                <span style="margin-top: 0.5rem;">Physicians Checked-in Today</span>
             </div>
-
-            <section id="stats-grid" class="stats-row"></section>
-
-            <section class="card-grid two-up">
-                <article class="card wide-card">
-                    <h3>Shift roster</h3>
-                    <div id="doctor-table" class="table-wrap"></div>
-                </article>
-                <article class="card">
-                    <h3>Coverage notes</h3>
-                    <div id="doctor-notes" class="data-list"></div>
-                </article>
-            </section>
+            <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main); border-bottom: 4px solid var(--color-danger);">
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;">💤</span>
+                <strong id="stat-absent-today">0</strong>
+                <span style="margin-top: 0.5rem;">Off-Duty / Absent Today</span>
+            </div>
         </div>
-    </main>
-
-    <footer class="site-footer">
-        <div class="container footer-row">
-            <p>© <span id="year"></span> Smart Health</p>
-            <a href="contact.html">Contact us</a>
+        
+        <!-- Doctor list cards -->
+        <div class="card" style="padding: 2.5rem;">
+            <h3>Today's Roster Sheet</h3>
+            <div class="table-wrap" style="margin-top: 1.2rem;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Physician Name</th>
+                            <th>Email Contact</th>
+                            <th>Daily Duty State</th>
+                            <th>Arrival Clock-In</th>
+                            <th>Departure Clock-Out</th>
+                        </tr>
+                    </thead>
+                    <tbody id="roster-tbody">
+                        <!-- Injected dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="manage-clocking-container" style="margin-top: 1.5rem; text-align: right; display: none;">
+                <!-- Injected dynamically -->
+            </div>
         </div>
-    </footer>
+    </div>
 
-    <script src="../script.js"></script>
+    <!-- Site Core Client Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../assets/js/db.js"></script>
+    <script src="../assets/js/layout.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const curUser = db.getCurrentUser();
+            
+            // Show manage clock-in link for doctors and admins
+            if (curUser && (curUser.role === 'doctor' || curUser.role === 'admin')) {
+                const clockContainer = document.getElementById('manage-clocking-container');
+                let dest = curUser.role === 'admin' ? 'dashboard/admin.html' : 'dashboard/doctor.html';
+                clockContainer.innerHTML = `<a href="${dest}" class="btn btn-secondary">⏰ Manage Shift Attendance Clocking</a>`;
+                clockContainer.style.display = 'block';
+            }
+            
+            renderDoctorAttendance();
+        });
+        
+        function renderDoctorAttendance() {
+            const users = db.getUsers();
+            const attendance = db.getDoctorAttendance();
+            const todayStr = new Date().toISOString().split('T')[0];
+            
+            const doctors = users.filter(u => u.role === 'doctor');
+            const totalDoctors = doctors.length;
+            
+            // Filter attendance records for today
+            const todayAtt = attendance.filter(a => a.record_date === todayStr);
+            const presentToday = todayAtt.filter(a => a.status === 'present' || a.status === 'late').length;
+            const absentToday = Math.max(0, totalDoctors - presentToday);
+            
+            document.getElementById('stat-total-doctors').textContent = totalDoctors;
+            document.getElementById('stat-present-today').textContent = presentToday;
+            document.getElementById('stat-absent-today').textContent = absentToday;
+            
+            const tbody = document.getElementById('roster-tbody');
+            if (doctors.length > 0) {
+                // Map doctor with today's attendance record
+                const roster = doctors.map(doc => {
+                    const record = todayAtt.find(a => a.doctor_id === doc.id);
+                    return {
+                        name: doc.name,
+                        email: doc.email,
+                        profile_photo: doc.profile_photo,
+                        status: record ? record.status : 'absent',
+                        check_in: record ? record.check_in : null,
+                        check_out: record ? record.check_out : null
+                    };
+                });
+                
+                // Sort alphabetically by doctor name
+                roster.sort((a, b) => a.name.localeCompare(b.name));
+                
+                tbody.innerHTML = roster.map(doc => {
+                    let badgeClass = 'badge-danger';
+                    if (doc.status === 'present') badgeClass = 'badge-success';
+                    else if (doc.status === 'late') badgeClass = 'badge-warning';
+                    else if (doc.status === 'leave') badgeClass = 'badge-info';
+                    
+                    const formatTime = (timeStr) => {
+                        if (!timeStr) return '--:--';
+                        // Assuming timeStr is HH:MM or HH:MM:SS
+                        const parts = timeStr.split(':');
+                        let hrs = parseInt(parts[0]);
+                        const mins = parts[1];
+                        const ampm = hrs >= 12 ? 'PM' : 'AM';
+                        hrs = hrs % 12;
+                        hrs = hrs ? hrs : 12; // hour '0' should be '12'
+                        return `${hrs.toString().padStart(2, '0')}:${mins} ${ampm}`;
+                    };
+                    
+                    const avatarMarkup = doc.profile_photo 
+                        ? `<img src="${doc.profile_photo}" alt="Doctor" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;" />`
+                        : `<div style="width: 36px; height: 36px; border-radius: 50%; background-color: var(--color-primary-light); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem;">${doc.name.charAt(0).toUpperCase()}</div>`;
+                    
+                    return `
+                        <tr>
+                            <td style="font-weight: 700; display: flex; align-items: center; gap: 0.8rem;">
+                                ${avatarMarkup}
+                                <span>Dr. ${doc.name}</span>
+                            </td>
+                            <td>${doc.email}</td>
+                            <td>
+                                <span class="badge ${badgeClass}">
+                                    ${doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
+                                </span>
+                            </td>
+                            <td><strong>${formatTime(doc.check_in)}</strong></td>
+                            <td><strong>${formatTime(doc.check_out)}</strong></td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="auth-subtitle" style="text-align: center; padding: 2rem;">No active physicians registered in clinic rosters.</td>
+                    </tr>
+                `;
+            }
+        }
+    </script>
 </body>
-
 </html>

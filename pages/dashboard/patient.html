@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Patient Dashboard | Smart Health</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../assets/css/styles.css" />
+</head>
+<body data-path-prefix="../../" data-restricted-roles="patient,admin">
+    
+    <div class="container" style="padding: 2rem 0;">
+        <div class="dashboard-grid">
+            
+            <!-- Sidebar tools -->
+            <aside class="dashboard-sidebar">
+                <h4 style="margin-bottom: 1.5rem;">Emergency Tools</h4>
+                
+                <div class="card" style="padding: 1.5rem; text-align: center; border-color: var(--color-danger); background-color: #fef2f2;">
+                    <span style="font-size: 3rem;">🚑</span>
+                    <h4 style="color: var(--color-danger); margin-top: 0.5rem;">Need an Ambulance?</h4>
+                    <p style="font-size: 0.8rem; color: #7f1d1d; margin: 0.5rem 0 1.2rem;">Clicking the button below broadcasts an emergency SOS request to clinical dispatchers.</p>
+                    
+                    <button class="btn btn-danger btn-full" onclick="triggerSOS()">🚨 Trigger SOS Request</button>
+                </div>
+                
+                <div class="card" style="padding: 1.5rem; margin-top: 1.5rem; text-align: center;">
+                    <h4>Ward Bed Status</h4>
+                    <div id="bed-status-sidebar" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem; text-align: left;">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- Main Area -->
+            <main class="dashboard-main">
+                
+                <!-- Active Queue Status Card -->
+                <div id="active-queue-card-container" style="margin-bottom: 2rem;">
+                    <!-- Injected dynamically -->
+                </div>
+                
+                <!-- Joint Queue Form / Book Appointment (Hidden if already in queue) -->
+                <div id="book-consult-card" class="card" style="padding: 2.5rem; margin-bottom: 2rem; display: none;">
+                    <h3>Book Consultation / Join Queue</h3>
+                    <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Select an on-duty doctor from the list to join their live queue.</p>
+                    
+                    <form id="book-consult-form" class="auth-form">
+                        <label>
+                            Choose Physician
+                            <select id="doctor-select" required>
+                                <option value="">-- Select Doctor --</option>
+                                <!-- Injected dynamically -->
+                            </select>
+                        </label>
+                        
+                        <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Join Doctor's Queue</button>
+                    </form>
+                    
+                    <div id="no-doctors-alert" style="background-color: #fee2e2; color: #991b1b; padding: 1rem; border-radius: var(--radius-md); display: none;">
+                        ⚠️ No doctors are currently checked-in or on call. Please try again later.
+                    </div>
+                </div>
+                
+                <!-- Prescription History -->
+                <div class="card" style="padding: 2rem;">
+                    <h3>My Consultation History & Prescriptions</h3>
+                    <div class="table-wrap" style="margin-top: 1rem;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Physician</th>
+                                    <th>Date</th>
+                                    <th>Wait Time</th>
+                                    <th>Diagnosis Notes & Prescription</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-tbody">
+                                <!-- Injected dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+            </main>
+            
+        </div>
+    </div>
+
+    <!-- Site Core Client Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../../assets/js/db.js"></script>
+    <script src="../../assets/js/layout.js"></script>
+    
+    <script>
+        let curPatient = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            curPatient = db.getCurrentUser();
+            if (!curPatient) return;
+            
+            renderSidebarBeds();
+            renderPatientDashboard();
+            
+            // Handle book appointment submission
+            const form = document.getElementById('book-consult-form');
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const docId = parseInt(document.getElementById('doctor-select').value);
+                if (!docId) {
+                    showToast('Please select a doctor.', 'error');
+                    return;
+                }
+                
+                const res = db.joinQueue(curPatient.id, docId);
+                if (res.success) {
+                    showToast(res.message, 'success');
+                    renderPatientDashboard();
+                } else {
+                    showToast(res.message || 'Failed to join queue.', 'error');
+                }
+            });
+        });
+        
+        function renderSidebarBeds() {
+            const beds = db.getBeds();
+            const sidebar = document.getElementById('bed-status-sidebar');
+            sidebar.innerHTML = beds.map(bed => {
+                const free = Math.max(0, bed.total - bed.occupied);
+                return `
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>${bed.ward_type} ward:</span>
+                        <strong>${free} free beds</strong>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function renderPatientDashboard() {
+            const flow = db.getPatientFlow();
+            const users = db.getUsers();
+            
+            // Check if patient has an active checkup
+            const active = flow.find(f => f.patient_id === curPatient.id && (f.status === 'waiting' || f.status === 'in-consultation'));
+            const activeContainer = document.getElementById('active-queue-card-container');
+            const bookCard = document.getElementById('book-consult-card');
+            
+            const getUserDetails = (uid) => {
+                const u = users.find(user => user.id === uid);
+                return u ? u.name : 'Doctor';
+            };
+            
+            if (active) {
+                bookCard.style.display = 'none';
+                
+                const docName = getUserDetails(active.doctor_id);
+                const dt = new Date(active.queue_time).toLocaleString();
+                
+                let badgeText = 'WAITING IN QUEUE';
+                let statusMarkup = `
+                    <div style="background-color: var(--color-primary-light); padding: 1rem; border-radius: var(--radius-md);">
+                        ⏳ <strong>Current Status</strong>: Please wait near the Out-Patient block. Dr. ${docName} has been notified and will call your name soon.
+                    </div>
+                `;
+                
+                if (active.status === 'in-consultation') {
+                    badgeText = 'IN CONSULTATION ROOM';
+                    statusMarkup = `
+                        <div style="background-color: #dbeafe; color: #1e40af; padding: 1rem; border-radius: var(--radius-md);">
+                            🩺 <strong>Current Status</strong>: You are currently inside the consultation room. Physician is diagnosing your symptoms.
+                        </div>
+                    `;
+                }
+                
+                activeContainer.innerHTML = `
+                    <div class="card" style="border-left: 6px solid var(--color-primary); padding: 2.5rem;">
+                        <div class="badge badge-info" style="margin-bottom: 0.8rem;">${badgeText}</div>
+                        <h2>Active Checkup: Dr. ${docName}</h2>
+                        <p style="margin: 0.5rem 0 1rem; color: var(--color-text-muted);">Joined Queue: ${dt}</p>
+                        ${statusMarkup}
+                    </div>
+                `;
+            } else {
+                activeContainer.innerHTML = '';
+                
+                // Show doctors select dropdown
+                const doctors = users.filter(u => u.role === 'doctor' && u.status === 'active');
+                const docSelect = document.getElementById('doctor-select');
+                const alertNoDocs = document.getElementById('no-doctors-alert');
+                
+                if (doctors.length > 0) {
+                    docSelect.style.display = 'block';
+                    alertNoDocs.style.display = 'none';
+                    docSelect.innerHTML = '<option value="">-- Select Doctor --</option>' + doctors.map(d => {
+                        return `<option value="${d.id}">Dr. ${d.name} (On Call)</option>`;
+                    }).join('');
+                    form.style.display = 'block';
+                } else {
+                    docSelect.style.display = 'none';
+                    alertNoDocs.style.display = 'block';
+                    form.style.display = 'none';
+                }
+                
+                bookCard.style.display = 'block';
+            }
+            
+            // Render consultation history
+            const history = flow.filter(f => f.patient_id === curPatient.id && f.status === 'completed');
+            const historyTbody = document.getElementById('history-tbody');
+            
+            if (history.length > 0) {
+                // Show history reverse sorted
+                const historySorted = history.slice().reverse();
+                historyTbody.innerHTML = historySorted.map(row => {
+                    const docName = getUserDetails(row.doctor_id);
+                    const dt = new Date(row.queue_time).toLocaleString();
+                    return `
+                        <tr>
+                            <td style="font-weight: 700;">Dr. ${docName}</td>
+                            <td>${dt}</td>
+                            <td><span class="badge badge-info">${row.wait_time_minutes} min</span></td>
+                            <td style="font-size: 0.85rem; white-space: pre-wrap; font-family: monospace; background-color: var(--bg-primary); padding: 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">${row.diagnosis_notes}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                historyTbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="auth-subtitle" style="text-align: center; padding: 2rem;">No previous consultations recorded.</td>
+                    </tr>
+                `;
+            }
+        }
+        
+        window.triggerSOS = function() {
+            if (confirm('WARNING: Are you sure you want to trigger an Ambulance SOS Emergency? False requests are logged.')) {
+                // Send notifications to all admins and doctors
+                const staff = db.getUsers().filter(u => u.role === 'admin' || u.role === 'doctor');
+                const msg = `🚨 EMERGENCY: Patient ${curPatient.name} raised an Ambulance SOS Request! Ward check initiated.`;
+                
+                staff.forEach(s => {
+                    db.addNotification(s.id, msg);
+                });
+                
+                db.logActivity('Triggered Emergency SOS Ambulance request', curPatient.id);
+                showToast('🚨 Emergency SOS ambulance requested successfully. Wards and ambulance staff have been notified.', 'success');
+            }
+        };
+    </script>
+</body>
+</html>

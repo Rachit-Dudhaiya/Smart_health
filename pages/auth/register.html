@@ -1,73 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Register | Smart Health</title>
-    <meta name="description" content="Create a Smart Health account." />
-    <link rel="stylesheet" href="../../styles.css" />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../assets/css/styles.css" />
 </head>
-
-<body data-page="register">
-    <header class="site-header">
-        <div class="container nav-row">
-            <a href="../../index.html" class="brand">
-                <span class="brand-icon">🏥</span>
-                <span>Smart Health</span>
-            </a>
-            <nav class="site-nav">
-                <a href="../../index.html">Home</a>
-                <a href="login.html">Login</a>
-                <a href="../medicine-stock.html">Medicine Stock</a>
-            </nav>
+<body data-path-prefix="../../">
+    
+    <div class="container auth-shell">
+        <div class="auth-card" style="width: min(520px, 100%);">
+            <p class="eyebrow">Create Account</p>
+            <h1>Join Smart Health</h1>
+            <p class="auth-subtitle">Get started with secure database and analytics tracking.</p>
+            
+            <div id="register-error-msg" class="auth-message auth-message-error" style="display: none;"></div>
+            
+            <form id="register-form" class="auth-form">
+                <label>
+                    Full Name
+                    <input type="text" id="register-name" placeholder="e.g. Sunita Devi" required />
+                </label>
+                
+                <label>
+                    Email Address
+                    <input type="email" id="register-email" placeholder="you@example.com" required />
+                </label>
+                
+                <label>
+                    Password (Min 8 characters)
+                    <input type="password" id="register-password" placeholder="••••••••" required minlength="8" />
+                </label>
+                
+                <label>
+                    Confirm Password
+                    <input type="password" id="register-confirm" placeholder="••••••••" required minlength="8" />
+                </label>
+                
+                <label>
+                    System Role Type
+                    <select id="register-role">
+                        <option value="patient" selected>Patient / Citizen</option>
+                        <option value="doctor">Doctor / Physician</option>
+                        <option value="pharmacist">Pharmacist Staff</option>
+                        <option value="admin">System Administrator</option>
+                    </select>
+                </label>
+                
+                <button class="btn btn-primary btn-full" type="submit" style="margin-top: 0.5rem;">Register Now</button>
+            </form>
+            
+            <p class="auth-link">Already registered? <a href="login.html">Login here</a></p>
         </div>
-    </header>
+    </div>
 
-    <main class="page-content">
-        <div class="container auth-shell">
-            <div class="auth-card">
-                <p class="eyebrow">Create account</p>
-                <h1>Join Smart Health</h1>
-                <p class="auth-subtitle">Sign up as an admin, doctor, patient, or pharmacist.</p>
-                <form id="register-form" class="auth-form">
-                    <label>
-                        Full name
-                        <input type="text" name="name" placeholder="Your name" required />
-                    </label>
-                    <label>
-                        Email
-                        <input type="email" name="email" placeholder="you@example.com" required />
-                    </label>
-                    <label>
-                        Password
-                        <input type="password" name="password" placeholder="Create password" required />
-                    </label>
-                    <label>
-                        Role
-                        <select name="role">
-                            <option value="Patient">Patient</option>
-                            <option value="Doctor">Doctor</option>
-                            <option value="Admin">Admin</option>
-                            <option value="Pharmacist">Pharmacist</option>
-                        </select>
-                    </label>
-                    <button class="btn btn-primary btn-full" type="submit">Register</button>
-                </form>
-                <p class="auth-link">Already have an account? <a href="login.html">Login</a></p>
-                <p id="auth-message" class="auth-message"></p>
-            </div>
-        </div>
-    </main>
-
-    <footer class="site-footer">
-        <div class="container footer-row">
-            <p>© <span id="year"></span> Smart Health</p>
-            <a href="../contact.html">Contact us</a>
-        </div>
-    </footer>
-
-    <script src="../../script.js"></script>
+    <!-- Site Core Client Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../../assets/js/db.js"></script>
+    <script src="../../assets/js/layout.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Redirect if already logged in
+            if (db.getCurrentUser()) {
+                window.location.href = '../../index.html';
+                return;
+            }
+            
+            const form = document.getElementById('register-form');
+            const errorMsg = document.getElementById('register-error-msg');
+            
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const name = document.getElementById('register-name').value.trim();
+                const email = document.getElementById('register-email').value.trim();
+                const password = document.getElementById('register-password').value;
+                const confirmPassword = document.getElementById('register-confirm').value;
+                const role = document.getElementById('register-role').value;
+                
+                if (!name || !email || !password || !confirmPassword || !role) {
+                    errorMsg.textContent = 'Please fill in all fields.';
+                    errorMsg.style.display = 'block';
+                    return;
+                }
+                
+                if (password.length < 8) {
+                    errorMsg.textContent = 'Password must be at least 8 characters long.';
+                    errorMsg.style.display = 'block';
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    errorMsg.textContent = 'Passwords do not match.';
+                    errorMsg.style.display = 'block';
+                    return;
+                }
+                
+                const res = db.register(name, email, password, role);
+                if (res.success) {
+                    errorMsg.style.display = 'none';
+                    setFlashMessage('Registration successful. Please login below.', 'success');
+                    window.location.href = 'login.html';
+                } else {
+                    errorMsg.textContent = res.message || 'Registration failed.';
+                    errorMsg.style.display = 'block';
+                }
+            });
+        });
+    </script>
 </body>
-
 </html>

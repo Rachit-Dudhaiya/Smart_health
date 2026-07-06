@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us | Smart Health</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body data-path-prefix="../">
+    
+    <div class="container" style="padding: 4rem 0;">
+        <div class="page-header" style="text-align: center; margin-bottom: 3rem;">
+            <p class="eyebrow">Our Mission</p>
+            <h1 id="cms-title">About Smart Health</h1>
+        </div>
+        
+        <div class="card" style="max-width: 800px; margin: 0 auto; line-height: 1.8; font-size: 1.1rem; padding: 3rem;">
+            <p id="cms-content" style="margin-bottom: 1.5rem; text-align: justify; white-space: pre-line;">
+                <!-- Injected dynamically -->
+            </p>
+            
+            <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 2rem 0;" />
+            
+            <h3>Key Operational Pillars</h3>
+            <ul class="check-list" style="margin-top: 1rem;">
+                <li><strong>Automated Data Integration</strong>: Say goodbye to manually maintained books and files. All logs, beds, stock reports are stored in organized tables.</li>
+                <li><strong>Secure Authentication Guards</strong>: Complete compliance via session tracking, role checking (RBAC), and brute-force mitigations.</li>
+                <li><strong>Optimized Workflows</strong>: Streamlines daily doctor check-ins and emergency SOS alerts for patients.</li>
+                <li><strong>Dynamic Content Controls</strong>: Admin panel enables editing key text and managing user rosters dynamically.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Site Core Client Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../assets/js/db.js"></script>
+    <script src="../assets/js/layout.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const contents = db.getPageContents();
+            const aboutData = contents.find(c => c.slug === 'about');
+            if (aboutData) {
+                document.getElementById('cms-title').textContent = aboutData.title;
+                document.getElementById('cms-content').textContent = aboutData.content;
+            }
+        });
+    </script>
+</body>
+</html>
