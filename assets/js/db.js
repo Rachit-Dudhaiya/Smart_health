@@ -592,7 +592,7 @@ const db = {
         if (!validate.email(email)) {
             return { success: false, message: 'Please enter a valid email address.' };
         }
-        const allowedFormTypes = ['general', 'inventory', 'bug', 'feedback'];
+        const allowedFormTypes = ['general', 'inventory', 'bug', 'feedback', 'contact'];
         if (!allowedFormTypes.includes(formType)) {
             return { success: false, message: 'Invalid form category type.' };
         }
@@ -609,6 +609,15 @@ const db = {
         };
         feedbacks.push(newFeedback);
         this.saveFeedback(feedbacks);
+
+        // Sync to Firebase Firestore under inquiries collection
+        if (typeof firebase !== 'undefined') {
+            try {
+                firebase.firestore().collection('inquiries').add(newFeedback);
+            } catch (e) {
+                console.error("Firestore sync failed for inquiry:", e);
+            }
+        }
         
         // Notify admin
         this.addNotification(1, `📬 New ${formType} submitted: "${subject}" by ${name}`);

@@ -24,7 +24,7 @@
                     <button class="nav-tab-btn active" data-tab="overview">📊 Operations Overview</button>
                     <button class="nav-tab-btn" data-tab="users">👥 User Management</button>
                     <button class="nav-tab-btn" data-tab="cms">📝 Content Manager</button>
-                    <button class="nav-tab-btn" data-tab="queries">📬 Help Queries</button>
+                    <button class="nav-tab-btn" data-tab="queries">📬 Inquiries</button>
                     <button class="nav-tab-btn" data-tab="logs">📁 Activity Auditing</button>
                 </div>
             </aside>
@@ -127,15 +127,15 @@
                     </div>
                 </section>
 
-                <!-- 4. HELP QUERIES PANEL -->
+                <!-- 4. INQUIRIES PANEL -->
                 <section id="panel-queries" class="dashboard-panel" style="display: none;">
                     <div class="page-header">
-                        <h1>Inquiries & Feedback</h1>
+                        <h1>Inquiries</h1>
                         <p class="auth-subtitle">Review queries submitted by site visitors and patient reviews.</p>
                     </div>
 
                     <div class="card" style="padding: 2rem;">
-                        <h3>Help Desk Submissions</h3>
+                        <h3>Inquiries Directory</h3>
                         <div class="table-wrap" style="margin-top: 1.2rem;">
                             <table>
                                 <thead>
@@ -408,31 +408,72 @@
             }
         }
         
-        // --- 4. QUERIES RENDERING ---
+        // --- 4. INQUIRIES RENDERING ---
         function renderQueries() {
-            const feedbacks = db.getFeedback();
             const tbody = document.getElementById('queries-tbody');
             
-            if (feedbacks.length > 0) {
-                tbody.innerHTML = feedbacks.slice().reverse().map(q => {
-                    const dt = new Date(q.created_at).toLocaleString();
-                    return `
+            if (typeof firebase !== 'undefined') {
+                firebase.firestore().collection('inquiries').orderBy('created_at', 'desc').onSnapshot((snapshot) => {
+                    const inquiries = [];
+                    snapshot.forEach(doc => {
+                        inquiries.push(doc.data());
+                    });
+                    
+                    // Sync locally
+                    localStorage.setItem('sh_feedback', JSON.stringify(inquiries));
+                    
+                    // Re-render metrics count if overview is active
+                    const metricEl = document.getElementById('overview-queries-received');
+                    if (metricEl) {
+                        metricEl.textContent = inquiries.length;
+                    }
+                    
+                    if (inquiries.length > 0) {
+                        tbody.innerHTML = inquiries.map(q => {
+                            const dt = new Date(q.created_at).toLocaleString();
+                            return `
+                                <tr>
+                                    <td><span class="badge ${q.form_type === 'feedback' ? 'badge-success' : 'badge-info'}">${q.form_type}</span></td>
+                                    <td style="font-weight:700;">${q.name}</td>
+                                    <td>${q.email}</td>
+                                    <td><strong>${q.subject}</strong></td>
+                                    <td style="max-width: 250px; font-size: 0.85rem; white-space: pre-wrap;">${q.message}</td>
+                                    <td style="font-size:0.8rem;">${dt}</td>
+                                </tr>
+                            `;
+                        }).join('');
+                    } else {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="6" class="auth-subtitle" style="text-align:center; padding:2rem;">No inquiries received yet.</td>
+                            </tr>
+                        `;
+                    }
+                });
+            } else {
+                // Fallback local DB
+                const feedbacks = db.getFeedback();
+                if (feedbacks.length > 0) {
+                    tbody.innerHTML = feedbacks.slice().reverse().map(q => {
+                        const dt = new Date(q.created_at).toLocaleString();
+                        return `
+                            <tr>
+                                <td><span class="badge ${q.form_type === 'feedback' ? 'badge-success' : 'badge-info'}">${q.form_type}</span></td>
+                                <td style="font-weight:700;">${q.name}</td>
+                                <td>${q.email}</td>
+                                <td><strong>${q.subject}</strong></td>
+                                <td style="max-width: 250px; font-size: 0.85rem; white-space: pre-wrap;">${q.message}</td>
+                                <td style="font-size:0.8rem;">${dt}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    tbody.innerHTML = `
                         <tr>
-                            <td><span class="badge ${q.form_type === 'feedback' ? 'badge-success' : 'badge-info'}">${q.form_type}</span></td>
-                            <td style="font-weight:700;">${q.name}</td>
-                            <td>${q.email}</td>
-                            <td><strong>${q.subject}</strong></td>
-                            <td style="max-width: 250px; font-size: 0.85rem; white-space: pre-wrap;">${q.message}</td>
-                            <td style="font-size:0.8rem;">${dt}</td>
+                            <td colspan="6" class="auth-subtitle" style="text-align:center; padding:2rem;">No inquiries received yet.</td>
                         </tr>
                     `;
-                }).join('');
-            } else {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="auth-subtitle" style="text-align:center; padding:2rem;">No inquiries received yet.</td>
-                    </tr>
-                `;
+                }
             }
         }
         
