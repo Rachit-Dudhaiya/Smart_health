@@ -71,48 +71,8 @@
                     <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
                         <div>
                             <h1>User Profile Management</h1>
-                            <p class="auth-subtitle">Create, view, update status, and delete accounts.</p>
+                            <p class="auth-subtitle">View, update status, and modify user roles.</p>
                         </div>
-                        <button class="btn btn-primary" onclick="toggleAddUserForm()">➕ Add New User</button>
-                    </div>
-
-                    <!-- Create User Form (Modal card style) -->
-                    <div class="card" id="add-user-card" style="display: none; margin-bottom: 2rem; padding: 2rem; max-width: 600px;">
-                        <h3>Add New Account</h3>
-                        <form id="create-user-form" class="auth-form" style="margin-top: 1.5rem;">
-                            <label>
-                                Full Name
-                                <input type="text" id="add-user-name" placeholder="e.g. John Doe" required />
-                            </label>
-                            <label>
-                                Email Address
-                                <input type="email" id="add-user-email" placeholder="john@example.com" required />
-                            </label>
-                            <label>
-                                Password
-                                <input type="password" id="add-user-password" placeholder="••••••••" required minlength="8" />
-                            </label>
-                            <label>
-                                System Role Type
-                                <select id="add-user-role">
-                                    <option value="patient">Patient / Citizen</option>
-                                    <option value="doctor">Doctor / Physician</option>
-                                    <option value="pharmacist">Pharmacist Staff</option>
-                                    <option value="admin">System Administrator</option>
-                                </select>
-                            </label>
-                            <label>
-                                Status
-                                <select id="add-user-status">
-                                    <option value="active">Active</option>
-                                    <option value="suspended">Suspended</option>
-                                </select>
-                            </label>
-                            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                                <button type="submit" class="btn btn-primary">Create User</button>
-                                <button type="button" class="btn btn-secondary" onclick="toggleAddUserForm()">Cancel</button>
-                            </div>
-                        </form>
                     </div>
 
                     <!-- Users List -->
@@ -153,7 +113,7 @@
                             </select>
                         </label>
 
-                        <form id="cms-edit-form" class="auth-form">
+                        <form id="cms-edit-form" class="auth-form" novalidate>
                             <label>
                                 Page Title Header
                                 <input type="text" id="cms-title-input" required />
@@ -233,6 +193,12 @@
     <script src="../../assets/js/db.js"></script>
     <script src="../../assets/js/layout.js"></script>
     
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="../../assets/js/firebase-auth.js"></script>
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Setup tabs switching
@@ -258,36 +224,7 @@
             // Initial load Overview tab
             loadPanelData('overview');
             
-            // Handle User Creation Submit
-            const createUserForm = document.getElementById('create-user-form');
-            createUserForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const name = document.getElementById('add-user-name').value.trim();
-                const email = document.getElementById('add-user-email').value.trim();
-                const password = document.getElementById('add-user-password').value;
-                const role = document.getElementById('add-user-role').value;
-                const status = document.getElementById('add-user-status').value;
-                
-                const res = db.register(name, email, password, role);
-                if (res.success) {
-                    // Update role & status in mock DB (since db.register registers patient as default status active)
-                    const users = db.getUsers();
-                    const idx = users.findIndex(u => u.id === res.user.id);
-                    if (idx !== -1) {
-                        users[idx].role = role;
-                        users[idx].status = status;
-                        db.saveUsers(users);
-                    }
-                    
-                    db.logActivity(`Admin created user profile: ${email}`, db.getCurrentUser().id);
-                    showToast('User profile created successfully.', 'success');
-                    createUserForm.reset();
-                    document.getElementById('add-user-card').style.display = 'none';
-                    loadPanelData('users');
-                } else {
-                    showToast(res.message || 'Failed to create user.', 'error');
-                }
-            });
+
             
             // Handle CMS Selector Change
             const cmsSelector = document.getElementById('cms-selector');
@@ -361,24 +298,19 @@
         }
         
         // --- 2. USERS RENDERING ---
-        function toggleAddUserForm() {
-            const card = document.getElementById('add-user-card');
-            card.style.display = card.style.display === 'none' ? 'block' : 'none';
-        }
-        
         function renderUsers() {
             const users = db.getUsers();
             const tbody = document.getElementById('users-tbody');
             const curUser = db.getCurrentUser();
             
             tbody.innerHTML = users.map(u => {
-                const isSelf = u.id === curUser.id;
+                const isSelf = String(u.id) === String(curUser.id);
                 return `
                     <tr>
                         <td style="font-weight:700;">${u.name} ${isSelf ? '<span class="badge badge-info" style="font-size:0.65rem; padding:0.1rem 0.3rem;">You</span>' : ''}</td>
                         <td>${u.email}</td>
                         <td>
-                            <select onchange="updateUserRole(${u.id}, this.value)" ${isSelf ? 'disabled' : ''} style="padding: 0.2rem 0.5rem; font-size: 0.85rem;">
+                            <select onchange="updateUserRole('${u.id}', this.value)" ${isSelf ? 'disabled' : ''} style="padding: 0.2rem 0.5rem; font-size: 0.85rem;">
                                 <option value="patient" ${u.role === 'patient' ? 'selected' : ''}>Patient</option>
                                 <option value="doctor" ${u.role === 'doctor' ? 'selected' : ''}>Doctor</option>
                                 <option value="pharmacist" ${u.role === 'pharmacist' ? 'selected' : ''}>Pharmacist</option>
@@ -386,48 +318,79 @@
                             </select>
                         </td>
                         <td>
-                            <select onchange="updateUserStatus(${u.id}, this.value)" ${isSelf ? 'disabled' : ''} style="padding: 0.2rem 0.5rem; font-size: 0.85rem;">
+                            <select onchange="updateUserStatus('${u.id}', this.value)" ${isSelf ? 'disabled' : ''} style="padding: 0.2rem 0.5rem; font-size: 0.85rem;">
                                 <option value="active" ${u.status === 'active' ? 'selected' : ''}>Active</option>
                                 <option value="suspended" ${u.status === 'suspended' ? 'selected' : ''}>Suspended</option>
                             </select>
                         </td>
                         <td>
-                            <button class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="deleteUser(${u.id})" ${isSelf ? 'disabled' : ''}>Delete</button>
+                            <button class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="deleteUser('${u.id}')" ${isSelf ? 'disabled' : ''}>Delete</button>
                         </td>
                     </tr>
                 `;
             }).join('');
         }
         
-        window.updateUserRole = function(targetId, newRole) {
+        window.updateUserRole = async function(targetId, newRole) {
             const users = db.getUsers();
-            const idx = users.findIndex(u => u.id === targetId);
+            const idx = users.findIndex(u => String(u.id) === String(targetId));
             if (idx !== -1) {
                 users[idx].role = newRole;
                 db.saveUsers(users);
+                
+                // Update in Firestore
+                const firebaseUid = users[idx].firebase_uid || users[idx].id;
+                try {
+                    await firebase.firestore().collection('users').doc(String(firebaseUid)).update({
+                        role: newRole
+                    });
+                } catch (e) {
+                    console.error("Firestore update user role failed:", e);
+                }
+
                 db.logActivity(`Admin updated user ID: ${targetId} role to ${newRole}`, db.getCurrentUser().id);
                 showToast('User role updated successfully.', 'success');
             }
         };
         
-        window.updateUserStatus = function(targetId, newStatus) {
+        window.updateUserStatus = async function(targetId, newStatus) {
             const users = db.getUsers();
-            const idx = users.findIndex(u => u.id === targetId);
+            const idx = users.findIndex(u => String(u.id) === String(targetId));
             if (idx !== -1) {
                 users[idx].status = newStatus;
                 db.saveUsers(users);
+
+                // Update in Firestore
+                const firebaseUid = users[idx].firebase_uid || users[idx].id;
+                try {
+                    await firebase.firestore().collection('users').doc(String(firebaseUid)).update({
+                        status: newStatus
+                    });
+                } catch (e) {
+                    console.error("Firestore update user status failed:", e);
+                }
+
                 db.logActivity(`Admin updated user ID: ${targetId} status to ${newStatus}`, db.getCurrentUser().id);
                 showToast('User status updated successfully.', 'success');
             }
         };
         
-        window.deleteUser = function(targetId) {
+        window.deleteUser = async function(targetId) {
             if (confirm('Are you sure you want to delete this user?')) {
                 const users = db.getUsers();
-                const u = users.find(user => user.id === targetId);
+                const u = users.find(user => String(user.id) === String(targetId));
                 if (u) {
-                    const remaining = users.filter(user => user.id !== targetId);
+                    const remaining = users.filter(user => String(user.id) !== String(targetId));
                     db.saveUsers(remaining);
+
+                    // Delete in Firestore
+                    const firebaseUid = u.firebase_uid || u.id;
+                    try {
+                        await firebase.firestore().collection('users').doc(String(firebaseUid)).delete();
+                    } catch (e) {
+                        console.error("Firestore delete user failed:", e);
+                    }
+
                     db.logActivity(`Admin deleted user profile: ${u.email}`, db.getCurrentUser().id);
                     showToast('User deleted successfully.', 'success');
                     renderUsers();
