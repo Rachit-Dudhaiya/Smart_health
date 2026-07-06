@@ -831,13 +831,6 @@ tr:last-child td {
     font-weight: 600;
     font-size: 0.95rem;
     color: var(--color-text-muted);
-    background: none;
-    border: none;
-    cursor: pointer;
-    width: 100%;
-    text-align: left;
-    min-height: auto;
-    transition: all var(--transition-fast);
 }
 
 .sidebar-nav a:hover,

@@ -171,6 +171,8 @@ function injectFooter(pathPrefix) {
                 <h4>Information</h4>
                 <a href="${pathPrefix}pages/about.html">About Us</a>
                 <a href="${pathPrefix}pages/services.html">Core Services</a>
+                <a href="${pathPrefix}pages/gallery.html">Gallery Portfolio</a>
+                <a href="${pathPrefix}pages/faq.html">Help & FAQ</a>
             </div>
             <div class="footer-links-group">
                 <h4>Get Involved</h4>

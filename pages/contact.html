@@ -182,24 +182,6 @@
                     showToast('Failed to submit query.', 'error');
                 }
             });
-
-            // Setup interactive accordion behavior for FAQ
-            const faqItems = document.querySelectorAll('.faq-item');
-            faqItems.forEach(item => {
-                const question = item.querySelector('.faq-question');
-                question.addEventListener('click', () => {
-                    // Close others
-                    faqItems.forEach(i => {
-                        if (i !== item) {
-                            i.classList.remove('active');
-                            i.querySelector('.faq-question span').textContent = '➕';
-                        }
-                    });
-                    
-                    const isActive = item.classList.toggle('active');
-                    question.querySelector('span').textContent = isActive ? '➖' : '➕';
-                });
-            });
         });
     </script>
 </body>
