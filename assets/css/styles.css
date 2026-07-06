@@ -820,7 +820,9 @@ tr:last-child td {
     gap: 0.6rem;
 }
 
-.sidebar-nav a {
+.sidebar-nav a,
+.sidebar-nav button,
+.sidebar-nav .nav-tab-btn {
     display: flex;
     align-items: center;
     gap: 0.8rem;
@@ -829,10 +831,21 @@ tr:last-child td {
     font-weight: 600;
     font-size: 0.95rem;
     color: var(--color-text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .sidebar-nav a:hover,
-.sidebar-nav a.active {
+.sidebar-nav a.active,
+.sidebar-nav button:hover,
+.sidebar-nav button.active,
+.sidebar-nav .nav-tab-btn:hover,
+.sidebar-nav .nav-tab-btn.active {
     background-color: var(--color-primary-light);
     color: var(--color-primary);
 }
