@@ -121,8 +121,6 @@ function injectHeader(pathPrefix, currentUser) {
                 <a href="${pathPrefix}index.html" class="${isLinkActive('index.html') || currentPath.endsWith('/') ? 'active' : ''}">Home</a>
                 <a href="${pathPrefix}pages/about.html" class="${isLinkActive('about.html')}">About</a>
                 <a href="${pathPrefix}pages/services.html" class="${isLinkActive('services.html')}">Services</a>
-                <a href="${pathPrefix}pages/gallery.html" class="${isLinkActive('gallery.html')}">Gallery</a>
-                <a href="${pathPrefix}pages/faq.html" class="${isLinkActive('faq.html')}">FAQ</a>
                 
                 <a href="${pathPrefix}pages/medicine-stock.html" class="${isLinkActive('medicine-stock.html')}">Medicine Stock</a>
                 <a href="${pathPrefix}pages/patient-flow.html" class="${isLinkActive('patient-flow.html')}">Patient Flow</a>
@@ -165,8 +163,7 @@ function injectFooter(pathPrefix) {
                 <h4>Information</h4>
                 <a href="${pathPrefix}pages/about.html">About Us</a>
                 <a href="${pathPrefix}pages/services.html">Core Services</a>
-                <a href="${pathPrefix}pages/gallery.html">Gallery Portfolio</a>
-                <a href="${pathPrefix}pages/faq.html">Help & FAQ</a>
+                <a href="${pathPrefix}pages/contact.html#faq">Help & FAQ</a>
             </div>
             <div class="footer-links-group">
                 <h4>Get Involved</h4>

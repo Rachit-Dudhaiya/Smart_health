@@ -818,7 +818,9 @@ tr:last-child td {
     gap: 0.6rem;
 }
 
-.sidebar-nav a {
+.sidebar-nav a,
+.sidebar-nav button,
+.sidebar-nav .nav-tab-btn {
     display: flex;
     align-items: center;
     gap: 0.8rem;
@@ -827,10 +829,21 @@ tr:last-child td {
     font-weight: 600;
     font-size: 0.95rem;
     color: var(--color-text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .sidebar-nav a:hover,
-.sidebar-nav a.active {
+.sidebar-nav a.active,
+.sidebar-nav button:hover,
+.sidebar-nav button.active,
+.sidebar-nav .nav-tab-btn:hover,
+.sidebar-nav .nav-tab-btn.active {
     background-color: var(--color-primary-light);
     color: var(--color-primary);
 }
@@ -1116,4 +1129,133 @@ label.error {
 @keyframes slideInErr {
     from { transform: translateY(-5px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
+}
+
+/* --- Complete Responsiveness Updates for Mobile/Small Devices --- */
+
+/* 1. Global Input UX - Prevent iOS Autofocus Zooming */
+input, select, textarea {
+    font-size: 1rem !important;
+}
+
+/* 2. Responsive Table Registry - Prevent squashed cells, enable clean scrolling */
+.table-wrap table {
+    min-width: 720px;
+}
+
+/* 3. Hamburger Spans CSS Animation (Controlled via aria-expanded from layout.js) */
+.menu-toggle[aria-expanded="true"] span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+.menu-toggle[aria-expanded="true"] span:nth-child(2) {
+    opacity: 0;
+}
+.menu-toggle[aria-expanded="true"] span:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* 4. Fluid headings for smaller viewports */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2rem !important;
+    }
+    h2 {
+        font-size: 1.65rem !important;
+    }
+    h3 {
+        font-size: 1.35rem !important;
+    }
+    .section-heading h2 {
+        font-size: 1.65rem !important;
+    }
+}
+
+/* 5. Hero Grid and Header Brand Adjustments on Mobile */
+@media (max-width: 768px) {
+    .hero {
+        padding: 4rem 0 3rem;
+    }
+    .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+        text-align: center;
+    }
+    .hero-badge {
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .hero-text {
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .hero-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+    }
+    .stats-strip {
+        justify-content: center;
+        gap: 0.8rem;
+    }
+    .brand {
+        font-size: 1.2rem;
+    }
+}
+
+/* 6. Dashboard Sidebar Nav Transform (Vertical list -> Modern Tab bar on mobile) */
+@media (max-width: 992px) {
+    .dashboard-grid {
+        gap: 1.5rem;
+        padding: 1.5rem 0;
+    }
+    .dashboard-sidebar {
+        padding: 1.25rem !important;
+        border-radius: var(--radius-md) !important;
+    }
+    .dashboard-sidebar h4 {
+        margin-bottom: 0.8rem !important;
+        font-size: 0.8rem;
+        text-align: center;
+    }
+    .sidebar-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 0.6rem;
+        gap: 0.5rem;
+        -webkit-overflow-scrolling: touch;
+        border-bottom: 1px solid var(--color-border);
+    }
+    .sidebar-nav a,
+    .sidebar-nav button,
+    .sidebar-nav .nav-tab-btn {
+        width: auto;
+        white-space: nowrap;
+        flex-shrink: 0;
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* 7. Spacing and Card padding optimizations for Small Screen viewports */
+@media (max-width: 576px) {
+    .section {
+        padding: 3rem 0;
+    }
+    .card {
+        padding: 1.25rem !important;
+    }
+    .mini-card {
+        padding: 1.2rem !important;
+    }
+    .auth-card {
+        padding: 1.5rem 1.25rem !important;
+    }
+    .footer-bottom-row {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    .footer-meta-stamps {
+        justify-content: center;
+    }
 }

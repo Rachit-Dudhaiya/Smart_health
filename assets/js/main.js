@@ -157,11 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     profile_photo: {
                         fileExtension: ['jpg', 'jpeg', 'png', 'webp'],
                         fileSize: 2 * 1024 * 1024
-                    },
-                    gallery_file: {
-                        required: true,
-                        fileExtension: ['jpg', 'jpeg', 'png', 'webp'],
-                        fileSize: 3 * 1024 * 1024
                     }
                 },
                 messages: {
@@ -208,11 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     profile_photo: {
                         fileExtension: "Only JPG, PNG, and WEBP formats are allowed",
                         fileSize: "Avatar image size must be less than 2MB"
-                    },
-                    gallery_file: {
-                        required: "Please select an image file to upload",
-                        fileExtension: "Only JPG, PNG, and WEBP formats are allowed",
-                        fileSize: "Gallery image size must be less than 3MB"
                     }
                 }
             });
