@@ -56,7 +56,7 @@
             <div class="card" style="padding: 2.5rem;">
                 <h3>Submit a Query</h3>
                 
-                <form id="contact-form" class="auth-form" style="margin-top: 1.5rem;">
+                <form id="contact-form" class="auth-form" style="margin-top: 1.5rem;" novalidate>
                     <label>
                         Full Name
                         <input type="text" id="contact-name" placeholder="e.g. Rahul Sen" required />
@@ -82,9 +82,9 @@
             </div>
         </div>
 
-        <!-- FAQ Section -->
-        <div id="faq" style="margin-top: 6rem; max-width: 800px; margin-left: auto; margin-right: auto; padding-top: 2rem;">
-            <div class="page-header" style="text-align: center; margin-bottom: 3rem;">
+        <!-- Frequently Asked Questions Section -->
+        <div style="max-width: 900px; margin: 5rem auto 0;">
+            <div class="page-header" style="text-align: center; margin-bottom: 2.5rem;">
                 <p class="eyebrow">Support Center</p>
                 <h2>Frequently Asked Questions</h2>
                 <p class="auth-subtitle">Get instant answers regarding operations, accounts, and clinical features.</p>
@@ -181,24 +181,6 @@
                 } else {
                     showToast('Failed to submit query.', 'error');
                 }
-            });
-
-            // Setup interactive accordion behavior
-            const faqItems = document.querySelectorAll('.faq-item');
-            faqItems.forEach(item => {
-                const question = item.querySelector('.faq-question');
-                question.addEventListener('click', () => {
-                    // Close others
-                    faqItems.forEach(i => {
-                        if (i !== item) {
-                            i.classList.remove('active');
-                            i.querySelector('.faq-question span').textContent = '➕';
-                        }
-                    });
-                    
-                    const isActive = item.classList.toggle('active');
-                    question.querySelector('span').textContent = isActive ? '➖' : '➕';
-                });
             });
         });
     </script>

@@ -831,13 +831,6 @@ tr:last-child td {
     font-weight: 600;
     font-size: 0.95rem;
     color: var(--color-text-muted);
-    background: none;
-    border: none;
-    cursor: pointer;
-    width: 100%;
-    text-align: left;
-    font-family: inherit;
-    transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .sidebar-nav a:hover,
@@ -1646,5 +1639,175 @@ body {
     color: var(--color-text-muted);
     line-height: 1.4;
     margin: 0;
+}
+
+/* ==========================================================================
+   MOBILE RESPONSIVENESS AND SMALL DEVICE OPTIMIZATIONS
+   ========================================================================== */
+
+/* 1. Global Touch Target Small Button Overrides */
+.btn-sm, 
+.table-wrap button, 
+#pagination-container button, 
+#filter-buttons button, 
+#ward-filter-buttons button,
+.sidebar-nav button,
+.sidebar-nav a,
+.sidebar-nav .nav-tab-btn,
+.goog-te-combo {
+    min-height: auto !important;
+    padding: 0.5rem 1rem !important;
+    font-size: 0.85rem !important;
+}
+
+/* 2. Responsive Dashboard Form Grid (Pharmacist Add Medicine) */
+.dashboard-form-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 1rem;
+    align-items: end;
+}
+
+/* 3. Form actions (buttons flex row wrap) */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* 4. Media Queries for Mobile and Tablet Viewports */
+@media(max-width: 992px) {
+    /* Make dashboard navigation scrollable horizontally on mobile */
+    .dashboard-sidebar {
+        padding: 1.25rem !important;
+    }
+    
+    .sidebar-nav {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        gap: 0.5rem !important;
+        padding-bottom: 0.75rem;
+    }
+    
+    .sidebar-nav button, 
+    .sidebar-nav a,
+    .sidebar-nav .nav-tab-btn {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        white-space: nowrap !important;
+    }
+}
+
+@media(max-width: 768px) {
+    /* Hero section grid */
+    .hero-grid {
+        grid-template-columns: 1fr !important;
+        gap: 2rem !important;
+        text-align: center !important;
+    }
+    
+    .hero {
+        padding: 3rem 0 2rem !important;
+    }
+    
+    .hero-actions {
+        justify-content: center !important;
+        flex-wrap: wrap !important;
+    }
+    
+    .hero-text {
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+    
+    .stats-strip {
+        justify-content: center !important;
+    }
+    
+    /* Pharmacist add medicine form stacked */
+    .dashboard-form-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem !important;
+    }
+    
+    .dashboard-form-grid button {
+        grid-column: span 1 !important;
+    }
+    
+    /* Accessibility Bar layout adjustment */
+    .acc-bar {
+        padding: 0.5rem 1rem !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        text-align: center !important;
+    }
+    
+    .acc-controls {
+        justify-content: center !important;
+        width: 100% !important;
+        gap: 1rem !important;
+    }
+    
+    .acc-control-group {
+        justify-content: center !important;
+    }
+}
+
+@media(max-width: 576px) {
+    /* Auth card padding optimization */
+    .auth-card {
+        padding: 1.5rem !important;
+    }
+    
+    /* Search bar take full width */
+    .search-bar-wrap {
+        width: 100% !important;
+    }
+    
+    .search-bar-wrap input {
+        flex: 1 !important;
+    }
+    
+    /* General section paddings */
+    .section {
+        padding: 3rem 0 !important;
+    }
+    
+    .section-heading {
+        margin-bottom: 2rem !important;
+    }
+}
+
+@media(max-width: 480px) {
+    /* Senior hub links stacked */
+    .senior-hub-link {
+        flex-direction: column !important;
+        text-align: center !important;
+        padding: 1.5rem !important;
+        gap: 1rem !important;
+    }
+    
+    .senior-hub-link .material-icons {
+        font-size: 3rem !important;
+    }
+    
+    /* Form actions full-width stacked buttons */
+    .form-actions button {
+        width: 100% !important;
+    }
+}
+
+@media(max-width: 400px) {
+    /* Live command metrics grid */
+    .stat-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .hero-card {
+        padding: 1.25rem !important;
+    }
 }
 

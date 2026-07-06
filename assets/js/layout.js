@@ -38,6 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. Inject Site Footer
     injectFooter(pathPrefix);
 
+    // Start real-time Firestore database sync for user roles/profiles
+    if (currentUser) {
+        setupRealtimeRoleSync(pathPrefix, currentUser);
+    }
+
     // 4.5 Initialize Accessibility Systems for Indian Elderly
     initAccessibilitySystem();
 
@@ -166,7 +171,8 @@ function injectFooter(pathPrefix) {
                 <h4>Information</h4>
                 <a href="${pathPrefix}pages/about.html">About Us</a>
                 <a href="${pathPrefix}pages/services.html">Core Services</a>
-                <a href="${pathPrefix}pages/contact.html#faq">Help & FAQ</a>
+                <a href="${pathPrefix}pages/gallery.html">Gallery Portfolio</a>
+                <a href="${pathPrefix}pages/faq.html">Help & FAQ</a>
             </div>
             <div class="footer-links-group">
                 <h4>Get Involved</h4>
@@ -1242,4 +1248,112 @@ function bindVoiceHoverEvents() {
             }
         }
     });
+}
+
+function loadScript(url) {
+    return new Promise((resolve, reject) => {
+        if (document.querySelector(`script[src="${url}"]`)) {
+            resolve();
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
+
+async function setupRealtimeRoleSync(pathPrefix, currentUser) {
+    if (!currentUser) return;
+    
+    // Check if firebase is already loaded. If not, load the compatibility libraries
+    if (typeof firebase === 'undefined') {
+        try {
+            await loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js');
+            await loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js');
+            await loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js');
+            await loadScript(`${pathPrefix}assets/js/firebase-auth.js`);
+            // Wait for firebase init promise to resolve
+            if (window.firebaseAuthPromise) {
+                await window.firebaseAuthPromise;
+            }
+        } catch (e) {
+            console.error("Failed to load Firebase scripts for real-time role sync:", e);
+            return;
+        }
+    }
+    
+    const uid = currentUser.firebase_uid || currentUser.id;
+    if (!uid) return;
+    
+    try {
+        firebase.firestore().collection('users').doc(String(uid)).onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                let changed = false;
+                
+                // Compare role, name, status
+                if (data.role !== currentUser.role) {
+                    currentUser.role = data.role;
+                    changed = true;
+                }
+                if (data.name !== currentUser.name) {
+                    currentUser.name = data.name;
+                    changed = true;
+                }
+                if (data.status !== currentUser.status) {
+                    currentUser.status = data.status;
+                    changed = true;
+                }
+                if (data.profile_photo !== currentUser.profile_photo) {
+                    currentUser.profile_photo = data.profile_photo;
+                    changed = true;
+                }
+                
+                if (changed) {
+                    // Update sessionStorage
+                    sessionStorage.setItem('sh_current_user', JSON.stringify(currentUser));
+                    
+                    // Update local DB cache
+                    if (window.db) {
+                        const localUsers = window.db.getUsers();
+                        const idx = localUsers.findIndex(u => String(u.id) === String(uid) || u.email.toLowerCase() === currentUser.email.toLowerCase());
+                        if (idx !== -1) {
+                            localUsers[idx] = { ...localUsers[idx], ...currentUser };
+                            window.db.saveUsers(localUsers);
+                        }
+                    }
+                    
+                    // If on restricted dashboard and role has changed, redirect to correct one
+                    const currentPath = window.location.pathname;
+                    if (currentPath.includes('/dashboard/') || currentPath.includes('/profile.html')) {
+                        const bodyEl = document.body;
+                        const restrictedRolesAttr = bodyEl.getAttribute('data-restricted-roles');
+                        if (restrictedRolesAttr) {
+                            const allowedRoles = restrictedRolesAttr.split(',').map(r => r.trim());
+                            if (!allowedRoles.includes(currentUser.role)) {
+                                setFlashMessage('Your account profile has been updated by the administrator.', 'warning');
+                                let dest = 'index.html';
+                                if (currentUser.role === 'admin') dest = 'pages/dashboard/admin.html';
+                                else if (currentUser.role === 'doctor') dest = 'pages/dashboard/doctor.html';
+                                else if (currentUser.role === 'pharmacist') dest = 'pages/dashboard/pharmacist.html';
+                                else if (currentUser.role === 'patient') dest = 'pages/dashboard/patient.html';
+                                
+                                window.location.href = `${pathPrefix}${dest}`;
+                            } else {
+                                // Just reload the page to refresh UI elements
+                                window.location.reload();
+                            }
+                        }
+                    } else {
+                        // On a public page, just reload the page to refresh navigation header
+                        window.location.reload();
+                    }
+                }
+            }
+        });
+    } catch (e) {
+        console.error("Error setting up Firestore role snapshot listener:", e);
+    }
 }
