@@ -16,3 +16,4 @@ __pycache__/
 /uploads/profile_photos/user_*
 /uploads/gallery/gallery_*
 /data/users.json
+.env
