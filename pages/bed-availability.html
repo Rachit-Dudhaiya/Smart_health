@@ -72,7 +72,7 @@
                 </ul>
                 
                 <div id="emergency-sos-container" style="margin-top: 2rem; display: none;">
-                    <a href="dashboard/patient.html" class="btn btn-primary btn-full">🚑 Request Emergency SOS / Bed</a>
+                    <a href="contact.html" class="btn btn-primary btn-full">🚑 Request Emergency SOS / Bed</a>
                 </div>
             </article>
         </div>
@@ -89,7 +89,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const curUser = db.getCurrentUser();
             
-            // Show SOS button for patient role
+            // Keep a patient-only emergency action, but route it away from the dashboard
             if (curUser && curUser.role === 'patient') {
                 document.getElementById('emergency-sos-container').style.display = 'block';
             }

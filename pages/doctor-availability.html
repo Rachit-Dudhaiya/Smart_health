@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doctor Availability | Smart Health</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body data-path-prefix="../" data-restricted-roles="admin,doctor,pharmacist,patient">
+    
+    <div class="container" style="padding: 4rem 0;">
+        <div class="page-header" style="text-align: center; margin-bottom: 3.5rem;">
+            <p class="eyebrow">Real-Time Directory</p>
+            <h1>On-Duty Physicians</h1>
+            <p class="auth-subtitle">Verify which clinical specialists are currently active, consulting, or offline today.</p>
+        </div>
+        
+        <!-- Stats Row -->
+        <div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 3rem;">
+            <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main);">
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;">🩺</span>
+                <strong id="stat-total-doctors">0</strong>
+                <span style="margin-top: 0.5rem;">Total Staff Doctors</span>
+            </div>
+            <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main); border-bottom: 4px solid var(--color-success);">
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;">🟢</span>
+                <strong id="stat-available-today">0</strong>
+                <span style="margin-top: 0.5rem;">Available / On-Duty Now</span>
+            </div>
+            <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main); border-bottom: 4px solid var(--color-danger);">
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;">💤</span>
+                <strong id="stat-offline-today">0</strong>
+                <span style="margin-top: 0.5rem;">Offline / Checked-Out</span>
+            </div>
+        </div>
+        
+        <!-- Doctor list cards -->
+        <div class="card" style="padding: 2.5rem;">
+            <h3>Physician Duty Schedule</h3>
+            <div class="table-wrap" style="margin-top: 1.2rem;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Physician Info</th>
+                            <th>Email Address</th>
+                            <th>Availability Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="availability-tbody">
+                        <!-- Injected dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Published Schedule Slots -->
+        <div class="card" style="padding: 2.5rem; margin-top: 2rem;">
+            <h3>Declared Time Slot Schedules</h3>
+            <p class="auth-subtitle">Future and active booking slots declared by our medical team.</p>
+            <div class="table-wrap" style="margin-top: 1.2rem;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Physician</th>
+                            <th>Date</th>
+                            <th>Time Block</th>
+                            <th>Slot Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="schedules-tbody">
+                        <!-- Injected dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Site Core Client Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../assets/js/db.js"></script>
+    <script src="../assets/js/layout.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDoctorAvailability();
+        });
+        
+        function renderDoctorAvailability() {
+            const users = db.getUsers();
+            const attendance = db.getDoctorAttendance();
+            const flow = db.getPatientFlow();
+            const todayStr = new Date().toISOString().split('T')[0];
+            
+            const doctors = users.filter(u => u.role === 'doctor');
+            const totalDoctors = doctors.length;
+            
+            // Filter attendance records for today
+            const todayAtt = attendance.filter(a => a.record_date === todayStr);
+            const presentCount = doctors.filter(doc => {
+                const record = todayAtt.find(a => a.doctor_id === doc.id);
+                return record && (record.status === 'present' || record.status === 'late');
+            }).length;
+            
+            document.getElementById('stat-total-doctors').textContent = totalDoctors;
+            document.getElementById('stat-available-today').textContent = presentCount;
+            document.getElementById('stat-offline-today').textContent = Math.max(0, totalDoctors - presentCount);
+            
+            const tbody = document.getElementById('availability-tbody');
+            if (doctors.length > 0) {
+                // Map doctor with today's state
+                const roster = doctors.map(doc => {
+                    const record = todayAtt.find(a => a.doctor_id === doc.id);
+                    const activeConsultation = flow.find(f => f.doctor_id === doc.id && f.status === 'in-consultation');
+                    
+                    let displayStatus = 'Offline';
+                    let badgeClass = 'badge-danger';
+                    
+                    if (record) {
+                        if (record.status === 'present' || record.status === 'late') {
+                            if (activeConsultation) {
+                                displayStatus = 'Busy (In Consultation)';
+                                badgeClass = 'badge-warning';
+                            } else {
+                                displayStatus = 'Available';
+                                badgeClass = 'badge-success';
+                            }
+                        } else if (record.status === 'on-leave') {
+                            displayStatus = 'On Leave';
+                            badgeClass = 'badge-info';
+                        }
+                    }
+                    
+                    return {
+                        name: doc.name,
+                        email: doc.email,
+                        profile_photo: doc.profile_photo,
+                        status: displayStatus,
+                        badgeClass: badgeClass,
+                        specialty: doc.specialty || 'General Medicine'
+                    };
+                });
+                
+                // Sort alphabetically by doctor name
+                roster.sort((a, b) => a.name.localeCompare(b.name));
+                
+                tbody.innerHTML = roster.map(doc => {
+                    const isBase64 = doc.profile_photo && doc.profile_photo.startsWith('data:');
+                    const avatarSrc = isBase64 ? doc.profile_photo : `../${doc.profile_photo}`;
+                    
+                    const avatarMarkup = doc.profile_photo 
+                        ? `<img src="${avatarSrc}" alt="Doctor" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;" />`
+                        : `<div style="width: 36px; height: 36px; border-radius: 50%; background-color: var(--color-primary-light); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem;">${doc.name.charAt(0).toUpperCase()}</div>`;
+                    
+                    return `
+                        <tr>
+                            <td style="font-weight: 700; display: flex; align-items: center; gap: 0.8rem;">
+                                ${avatarMarkup}
+                                <div>
+                                    <div style="font-size: 1.05rem;">Dr. ${doc.name}</div>
+                                    <div style="font-size: 0.8rem; color: var(--color-text-muted); font-weight: 500;">${doc.specialty}</div>
+                                </div>
+                            </td>
+                            <td>${doc.email}</td>
+                            <td>
+                                <span class="badge ${doc.badgeClass}">
+                                    ${doc.status}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="auth-subtitle" style="text-align: center; padding: 2rem;">No active physicians registered in clinic rosters.</td>
+                    </tr>
+                `;
+            }
+
+            // Render schedule blocks
+            const scheds = db.getDoctorSchedules();
+            const schedsTbody = document.getElementById('schedules-tbody');
+            if (scheds.length > 0) {
+                schedsTbody.innerHTML = scheds.slice().reverse().map(s => {
+                    const doc = users.find(u => u.id === s.doctor_id);
+                    const docName = doc ? 'Dr. ' + doc.name : 'Doctor';
+                    const spec = doc ? doc.specialty || 'General' : '';
+                    let badgeClass = s.status === 'available' ? 'badge-success' : 'badge-danger';
+                    return `
+                        <tr>
+                            <td style="font-weight: 700;">${docName} (${spec})</td>
+                            <td>${s.available_date}</td>
+                            <td style="font-weight: 700;">${s.start_time} - ${s.end_time}</td>
+                            <td><span class="badge ${badgeClass}">${s.status}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                schedsTbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="auth-subtitle" style="text-align: center; padding: 2rem;">No declared time blocks in the schedules database.</td>
+                    </tr>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -151,11 +151,7 @@
                     
                     setFlashMessage(`Welcome back, ${localUser.name}!`, 'success');
                     
-                    let dashboardPath = 'pages/dashboard/patient.html';
-                    if (localUser.role === 'admin') dashboardPath = 'pages/dashboard/admin.html';
-                    else if (localUser.role === 'doctor') dashboardPath = 'pages/dashboard/doctor.html';
-                    else if (localUser.role === 'pharmacist') dashboardPath = 'pages/dashboard/pharmacist.html';
-                    
+                    const dashboardPath = window.ROLE_DASHBOARDS[localUser.role] || 'pages/dashboard/patient.html';
                     window.location.href = '../../' + dashboardPath;
                 } catch (err) {
                     let errMsg = err.message;
