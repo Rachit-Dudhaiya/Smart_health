@@ -90,7 +90,7 @@
                 </ul>
                 
                 <div id="join-queue-container" style="margin-top: 2rem; display: none;">
-                    <a href="dashboard/patient.html" class="btn btn-primary btn-full">Join Consultation Queue</a>
+                    <a href="contact.html" class="btn btn-primary btn-full">Join Consultation Queue</a>
                 </div>
             </article>
         </div>
@@ -105,7 +105,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const curUser = db.getCurrentUser();
             
-            // Show join queue button to patients
+            // Keep a patient-only action, but do not point it at the dashboard
             if (curUser && curUser.role === 'patient') {
                 document.getElementById('join-queue-container').style.display = 'block';
             }

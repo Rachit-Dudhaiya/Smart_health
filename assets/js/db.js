@@ -13,7 +13,10 @@ const DB_KEYS = {
     PAGE_CONTENTS: 'sh_page_contents',
     ACTIVITY_LOGS: 'sh_activity_logs',
     CURRENT_USER: 'sh_current_user',
-    GALLERY: 'sh_gallery'
+    GALLERY: 'sh_gallery',
+    APPOINTMENTS: 'sh_appointments',
+    DOCTOR_AVAILABILITY: 'sh_doctor_availability',
+    BILLS: 'sh_bills'
 };
 
 const validate = {
@@ -44,8 +47,14 @@ const db = {
     // Initialize DB with seed data if empty
     init() {
         // 1. Users
-        if (!localStorage.getItem(DB_KEYS.USERS)) {
-            localStorage.setItem(DB_KEYS.USERS, JSON.stringify([]));
+        if (!localStorage.getItem(DB_KEYS.USERS) || JSON.parse(localStorage.getItem(DB_KEYS.USERS)).length === 0) {
+            const seedUsers = [
+                { id: 1, name: 'System Admin', email: 'admin@smarthealth.com', password: 'password123', role: 'admin', status: 'active', profile_photo: '' },
+                { id: 2, name: 'Sunita Sharma', email: 'doctor@smarthealth.com', password: 'password123', role: 'doctor', specialty: 'Cardiology', status: 'active', profile_photo: '' },
+                { id: 3, name: 'Rahul Verma', email: 'pharmacist@smarthealth.com', password: 'password123', role: 'pharmacist', status: 'active', profile_photo: '' },
+                { id: 4, name: 'RAchit', email: 'patient@smarthealth.com', password: 'password123', role: 'patient', status: 'active', profile_photo: '' }
+            ];
+            localStorage.setItem(DB_KEYS.USERS, JSON.stringify(seedUsers));
         }
 
         // 2. Bed Inventory
@@ -136,11 +145,42 @@ const db = {
         if (!localStorage.getItem(DB_KEYS.GALLERY)) {
             localStorage.setItem(DB_KEYS.GALLERY, JSON.stringify([]));
         }
+
+        // 11. Appointments
+        if (!localStorage.getItem(DB_KEYS.APPOINTMENTS)) {
+            const seedAppointments = [
+                { id: 1, patient_id: 4, doctor_id: 2, appointment_date: new Date().toISOString().split('T')[0], time_slot: '10:00 AM', status: 'approved', symptoms: 'Regular cardiology follow-up' }
+            ];
+            localStorage.setItem(DB_KEYS.APPOINTMENTS, JSON.stringify(seedAppointments));
+        }
+
+        // 12. Doctor Availability
+        if (!localStorage.getItem(DB_KEYS.DOCTOR_AVAILABILITY)) {
+            const seedAvailability = [
+                { id: 1, doctor_id: 2, available_date: new Date().toISOString().split('T')[0], start_time: '09:00', end_time: '13:00', status: 'available' },
+                { id: 2, doctor_id: 2, available_date: new Date().toISOString().split('T')[0], start_time: '14:00', end_time: '17:00', status: 'available' }
+            ];
+            localStorage.setItem(DB_KEYS.DOCTOR_AVAILABILITY, JSON.stringify(seedAvailability));
+        }
+
+        // 13. Bills
+        if (!localStorage.getItem(DB_KEYS.BILLS)) {
+            const seedBills = [
+                { id: 1, patient_id: 4, pharmacist_id: 3, total_amount: 120.00, discount: 0.00, final_amount: 120.00, payment_status: 'paid', payment_method: 'Cash', created_at: new Date().toISOString(), items: [{ name: 'Paracetamol 650mg', quantity: 2, unit_price: 60.00, total_price: 120.00 }] }
+            ];
+            localStorage.setItem(DB_KEYS.BILLS, JSON.stringify(seedBills));
+        }
     },
 
     // --- User Management ---
     getUsers() {
-        return JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
+        const users = JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
+        users.forEach(u => {
+            if (u.role) {
+                u.role = u.role.trim().toLowerCase();
+            }
+        });
+        return users;
     },
     saveUsers(users) {
         localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
@@ -166,7 +206,11 @@ const db = {
         sessionStorage.removeItem(DB_KEYS.CURRENT_USER);
     },
     getCurrentUser() {
-        return JSON.parse(sessionStorage.getItem(DB_KEYS.CURRENT_USER)) || null;
+        const user = JSON.parse(sessionStorage.getItem(DB_KEYS.CURRENT_USER)) || null;
+        if (user && user.role) {
+            user.role = user.role.trim().toLowerCase();
+        }
+        return user;
     },
     register(name, email, password, role = 'patient') {
         if (!validate.required(name) || !validate.required(email) || !validate.required(password)) {
@@ -592,7 +636,7 @@ const db = {
         if (!validate.email(email)) {
             return { success: false, message: 'Please enter a valid email address.' };
         }
-        const allowedFormTypes = ['general', 'inventory', 'bug', 'feedback'];
+        const allowedFormTypes = ['general', 'inventory', 'bug', 'feedback', 'contact'];
         if (!allowedFormTypes.includes(formType)) {
             return { success: false, message: 'Invalid form category type.' };
         }
@@ -609,6 +653,15 @@ const db = {
         };
         feedbacks.push(newFeedback);
         this.saveFeedback(feedbacks);
+
+        // Sync to Firebase Firestore under inquiries collection
+        if (typeof firebase !== 'undefined') {
+            try {
+                firebase.firestore().collection('inquiries').add(newFeedback);
+            } catch (e) {
+                console.error("Firestore sync failed for inquiry:", e);
+            }
+        }
         
         // Notify admin
         this.addNotification(1, `📬 New ${formType} submitted: "${subject}" by ${name}`);
@@ -698,7 +751,6 @@ const db = {
         const todayStr = new Date().toISOString().split('T')[0];
         const presentToday = attendance.filter(a => a.record_date === todayStr && a.status === 'present').length;
         const attendanceRate = activeDoctorsCount > 0 ? Math.round((presentToday / activeDoctorsCount) * 100) : 92;
-
         return {
             hospitalsCount: 4, // static mock
             doctorsCount: activeDoctorsCount,
@@ -707,6 +759,140 @@ const db = {
             lowStockCount,
             attendanceRate
         };
+    },
+
+    // --- Appointments Management ---
+    getAppointments() {
+        return JSON.parse(localStorage.getItem(DB_KEYS.APPOINTMENTS)) || [];
+    },
+    saveAppointments(appts) {
+        localStorage.setItem(DB_KEYS.APPOINTMENTS, JSON.stringify(appts));
+    },
+    bookAppointment(patientId, doctorId, date, slot, symptoms) {
+        const appts = this.getAppointments();
+        const newAppt = {
+            id: appts.length > 0 ? Math.max(...appts.map(a => a.id)) + 1 : 1,
+            patient_id: parseInt(patientId),
+            doctor_id: parseInt(doctorId),
+            appointment_date: date,
+            time_slot: slot,
+            status: 'pending',
+            symptoms: symptoms,
+            cancellation_reason: ''
+        };
+        appts.push(newAppt);
+        this.saveAppointments(appts);
+        this.logActivity(`Booked appointment with Doctor ID: ${doctorId}`, patientId);
+        
+        // Notify doctor
+        this.addNotification(doctorId, `📅 New appointment request received from Patient ID: ${patientId}`);
+        return { success: true, appointment: newAppt };
+    },
+    updateAppointmentStatus(id, status, reason = '') {
+        const appts = this.getAppointments();
+        const idx = appts.findIndex(a => a.id === parseInt(id));
+        if (idx !== -1) {
+            appts[idx].status = status;
+            if (reason) appts[idx].cancellation_reason = reason;
+            this.saveAppointments(appts);
+            
+            const patientId = appts[idx].patient_id;
+            const doctorId = appts[idx].doctor_id;
+            const doc = this.getUsers().find(u => u.id === doctorId);
+            const docName = doc ? doc.name : 'Doctor';
+            
+            // Notify patient
+            this.addNotification(patientId, `📅 Your appointment with Dr. ${docName} has been ${status.toUpperCase()}.`);
+            this.logActivity(`Updated appointment ID ${id} status to ${status}`, doctorId);
+            return { success: true };
+        }
+        return { success: false, message: 'Appointment not found.' };
+    },
+
+    // --- Doctor Availability Roster ---
+    getDoctorSchedules() {
+        return JSON.parse(localStorage.getItem(DB_KEYS.DOCTOR_AVAILABILITY)) || [];
+    },
+    saveDoctorSchedules(scheds) {
+        localStorage.setItem(DB_KEYS.DOCTOR_AVAILABILITY, JSON.stringify(scheds));
+    },
+    setDoctorSchedule(doctorId, date, startTime, endTime, status = 'available') {
+        const scheds = this.getDoctorSchedules();
+        const newSched = {
+            id: scheds.length > 0 ? Math.max(...scheds.map(s => s.id)) + 1 : 1,
+            doctor_id: parseInt(doctorId),
+            available_date: date,
+            start_time: startTime,
+            end_time: endTime,
+            status: status
+        };
+        scheds.push(newSched);
+        this.saveDoctorSchedules(scheds);
+        this.logActivity(`Added availability slot on ${date} ${startTime}-${endTime}`, doctorId);
+        return { success: true, schedule: newSched };
+    },
+    updateDoctorScheduleStatus(scheduleId, status) {
+        const scheds = this.getDoctorSchedules();
+        const idx = scheds.findIndex(s => s.id === parseInt(scheduleId));
+        if (idx !== -1) {
+            scheds[idx].status = status;
+            this.saveDoctorSchedules(scheds);
+            this.logActivity(`Updated schedule ID ${scheduleId} state to ${status}`, scheds[idx].doctor_id);
+            return { success: true };
+        }
+        return { success: false, message: 'Schedule slot not found.' };
+    },
+
+    // --- Billing System ---
+    getBills() {
+        return JSON.parse(localStorage.getItem(DB_KEYS.BILLS)) || [];
+    },
+    saveBills(bills) {
+        localStorage.setItem(DB_KEYS.BILLS, JSON.stringify(bills));
+    },
+    createBill(patientId, pharmacistId, items, discount = 0) {
+        const bills = this.getBills();
+        
+        let total = 0;
+        items.forEach(it => {
+            it.total_price = it.quantity * it.unit_price;
+            total += it.total_price;
+        });
+        
+        const finalAmt = Math.max(0, total - parseFloat(discount));
+        
+        const newBill = {
+            id: bills.length > 0 ? Math.max(...bills.map(b => b.id)) + 1 : 1,
+            patient_id: parseInt(patientId),
+            pharmacist_id: parseInt(pharmacistId),
+            total_amount: total,
+            discount: parseFloat(discount),
+            final_amount: finalAmt,
+            payment_status: 'unpaid',
+            payment_method: '',
+            created_at: new Date().toISOString(),
+            items: items
+        };
+        
+        bills.push(newBill);
+        this.saveBills(bills);
+        
+        // Notify patient
+        this.addNotification(patientId, `💵 A new bill of amount ₹${finalAmt.toFixed(2)} has been generated for you.`);
+        this.logActivity(`Created bill ID ${newBill.id} for Patient ID: ${patientId}`, pharmacistId);
+        return { success: true, bill: newBill };
+    },
+    payBill(billId, method) {
+        const bills = this.getBills();
+        const idx = bills.findIndex(b => b.id === parseInt(billId));
+        if (idx !== -1) {
+            bills[idx].payment_status = 'paid';
+            bills[idx].payment_method = method;
+            this.saveBills(bills);
+            this.logActivity(`Processed payment for Bill ID: ${billId} using ${method}`, bills[idx].patient_id);
+            return { success: true };
+        }
+        return { success: false, message: 'Bill not found.' };
     }
 };
 

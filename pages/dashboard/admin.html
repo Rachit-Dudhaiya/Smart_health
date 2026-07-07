@@ -11,21 +11,89 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="../../assets/css/styles.css" />
+    <style>
+        .tabs-header {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 2px solid var(--color-border);
+            margin-bottom: 2rem;
+            padding-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--color-text-muted);
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-fast);
+        }
+        .tab-btn.active {
+            background-color: var(--color-primary);
+            color: #ffffff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .admin-dashboard-grid {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 2rem;
+        }
+        @media (max-width: 992px) {
+            .admin-dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .nav-tab-btn {
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 0.8rem 1.2rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--color-text-main);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        .nav-tab-btn:hover {
+            background-color: var(--bg-primary);
+        }
+        .nav-tab-btn.active {
+            background-color: var(--color-primary);
+            color: #ffffff;
+        }
+    </style>
 </head>
 <body data-path-prefix="../../" data-restricted-roles="admin">
     
     <div class="container" style="padding: 2rem 0;">
-        <div class="dashboard-grid">
+        <div class="admin-dashboard-grid">
             
             <!-- Sidebar Navigation -->
             <aside class="dashboard-sidebar">
                 <h4>Control Center</h4>
-                <div class="sidebar-nav">
+                <div class="sidebar-nav" style="margin-top: 1rem;">
                     <button class="nav-tab-btn active" data-tab="overview">📊 Operations Overview</button>
-                    <button class="nav-tab-btn" data-tab="users">👥 User Management</button>
-                    <button class="nav-tab-btn" data-tab="cms">📝 Content Manager</button>
-                    <button class="nav-tab-btn" data-tab="queries">📬 Help Queries</button>
-                    <button class="nav-tab-btn" data-tab="logs">📁 Activity Auditing</button>
+                    <button class="nav-tab-btn" data-tab="users">👥 User Directory</button>
+                    <button class="nav-tab-btn" data-tab="beds">🛏️ Manage Wards</button>
+                    <button class="nav-tab-btn" data-tab="appointments">📅 Appointments Console</button>
+                    <button class="nav-tab-btn" data-tab="bills">💵 Billings Ledger</button>
+                    <button class="nav-tab-btn" data-tab="cms">📝 CMS Manager</button>
+                    <button class="nav-tab-btn" data-tab="queries">📬 Inquiries Feed</button>
+                    <button class="nav-tab-btn" data-tab="logs">📁 Activity Audits</button>
                 </div>
             </aside>
             
@@ -68,14 +136,11 @@
 
                 <!-- 2. USER MANAGEMENT PANEL -->
                 <section id="panel-users" class="dashboard-panel" style="display: none;">
-                    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
-                        <div>
-                            <h1>User Profile Management</h1>
-                            <p class="auth-subtitle">View, update status, and modify user roles.</p>
-                        </div>
+                    <div class="page-header" style="margin-bottom: 2rem;">
+                        <h1>User Profile Management</h1>
+                        <p class="auth-subtitle">View, update status, and modify user roles.</p>
                     </div>
 
-                    <!-- Users List -->
                     <div class="card" style="padding: 2rem;">
                         <h3>Active Users Directory</h3>
                         <div class="table-wrap" style="margin-top: 1.2rem;">
@@ -97,9 +162,100 @@
                     </div>
                 </section>
 
-                <!-- 3. CONTENT MANAGER PANEL -->
+                <!-- 3. MANAGE WARDS PANEL -->
+                <section id="panel-beds" class="dashboard-panel" style="display: none;">
+                    <div class="page-header" style="margin-bottom: 2rem;">
+                        <h1>Ward & Bed Master</h1>
+                        <p class="auth-subtitle">Update total capacity and active occupancies across divisions.</p>
+                    </div>
+
+                    <div class="card" style="padding: 2.5rem;">
+                        <h3>Ward Capacity Grid</h3>
+                        <div class="table-wrap" style="margin-top: 1.2rem;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Ward Type</th>
+                                        <th>Total Beds</th>
+                                        <th>Occupied Beds</th>
+                                        <th>Available</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="beds-tbody">
+                                    <!-- Injected dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. MANAGE APPOINTMENTS PANEL -->
+                <section id="panel-appointments" class="dashboard-panel" style="display: none;">
+                    <div class="page-header" style="margin-bottom: 2rem;">
+                        <h1>Appointments Console</h1>
+                        <p class="auth-subtitle">Supervise patient booking requests and modify statuses globally.</p>
+                    </div>
+
+                    <div class="card" style="padding: 2.5rem;">
+                        <h3>Patient Bookings Registry</h3>
+                        <div class="table-wrap" style="margin-top: 1.2rem;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Patient</th>
+                                        <th>Doctor</th>
+                                        <th>Date</th>
+                                        <th>Slot</th>
+                                        <th>Symptoms</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="appointments-tbody">
+                                    <!-- Injected dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. MANAGE BILLINGS PANEL -->
+                <section id="panel-bills" class="dashboard-panel" style="display: none;">
+                    <div class="page-header" style="margin-bottom: 2rem;">
+                        <h1>Pharmacy Billings Master</h1>
+                        <p class="auth-subtitle">Verify, delete, and audit clinical financial invoices.</p>
+                    </div>
+
+                    <div class="card" style="padding: 2.5rem;">
+                        <h3>Financial Transactions Ledger</h3>
+                        <div class="table-wrap" style="margin-top: 1.2rem;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Invoice ID</th>
+                                        <th>Patient</th>
+                                        <th>Billing Date</th>
+                                        <th>Total Cost</th>
+                                        <th>Discount</th>
+                                        <th>Final Amount</th>
+                                        <th>Payment Method</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bills-tbody">
+                                    <!-- Injected dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. CONTENT MANAGER PANEL -->
                 <section id="panel-cms" class="dashboard-panel" style="display: none;">
-                    <div class="page-header">
+                    <div class="page-header" style="margin-bottom: 2rem;">
                         <h1>CMS Content Manager</h1>
                         <p class="auth-subtitle">Edit about page text blocks, services, descriptions dynamically.</p>
                     </div>
@@ -127,15 +283,15 @@
                     </div>
                 </section>
 
-                <!-- 4. HELP QUERIES PANEL -->
+                <!-- 7. INQUIRIES PANEL -->
                 <section id="panel-queries" class="dashboard-panel" style="display: none;">
-                    <div class="page-header">
-                        <h1>Inquiries & Feedback</h1>
+                    <div class="page-header" style="margin-bottom: 2rem;">
+                        <h1>Inquiries Feed</h1>
                         <p class="auth-subtitle">Review queries submitted by site visitors and patient reviews.</p>
                     </div>
 
                     <div class="card" style="padding: 2rem;">
-                        <h3>Help Desk Submissions</h3>
+                        <h3>Inquiries Directory</h3>
                         <div class="table-wrap" style="margin-top: 1.2rem;">
                             <table>
                                 <thead>
@@ -156,9 +312,9 @@
                     </div>
                 </section>
 
-                <!-- 5. SYSTEM AUDIT LOGS PANEL -->
+                <!-- 8. SYSTEM AUDIT LOGS PANEL -->
                 <section id="panel-logs" class="dashboard-panel" style="display: none;">
-                    <div class="page-header">
+                    <div class="page-header" style="margin-bottom: 2rem;">
                         <h1>Activity Audit Logs</h1>
                         <p class="auth-subtitle">Verify user access logs, administrative updates, and security logs.</p>
                     </div>
@@ -208,23 +364,18 @@
                     tabButtons.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     
-                    // Hide all panels
                     const panels = document.querySelectorAll('.dashboard-panel');
                     panels.forEach(p => p.style.display = 'none');
                     
-                    // Show target panel
                     const targetTab = btn.getAttribute('data-tab');
                     document.getElementById(`panel-${targetTab}`).style.display = 'block';
                     
-                    // Load data for that panel
                     loadPanelData(targetTab);
                 });
             });
             
             // Initial load Overview tab
             loadPanelData('overview');
-            
-
             
             // Handle CMS Selector Change
             const cmsSelector = document.getElementById('cms-selector');
@@ -254,6 +405,12 @@
                 renderOverview();
             } else if (tab === 'users') {
                 renderUsers();
+            } else if (tab === 'beds') {
+                renderBeds();
+            } else if (tab === 'appointments') {
+                renderAppointments();
+            } else if (tab === 'bills') {
+                renderBills();
             } else if (tab === 'cms') {
                 loadCMSContent(document.getElementById('cms-selector').value);
             } else if (tab === 'queries') {
@@ -360,7 +517,6 @@
                 users[idx].status = newStatus;
                 db.saveUsers(users);
 
-                // Update in Firestore
                 const firebaseUid = users[idx].firebase_uid || users[idx].id;
                 try {
                     await firebase.firestore().collection('users').doc(String(firebaseUid)).update({
@@ -383,7 +539,6 @@
                     const remaining = users.filter(user => String(user.id) !== String(targetId));
                     db.saveUsers(remaining);
 
-                    // Delete in Firestore
                     const firebaseUid = u.firebase_uid || u.id;
                     try {
                         await firebase.firestore().collection('users').doc(String(firebaseUid)).delete();
@@ -398,7 +553,161 @@
             }
         };
 
-        // --- 3. CMS RENDERING ---
+        // --- 3. WARD MASTER RENDERING ---
+        function renderBeds() {
+            const beds = db.getBeds();
+            const tbody = document.getElementById('beds-tbody');
+
+            tbody.innerHTML = beds.map(b => {
+                const free = Math.max(0, b.total - b.occupied);
+                return `
+                    <tr>
+                        <td style="font-weight: 700;">${b.ward_type} Ward</td>
+                        <td>
+                            <input type="number" value="${b.total}" min="0" style="width: 80px; padding: 0.2rem 0.5rem;" id="bed-total-${b.id}" />
+                        </td>
+                        <td>
+                            <input type="number" value="${b.occupied}" min="0" style="width: 80px; padding: 0.2rem 0.5rem;" id="bed-occupied-${b.id}" />
+                        </td>
+                        <td><strong>${free} Available</strong></td>
+                        <td>
+                            <button class="btn btn-primary" style="padding:0.3rem 0.6rem; font-size: 0.8rem;" onclick="updateWardCapacity(${b.id})">Update</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        window.updateWardCapacity = function(bid) {
+            const total = parseInt(document.getElementById(`bed-total-${bid}`).value) || 0;
+            const occupied = parseInt(document.getElementById(`bed-occupied-${bid}`).value) || 0;
+
+            if (occupied > total) {
+                showToast('Occupied beds cannot exceed total capacity.', 'warning');
+                return;
+            }
+
+            const beds = db.getBeds();
+            const idx = beds.findIndex(b => b.id === bid);
+            if (idx !== -1) {
+                beds[idx].total = total;
+                beds[idx].occupied = occupied;
+                db.saveBeds(beds);
+                db.logActivity(`Admin updated ward ID ${bid} capacity (Total: ${total}, Occupied: ${occupied})`, db.getCurrentUser().id);
+                showToast('Ward capacity updated successfully.', 'success');
+                renderBeds();
+            }
+        };
+
+        // --- 4. APPOINTMENTS master ---
+        function renderAppointments() {
+            const appts = db.getAppointments();
+            const tbody = document.getElementById('appointments-tbody');
+            const users = db.getUsers();
+
+            const getUserName = (uid) => {
+                const u = users.find(user => user.id === uid);
+                return u ? u.name : 'Unknown';
+            };
+
+            if (appts.length > 0) {
+                tbody.innerHTML = appts.slice().reverse().map(a => {
+                    let badgeClass = 'badge-warning';
+                    if (a.status === 'approved') badgeClass = 'badge-success';
+                    else if (a.status === 'rejected' || a.status === 'cancelled') badgeClass = 'badge-danger';
+                    else if (a.status === 'completed') badgeClass = 'badge-info';
+
+                    return `
+                        <tr>
+                            <td>#${a.id}</td>
+                            <td style="font-weight: 700;">${getUserName(a.patient_id)}</td>
+                            <td>Dr. ${getUserName(a.doctor_id)}</td>
+                            <td>${a.appointment_date}</td>
+                            <td>${a.time_slot}</td>
+                            <td>${a.symptoms || '--'}</td>
+                            <td><span class="badge ${badgeClass}">${a.status}</span></td>
+                            <td>
+                                <select onchange="updateAppointmentState(${a.id}, this.value)" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">
+                                    <option value="pending" ${a.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                    <option value="approved" ${a.status === 'approved' ? 'selected' : ''}>Approved</option>
+                                    <option value="completed" ${a.status === 'completed' ? 'selected' : ''}>Completed</option>
+                                    <option value="cancelled" ${a.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                                    <option value="rejected" ${a.status === 'rejected' ? 'selected' : ''}>Rejected</option>
+                                </select>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="auth-subtitle" style="text-align: center; padding: 2rem;">No appointments booked yet.</td>
+                    </tr>
+                `;
+            }
+        }
+
+        window.updateAppointmentState = function(aid, status) {
+            const res = db.updateAppointmentStatus(aid, status);
+            if (res.success) {
+                showToast(`Appointment status updated to ${status}.`, 'success');
+                renderAppointments();
+            } else {
+                showToast('Failed to update status.', 'error');
+            }
+        };
+
+        // --- 5. BILLS MASTER ---
+        function renderBills() {
+            const bills = db.getBills();
+            const tbody = document.getElementById('bills-tbody');
+            const users = db.getUsers();
+
+            const getUserName = (uid) => {
+                const u = users.find(user => user.id === uid);
+                return u ? u.name : 'Unknown';
+            };
+
+            if (bills.length > 0) {
+                tbody.innerHTML = bills.slice().reverse().map(b => {
+                    const badgeClass = b.payment_status === 'paid' ? 'badge-success' : 'badge-danger';
+                    return `
+                        <tr>
+                            <td style="font-weight: 700;">#INV-${b.id}</td>
+                            <td>${getUserName(b.patient_id)}</td>
+                            <td>${new Date(b.created_at).toLocaleDateString('en-GB')}</td>
+                            <td>₹${b.total_amount.toFixed(2)}</td>
+                            <td>₹${b.discount.toFixed(2)}</td>
+                            <td style="font-weight: 700;">₹${b.final_amount.toFixed(2)}</td>
+                            <td>${b.payment_method || '--'}</td>
+                            <td><span class="badge ${badgeClass}">${b.payment_status}</span></td>
+                            <td>
+                                <button class="btn btn-danger" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="deleteBill(${b.id})">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="auth-subtitle" style="text-align: center; padding: 2rem;">No bills generated yet.</td>
+                    </tr>
+                `;
+            }
+        }
+
+        window.deleteBill = function(bid) {
+            if (confirm('Delete this bill from record?')) {
+                const bills = db.getBills();
+                const remaining = bills.filter(b => b.id !== bid);
+                db.saveBills(remaining);
+                db.logActivity(`Admin deleted Invoice ID ${bid}`, db.getCurrentUser().id);
+                showToast('Bill invoice removed.', 'success');
+                renderBills();
+            }
+        };
+
+        // --- 6. CMS RENDERING ---
         function loadCMSContent(slug) {
             const contents = db.getPageContents();
             const cms = contents.find(c => c.slug === slug);
@@ -408,35 +717,73 @@
             }
         }
         
-        // --- 4. QUERIES RENDERING ---
+        // --- 7. INQUIRIES RENDERING ---
         function renderQueries() {
-            const feedbacks = db.getFeedback();
             const tbody = document.getElementById('queries-tbody');
             
-            if (feedbacks.length > 0) {
-                tbody.innerHTML = feedbacks.slice().reverse().map(q => {
-                    const dt = new Date(q.created_at).toLocaleString();
-                    return `
+            if (typeof firebase !== 'undefined') {
+                firebase.firestore().collection('inquiries').orderBy('created_at', 'desc').onSnapshot((snapshot) => {
+                    const inquiries = [];
+                    snapshot.forEach(doc => {
+                        inquiries.push(doc.data());
+                    });
+                    
+                    localStorage.setItem('sh_feedback', JSON.stringify(inquiries));
+                    
+                    const metricEl = document.getElementById('overview-queries-received');
+                    if (metricEl) {
+                        metricEl.textContent = inquiries.length;
+                    }
+                    
+                    if (inquiries.length > 0) {
+                        tbody.innerHTML = inquiries.map(q => {
+                            const dt = new Date(q.created_at).toLocaleString();
+                            return `
+                                <tr>
+                                    <td><span class="badge ${q.form_type === 'feedback' ? 'badge-success' : 'badge-info'}">${q.form_type}</span></td>
+                                    <td style="font-weight:700;">${q.name}</td>
+                                    <td>${q.email}</td>
+                                    <td><strong>${q.subject}</strong></td>
+                                    <td style="max-width: 250px; font-size: 0.85rem; white-space: pre-wrap;">${q.message}</td>
+                                    <td style="font-size:0.8rem;">${dt}</td>
+                                </tr>
+                            `;
+                        }).join('');
+                    } else {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="6" class="auth-subtitle" style="text-align:center; padding:2rem;">No inquiries received yet.</td>
+                            </tr>
+                        `;
+                    }
+                });
+            } else {
+                const feedbacks = db.getFeedback();
+                if (feedbacks.length > 0) {
+                    tbody.innerHTML = feedbacks.slice().reverse().map(q => {
+                        const dt = new Date(q.created_at).toLocaleString();
+                        return `
+                            <tr>
+                                <td><span class="badge ${q.form_type === 'feedback' ? 'badge-success' : 'badge-info'}">${q.form_type}</span></td>
+                                <td style="font-weight:700;">${q.name}</td>
+                                <td>${q.email}</td>
+                                <td><strong>${q.subject}</strong></td>
+                                <td style="max-width: 250px; font-size: 0.85rem; white-space: pre-wrap;">${q.message}</td>
+                                <td style="font-size:0.8rem;">${dt}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    tbody.innerHTML = `
                         <tr>
-                            <td><span class="badge ${q.form_type === 'feedback' ? 'badge-success' : 'badge-info'}">${q.form_type}</span></td>
-                            <td style="font-weight:700;">${q.name}</td>
-                            <td>${q.email}</td>
-                            <td><strong>${q.subject}</strong></td>
-                            <td style="max-width: 250px; font-size: 0.85rem; white-space: pre-wrap;">${q.message}</td>
-                            <td style="font-size:0.8rem;">${dt}</td>
+                            <td colspan="6" class="auth-subtitle" style="text-align:center; padding:2rem;">No inquiries received yet.</td>
                         </tr>
                     `;
-                }).join('');
-            } else {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="auth-subtitle" style="text-align:center; padding:2rem;">No inquiries received yet.</td>
-                    </tr>
-                `;
+                }
             }
         }
         
-        // --- 5. LOGS RENDERING ---
+        // --- 8. LOGS RENDERING ---
         function renderLogs() {
             const logs = db.getLogs();
             const tbody = document.getElementById('logs-tbody');

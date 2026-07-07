@@ -1,12 +1,41 @@
-/**
- * Smart Health - Layout Injector, Theme Controller, Access Guard, & Toast System
- */
+const ROLE_NAV_CONFIG = {
+    guest: ['home', 'about', 'services', 'patient_flow', 'bed_availability', 'contact'],
+    patient: ['home', 'about', 'services', 'patient_flow', 'bed_availability', 'doctor_availability', 'contact'],
+    doctor: ['home', 'about', 'services', 'doctor_attendance', 'contact'],
+    pharmacist: ['home', 'about', 'services', 'medicine_stock', 'bed_availability', 'doctor_availability', 'contact'],
+    admin: ['home', 'about', 'services', 'profile', 'medicine_stock', 'patient_flow', 'bed_availability', 'doctor_availability', 'doctor_attendance', 'contact']
+};
+
+const ROLE_DASHBOARDS = {
+    admin: 'pages/dashboard/admin.html',
+    doctor: 'pages/dashboard/doctor.html',
+    pharmacist: 'pages/dashboard/pharmacist.html',
+    patient: 'pages/dashboard/patient.html',
+    guest: 'index.html'
+};
+
+const NAV_ITEMS = [
+    { id: 'home', label: 'Home', path: 'index.html', activePattern: 'index.html' },
+    { id: 'about', label: 'About', path: 'pages/about.html', activePattern: 'about.html' },
+    { id: 'services', label: 'Services', path: 'pages/services.html', activePattern: 'services.html' },
+    { id: 'profile', label: 'Profile', path: 'pages/profile.html', activePattern: 'profile.html' },
+    { id: 'medicine_stock', label: 'Medicine Stock', path: 'pages/medicine-stock.html', activePattern: 'medicine-stock.html' },
+    { id: 'patient_flow', label: 'Patient Flow', path: 'pages/patient-flow.html', activePattern: 'patient-flow.html' },
+    { id: 'bed_availability', label: 'Bed Availability', path: 'pages/bed-availability.html', activePattern: 'bed-availability.html' },
+    { id: 'doctor_availability', label: 'Doctor Availability', path: 'pages/doctor-availability.html', activePattern: 'doctor-availability.html' },
+    { id: 'doctor_attendance', label: 'Doctor Attendance', path: 'pages/doctor-attendance.html', activePattern: 'doctor-attendance.html' },
+    { id: 'contact', label: 'Contact', path: 'pages/contact.html', activePattern: 'contact.html' }
+];
+
+window.ROLE_DASHBOARDS = ROLE_DASHBOARDS;
+window.ROLE_NAV_CONFIG = ROLE_NAV_CONFIG;
+window.NAV_ITEMS = NAV_ITEMS;
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Determine relative path prefix from body attribute
     const bodyEl = document.body;
     const pathPrefix = bodyEl.getAttribute('data-path-prefix') || './';
-    
+
     // 2. Perform authorization check before rendering layout
     const restrictedRolesAttr = bodyEl.getAttribute('data-restricted-roles');
     const currentUser = window.db ? window.db.getCurrentUser() : null;
@@ -21,12 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (!allowedRoles.includes(currentUser.role)) {
             // Redirect to appropriate dashboard or home
             setFlashMessage('You are not authorized to view this page.', 'error');
-            let dest = 'index.html';
-            if (currentUser.role === 'admin') dest = 'pages/dashboard/admin.html';
-            else if (currentUser.role === 'doctor') dest = 'pages/dashboard/doctor.html';
-            else if (currentUser.role === 'pharmacist') dest = 'pages/dashboard/pharmacist.html';
-            else if (currentUser.role === 'patient') dest = 'pages/dashboard/patient.html';
-            
+            const dest = ROLE_DASHBOARDS[currentUser.role] || ROLE_DASHBOARDS['guest'];
             window.location.href = `${pathPrefix}${dest}`;
             return;
         }
@@ -69,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function injectHeader(pathPrefix, currentUser) {
     const headerEl = document.createElement('header');
     headerEl.className = 'site-header';
-    
+
     // Active link detection
     const currentPath = window.location.pathname;
     const isLinkActive = (filename) => currentPath.endsWith(filename) ? 'active' : '';
@@ -79,25 +103,29 @@ function injectHeader(pathPrefix, currentUser) {
     if (currentUser) {
         // Notification bell with unread count
         const unreadCount = window.db ? window.db.getUnreadNotificationsCount(currentUser.id) : 0;
-        let dashboardPath = 'pages/dashboard/patient.html';
-        if (currentUser.role === 'admin') dashboardPath = 'pages/dashboard/admin.html';
-        else if (currentUser.role === 'doctor') dashboardPath = 'pages/dashboard/doctor.html';
-        else if (currentUser.role === 'pharmacist') dashboardPath = 'pages/dashboard/pharmacist.html';
+        const dashboardPath = ROLE_DASHBOARDS[currentUser.role] || 'pages/dashboard/patient.html';
 
-        const avatarMarkup = currentUser.profile_photo 
-            ? `<img src="${pathPrefix}${currentUser.profile_photo}" alt="Avatar" class="nav-avatar-img" />`
+        const isBase64 = currentUser.profile_photo && currentUser.profile_photo.startsWith('data:');
+        const avatarSrc = isBase64 ? currentUser.profile_photo : `${pathPrefix}${currentUser.profile_photo}`;
+
+        const avatarMarkup = currentUser.profile_photo
+            ? `<img src="${avatarSrc}" alt="Avatar" class="nav-avatar-img" />`
             : `<div class="nav-avatar-placeholder">${currentUser.name.charAt(0).toUpperCase()}</div>`;
+
+        const dashboardMarkup = `<a href="${pathPrefix}${dashboardPath}" class="btn-dashboard-nav ${isDashboardActive()}">Dashboard</a>`;
+
+        const profileMarkup = `<a href="${pathPrefix}pages/profile.html" class="nav-avatar-link" title="My Profile">
+            ${avatarMarkup}
+            <span class="nav-username">${currentUser.name.split(' ')[0]}</span>
+        </a>`;
 
         navAuthContent = `
             <a href="${pathPrefix}pages/notifications.html" class="nav-notif-bell ${isLinkActive('notifications.html')}" title="Notifications">
                 🔔 <span class="notif-count">${unreadCount}</span>
             </a>
-            <a href="${pathPrefix}${dashboardPath}" class="btn-dashboard-nav ${isDashboardActive()}">Dashboard</a>
+            ${dashboardMarkup}
             <div class="user-menu-wrapper">
-                <a href="${pathPrefix}pages/profile.html" class="nav-avatar-link" title="My Profile">
-                    ${avatarMarkup}
-                    <span class="nav-username">${currentUser.name.split(' ')[0]}</span>
-                </a>
+                ${profileMarkup}
             </div>
             <button class="btn btn-secondary btn-nav-logout" id="logout-btn">Logout</button>
         `;
@@ -107,6 +135,17 @@ function injectHeader(pathPrefix, currentUser) {
             <a href="${pathPrefix}pages/auth/register.html" class="btn btn-primary">Register</a>
         `;
     }
+
+    const role = currentUser ? (currentUser.role || 'patient').trim().toLowerCase() : 'guest';
+    const allowedItems = ROLE_NAV_CONFIG[role] || ROLE_NAV_CONFIG['guest'];
+
+    let navLinks = '';
+    NAV_ITEMS.forEach(item => {
+        if (allowedItems.includes(item.id)) {
+            const isActive = isLinkActive(item.activePattern) || (item.id === 'home' && currentPath.endsWith('/')) ? 'active' : '';
+            navLinks += `<a href="${pathPrefix}${item.path}" class="${isActive}">${item.label}</a>\n`;
+        }
+    });
 
     headerEl.innerHTML = `
         <div class="container nav-row">
@@ -126,16 +165,7 @@ function injectHeader(pathPrefix, currentUser) {
             </div>
             
             <nav class="site-nav" id="site-nav">
-                <a href="${pathPrefix}index.html" class="${isLinkActive('index.html') || currentPath.endsWith('/') ? 'active' : ''}">Home</a>
-                <a href="${pathPrefix}pages/about.html" class="${isLinkActive('about.html')}">About</a>
-                <a href="${pathPrefix}pages/services.html" class="${isLinkActive('services.html')}">Services</a>
-                
-                <a href="${pathPrefix}pages/medicine-stock.html" class="${isLinkActive('medicine-stock.html')}">Medicine Stock</a>
-                <a href="${pathPrefix}pages/patient-flow.html" class="${isLinkActive('patient-flow.html')}">Patient Flow</a>
-                <a href="${pathPrefix}pages/bed-availability.html" class="${isLinkActive('bed-availability.html')}">Bed Availability</a>
-                <a href="${pathPrefix}pages/doctor-attendance.html" class="${isLinkActive('doctor-attendance.html')}">Doctor Attendance</a>
-                <a href="${pathPrefix}pages/contact.html" class="${isLinkActive('contact.html')}">Contact</a>
-
+                ${navLinks}
                 <div class="nav-auth-separator"></div>
                 ${navAuthContent}
             </nav>
@@ -206,7 +236,7 @@ function injectFooter(pathPrefix) {
 function initTheme() {
     const themeToggleBtn = document.getElementById('theme-toggle');
     const activeTheme = localStorage.getItem('sh_theme') || 'light';
-    
+
     if (activeTheme === 'dark') {
         document.body.classList.add('dark-theme');
     } else {
@@ -253,13 +283,13 @@ function bindEvents(pathPrefix) {
 /**
  * Toast System global methods
  */
-window.showToast = function(message, type = 'info') {
+window.showToast = function (message, type = 'info') {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    
+
     let icon = 'ℹ️';
     if (type === 'success') icon = '✅';
     else if (type === 'error') icon = '❌';
@@ -283,7 +313,7 @@ window.showToast = function(message, type = 'info') {
 /**
  * Set a message to be displayed as a Toast on the next page load
  */
-window.setFlashMessage = function(message, type = 'info') {
+window.setFlashMessage = function (message, type = 'info') {
     localStorage.setItem('sh_flash_msg', JSON.stringify({ message, type }));
 };
 
@@ -496,7 +526,7 @@ const translationDict = {
     "Report Inventory Issue": "दवा की कमी की रिपोर्ट",
     "Report System Bug": "सिस्टम बग की रिपोर्ट",
     "Feedback": "फीडबैक",
-    
+
     // Auth Pages
     "Welcome Back": "स्वागत है",
     "Sign in to access your customized role-based dashboard.": "अपने क्रेडेंशियल्स के साथ लॉगिन करें।",
@@ -518,7 +548,7 @@ const translationDict = {
     "Register": "पंजीकरण करें",
     "Already have an account?": "पहले से खाता है?",
     "Login here": "यहां लॉगिन करें",
-    
+
     // Profile Page
     "User Profile": "उपयोगकर्ता प्रोफ़ाइल",
     "My Account Info": "मेरी खाता जानकारी",
@@ -531,7 +561,7 @@ const translationDict = {
     "Update Photo": "फ़ोटो अपडेट करें",
     "Update Info": "जानकारी अपडेट करें",
     "Save Changes": "बदलाव सहेजें",
-    
+
     // Accessibility Modal
     "Emergency Contacts": "आपातकालीन संपर्क सूची",
     "Call these numbers for immediate clinical help.": "तुरंत चिकित्सकीय सहायता के लिए इन नंबरों पर कॉल करें।",
@@ -593,11 +623,41 @@ function initAccessibilitySystem() {
     // 3.6 Inject Click-to-Speak Buttons
     injectSpeakerButtonsForNode(document.body);
 
+    // 3.6.5 Ensure all icons are protected from Google translation
+    addNoTranslateToIcons(document.body);
+
     // 3.7 Start Mutation Observer to automatically handle dynamic nodes (JQuery loads, stats, logs)
     startTranslationObserver();
 
     // 3.8 Bind Hover Speech listeners
     bindVoiceHoverEvents();
+
+    // 3.8.5 Announce language selection if recently changed
+    announceLanguageLoad();
+}
+
+function announceLanguageLoad() {
+    const justChangedLang = sessionStorage.getItem('sh_just_changed_lang');
+    if (justChangedLang) {
+        sessionStorage.removeItem('sh_just_changed_lang');
+        const langNamesMap = {
+            'en': 'English language activated',
+            'hi': 'हिन्दी भाषा सक्रिय हो गई है',
+            'gu': 'ગુજરાતી ભાષા સક્રિય થઈ છે',
+            'mr': 'मराठी भाषा सक्रिय झाली आहे',
+            'pa': 'ਪੰਜਾਬੀ ਭਾਸ਼ਾ ਸਰਗਰਮ ਹੋ ਗਈ ਹੈ',
+            'ta': 'தமிழ் மொழி செயல்படுத்தப்பட்டது',
+            'te': 'తెలుగు భాష సక్రియం చేయబడింది',
+            'bn': 'বাংলা ভাষা সক্রিয় করা হয়েছে',
+            'kn': 'ಕನ್ನಡ ಭಾಷೆ ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ',
+            'ml': 'മലയാള ഭാಷ ಸജീവമാക്കി',
+            'ur': 'اردو زبان فعال ہو گئی ہے'
+        };
+        const msg = langNamesMap[justChangedLang] || 'Language activated';
+        setTimeout(() => {
+            speakText(msg, justChangedLang);
+        }, 200);
+    }
 }
 
 // 3.9 Google Translate Dynamic Loader & Custom Cookie Handlers
@@ -608,8 +668,8 @@ function loadGoogleTranslate() {
         div.style.display = 'none';
         document.body.appendChild(div);
     }
-    
-    window.googleTranslateElementInit = function() {
+
+    window.googleTranslateElementInit = function () {
         new google.translate.TranslateElement({
             pageLanguage: 'en',
             includedLanguages: 'en,hi,gu,mr,pa,ta,te,bn,kn,ml,ur',
@@ -628,7 +688,7 @@ function loadGoogleTranslate() {
 
 function changeLanguage(langCode) {
     const domain = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? '' : '.' + window.location.hostname;
-    
+
     if (langCode === 'en') {
         // Delete translate cookie
         document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + domain;
@@ -638,10 +698,10 @@ function changeLanguage(langCode) {
         document.cookie = "googtrans=/en/" + langCode + "; path=/; domain=" + domain;
         document.cookie = "googtrans=/en/" + langCode + "; path=/;";
     }
-    
+
     localStorage.setItem('sh_lang', langCode);
     window.currentLanguage = langCode;
-    
+
     // Trigger in-place translation if Google Translate widget combo box is loaded
     const googleSelect = document.querySelector('.goog-te-combo');
     if (googleSelect) {
@@ -656,7 +716,7 @@ function changeLanguage(langCode) {
 function applyStoredLanguage() {
     const storedLang = localStorage.getItem('sh_lang') || 'en';
     if (storedLang === 'en') return;
-    
+
     let checksCount = 0;
     const interval = setInterval(() => {
         const googleSelect = document.querySelector('.goog-te-combo');
@@ -668,10 +728,10 @@ function applyStoredLanguage() {
             }
         }
         checksCount++;
-        if (checksCount > 60) { // Timeout after 6 seconds
+        if (checksCount > 400) { // Timeout after 6 seconds (400 * 15ms)
             clearInterval(interval);
         }
-    }, 100);
+    }, 15);
 }
 
 // 3.9.5 Google Material Icons Loaders and Emoji Replacer
@@ -714,36 +774,36 @@ function replaceEmojisWithIcons(node) {
     if (!node) return;
     if (['SCRIPT', 'STYLE', 'LINK', 'META', 'IFRAME', 'NOSCRIPT'].includes(node.tagName)) return;
     if (node.classList && (node.classList.contains('material-icons') || node.classList.contains('material-icons-outlined'))) return;
-    
+
     // Replace inside child text nodes
     for (let child of Array.from(node.childNodes)) {
         if (child.nodeType === Node.TEXT_NODE) {
             let text = child.nodeValue;
             let modified = false;
-            
+
             // Check for each emoji in the map
             for (let emoji in emojiToIconMap) {
                 if (text.includes(emoji)) {
                     const span = document.createElement('span');
-                    span.className = 'material-icons';
+                    span.className = 'material-icons notranslate';
                     span.textContent = emojiToIconMap[emoji];
-                    
+
                     const parent = child.parentNode;
                     const parts = text.split(emoji);
-                    
+
                     // Insert preceding text
                     if (parts[0]) {
                         parent.insertBefore(document.createTextNode(parts[0]), child);
                     }
                     // Insert icon span
                     parent.insertBefore(span, child);
-                    
+
                     // Update text to be processed
                     text = parts.slice(1).join(emoji);
                     modified = true;
                 }
             }
-            
+
             if (modified) {
                 // Insert remaining text
                 if (text) {
@@ -767,11 +827,17 @@ function injectAccessibilityBar() {
     accBar.className = 'acc-bar';
     accBar.innerHTML = `
         <div class="acc-bar-title">
-            <span>👴👵 वरिष्ठ सहायता / Senior Care & Assist</span>
+            <span class="acc-title-emoji">👵👴</span>
+            <span class="acc-title-text-hi">वरिष्ठ सहायता</span>
+            <span class="acc-title-sep">/</span>
+            <span class="acc-title-text-en">Senior Care & Assist</span>
         </div>
         <div class="acc-controls">
             <div class="acc-control-group">
-                <span class="acc-label">भाषा / Language:</span>
+                <span class="acc-label">
+                    <span class="material-icons acc-icon notranslate">language</span>
+                    <span class="acc-label-text">भाषा / Language:</span>
+                </span>
                 <select id="lang-selector" class="acc-select">
                     <option value="en">English</option>
                     <option value="hi">हिन्दी (Hindi)</option>
@@ -783,11 +849,14 @@ function injectAccessibilityBar() {
                     <option value="bn">বাংলা (Bengali)</option>
                     <option value="kn">ಕನ್ನಡ (Kannada)</option>
                     <option value="ml">മലയാളം (Malayalam)</option>
-                    <option value="ur">اردو (Urdu)</option>
+                    <option value="ur">اردו (Urdu)</option>
                 </select>
             </div>
             <div class="acc-control-group">
-                <span class="acc-label">लिखावट का आकार / Text Size:</span>
+                <span class="acc-label">
+                    <span class="material-icons acc-icon notranslate">format_size</span>
+                    <span class="acc-label-text">आकार / Size:</span>
+                </span>
                 <div class="acc-btn-group">
                     <button type="button" class="acc-btn" id="size-btn-sm" title="Standard text size">A-</button>
                     <button type="button" class="acc-btn" id="size-btn-md" title="Large text size">A</button>
@@ -795,14 +864,29 @@ function injectAccessibilityBar() {
                 </div>
             </div>
             <div class="acc-control-group">
-                <span class="acc-label">साफ़ रंग / Visuals:</span>
-                <button type="button" class="acc-btn" id="contrast-toggle">High Contrast / साफ़ रंग</button>
+                <span class="acc-label">
+                    <span class="material-icons acc-icon notranslate">contrast</span>
+                    <span class="acc-label-text">रंग / Contrast:</span>
+                </span>
+                <button type="button" class="acc-btn" id="contrast-toggle">
+                    <span class="material-icons btn-icon-only notranslate">contrast</span>
+                    <span class="acc-btn-text">Contrast / साफ़ रंग</span>
+                </button>
             </div>
             <div class="acc-control-group">
-                <span class="acc-label">आवाज़ / Sound:</span>
-                <button type="button" class="acc-btn" id="voice-hover-toggle"><span class="material-icons" style="font-size: 1.15rem; margin-right: 4px;">volume_up</span> Hover Read / बोलकर सुनें</button>
+                <span class="acc-label">
+                    <span class="material-icons acc-icon notranslate">volume_up</span>
+                    <span class="acc-label-text">आवाज़ / Sound:</span>
+                </span>
+                <button type="button" class="acc-btn" id="voice-hover-toggle">
+                    <span class="material-icons btn-icon notranslate" style="font-size: 1.15rem; margin-right: 4px;">volume_up</span>
+                    <span class="acc-btn-text">Read / बोलकर सुनें</span>
+                </button>
             </div>
-            <button type="button" class="acc-btn-sos" id="sos-btn"><span class="material-icons" style="font-size: 1.20rem; margin-right: 4px;">warning</span> EMERGENCY SOS / आपातकालीन सहायता</button>
+            <button type="button" class="acc-btn-sos" id="sos-btn">
+                <span class="material-icons btn-icon notranslate" style="font-size: 1.20rem; margin-right: 4px;">warning</span>
+                <span class="acc-btn-text">EMERGENCY SOS / आपातकालीन</span>
+            </button>
         </div>
     `;
 
@@ -869,7 +953,30 @@ function bindAccessibilityEvents() {
         langSelector.value = window.currentLanguage;
         langSelector.addEventListener('change', (e) => {
             const selectedLang = e.target.value;
+            sessionStorage.setItem('sh_just_changed_lang', selectedLang);
             changeLanguage(selectedLang);
+
+            // If page didn't reload, speak immediately
+            setTimeout(() => {
+                if (sessionStorage.getItem('sh_just_changed_lang')) {
+                    sessionStorage.removeItem('sh_just_changed_lang');
+                    const langNamesMap = {
+                        'en': 'English language activated',
+                        'hi': 'हिन्दी भाषा सक्रिय हो गई है',
+                        'gu': 'ગુજરાતી ભાષા સક્રિય થઈ છે',
+                        'mr': 'मराठी भाषा सक्रिय झाली आहे',
+                        'pa': 'ਪੰਜਾਬੀ ਭਾਸ਼ਾ ਸਰਗਰਮ ਹੋ ਗਈ ਹੈ',
+                        'ta': 'தமிழ் மொழி செயல்படுத்தப்பட்டது',
+                        'te': 'తెలుగు భాష సక్రియం చేయబడింది',
+                        'bn': 'বাংলা ভাষা সক্রিয় করা হয়েছে',
+                        'kn': 'ಕನ್ನಡ ಭಾಷೆ ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ',
+                        'ml': 'മലയാള ભાಷ ಸജീവമാക്കി',
+                        'ur': 'اردو زبان فعال ہو گئی ہے'
+                    };
+                    const msg = langNamesMap[selectedLang] || 'Language activated';
+                    speakText(msg, selectedLang);
+                }
+            }, 30);
         });
     }
 
@@ -1044,7 +1151,7 @@ function translateElement(el) {
                 if (window.currentLanguage === 'hi') {
                     const cleanKey = parentOrigText.toLowerCase();
                     let translatedVal = lowerTranslationDict[cleanKey];
-                    
+
                     // Handle dynamic quantities/units translations
                     if (!translatedVal) {
                         if (cleanKey.endsWith(" units")) {
@@ -1075,7 +1182,7 @@ function translateElement(el) {
         }
     }
 }
-window.translatePage = function() {
+window.translatePage = function () {
     const allElements = document.getElementsByTagName('*');
     for (let el of allElements) {
         translateElement(el);
@@ -1104,6 +1211,8 @@ function startTranslationObserver() {
                         replaceEmojisWithIcons(node);
                         // Add speak buttons to headings
                         injectSpeakerButtonsForNode(node);
+                        // Shield icons from Google Translate
+                        addNoTranslateToIcons(node);
                     }
                 });
             } else if (mutation.type === 'characterData') {
@@ -1111,6 +1220,7 @@ function startTranslationObserver() {
                 if (parent) {
                     translateElement(parent);
                     replaceEmojisWithIcons(parent);
+                    addNoTranslateToIcons(parent);
                 }
             }
         }
@@ -1135,7 +1245,7 @@ function speakText(text, lang = 'en') {
     window.speechSynthesis.cancel(); // Terminate preceding queues
 
     const utterance = new SpeechSynthesisUtterance(text);
-    
+
     // Map lang codes to Indian voice locales
     const langLocaleMap = {
         'en': 'en-IN',
@@ -1152,7 +1262,7 @@ function speakText(text, lang = 'en') {
     };
 
     utterance.lang = langLocaleMap[lang] || 'en-IN';
-    
+
     // Try to find a voice that matches this locale in synthesis voices
     if (window.speechSynthesis.getVoices) {
         const voices = window.speechSynthesis.getVoices();
@@ -1174,11 +1284,11 @@ function getCleanText(el) {
     const clone = el.cloneNode(true);
     const speakBtns = clone.querySelectorAll('.tts-speak-btn');
     speakBtns.forEach(btn => btn.remove());
-    
+
     // Also remove the mobile hamburger menu icon inside brands or links
     const iconSpan = clone.querySelector('.brand-icon');
     if (iconSpan) iconSpan.remove();
-    
+
     return clone.textContent.trim();
 }
 
@@ -1198,7 +1308,7 @@ function injectSpeakerButtonsForNode(container) {
         btn.setAttribute('aria-label', 'Read Aloud / बोलकर सुनें');
 
         const iconSpan = document.createElement('span');
-        iconSpan.className = 'material-icons';
+        iconSpan.className = 'material-icons notranslate';
         iconSpan.style.marginRight = '0';
         iconSpan.textContent = 'volume_up';
         btn.appendChild(iconSpan);
@@ -1213,6 +1323,15 @@ function injectSpeakerButtonsForNode(container) {
     });
 }
 
+function addNoTranslateToIcons(rootNode = document.body) {
+    const icons = rootNode.querySelectorAll ? rootNode.querySelectorAll('.material-icons') : [];
+    icons.forEach(icon => {
+        if (!icon.classList.contains('notranslate')) {
+            icon.classList.add('notranslate');
+        }
+    });
+}
+
 // 11. Hover-based Voice Reader Events
 function bindVoiceHoverEvents() {
     document.body.addEventListener('mouseover', (e) => {
@@ -1220,10 +1339,10 @@ function bindVoiceHoverEvents() {
 
         const el = e.target;
         // Target headings, lists, cards, tables, buttons, and links
-        const isTarget = ['H1', 'H2', 'H3', 'H4', 'P', 'LABEL', 'TH', 'TD', 'BUTTON', 'A'].includes(el.tagName) || 
-                         el.classList.contains('card') || 
-                         el.classList.contains('mini-card') || 
-                         el.classList.contains('stat-pill');
+        const isTarget = ['H1', 'H2', 'H3', 'H4', 'P', 'LABEL', 'TH', 'TD', 'BUTTON', 'A'].includes(el.tagName) ||
+            el.classList.contains('card') ||
+            el.classList.contains('mini-card') ||
+            el.classList.contains('stat-pill');
 
         if (isTarget) {
             if (el.closest('.acc-bar')) return; // Avoid reading controls
@@ -1266,7 +1385,7 @@ function loadScript(url) {
 
 async function setupRealtimeRoleSync(pathPrefix, currentUser) {
     if (!currentUser) return;
-    
+
     // Check if firebase is already loaded. If not, load the compatibility libraries
     if (typeof firebase === 'undefined') {
         try {
@@ -1283,19 +1402,20 @@ async function setupRealtimeRoleSync(pathPrefix, currentUser) {
             return;
         }
     }
-    
+
     const uid = currentUser.firebase_uid || currentUser.id;
     if (!uid) return;
-    
+
     try {
         firebase.firestore().collection('users').doc(String(uid)).onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
                 let changed = false;
-                
+
                 // Compare role, name, status
-                if (data.role !== currentUser.role) {
-                    currentUser.role = data.role;
+                const normalizedFirestoreRole = data.role ? data.role.trim().toLowerCase() : '';
+                if (normalizedFirestoreRole !== currentUser.role) {
+                    currentUser.role = normalizedFirestoreRole;
                     changed = true;
                 }
                 if (data.name !== currentUser.name) {
@@ -1310,11 +1430,11 @@ async function setupRealtimeRoleSync(pathPrefix, currentUser) {
                     currentUser.profile_photo = data.profile_photo;
                     changed = true;
                 }
-                
+
                 if (changed) {
                     // Update sessionStorage
                     sessionStorage.setItem('sh_current_user', JSON.stringify(currentUser));
-                    
+
                     // Update local DB cache
                     if (window.db) {
                         const localUsers = window.db.getUsers();
@@ -1324,7 +1444,7 @@ async function setupRealtimeRoleSync(pathPrefix, currentUser) {
                             window.db.saveUsers(localUsers);
                         }
                     }
-                    
+
                     // If on restricted dashboard and role has changed, redirect to correct one
                     const currentPath = window.location.pathname;
                     if (currentPath.includes('/dashboard/') || currentPath.includes('/profile.html')) {
@@ -1334,12 +1454,7 @@ async function setupRealtimeRoleSync(pathPrefix, currentUser) {
                             const allowedRoles = restrictedRolesAttr.split(',').map(r => r.trim());
                             if (!allowedRoles.includes(currentUser.role)) {
                                 setFlashMessage('Your account profile has been updated by the administrator.', 'warning');
-                                let dest = 'index.html';
-                                if (currentUser.role === 'admin') dest = 'pages/dashboard/admin.html';
-                                else if (currentUser.role === 'doctor') dest = 'pages/dashboard/doctor.html';
-                                else if (currentUser.role === 'pharmacist') dest = 'pages/dashboard/pharmacist.html';
-                                else if (currentUser.role === 'patient') dest = 'pages/dashboard/patient.html';
-                                
+                                const dest = ROLE_DASHBOARDS[currentUser.role] || ROLE_DASHBOARDS['guest'];
                                 window.location.href = `${pathPrefix}${dest}`;
                             } else {
                                 // Just reload the page to refresh UI elements
