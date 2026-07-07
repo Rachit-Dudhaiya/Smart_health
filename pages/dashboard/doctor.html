@@ -11,87 +11,223 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="../../assets/css/styles.css" />
+    <style>
+        .tabs-header {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 2px solid var(--color-border);
+            margin-bottom: 2rem;
+            padding-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--color-text-muted);
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-fast);
+        }
+        .tab-btn.active {
+            background-color: var(--color-primary);
+            color: #ffffff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
 </head>
-<body data-path-prefix="../../" data-restricted-roles="doctor,admin">
+<body data-path-prefix="../../" data-restricted-roles="admin,doctor">
     
     <div class="container" style="padding: 2rem 0;">
-        <div class="dashboard-grid">
-            
-            <!-- Sidebar Clocking Module -->
-            <aside class="dashboard-sidebar">
-                <h4 style="margin-bottom: 1.5rem;">Clock Terminal</h4>
-                
-                <div style="text-align: center; margin-bottom: 2rem;">
-                    <div style="font-size: 3rem; margin-bottom: 0.5rem;">🩺</div>
-                    <h3 id="doctor-portal-name">Dr. Loading...</h3>
-                    <p class="badge badge-success" style="margin-top: 0.5rem;">On Call</p>
-                </div>
-                
-                <!-- Clock form block -->
-                <div class="card" style="padding: 1.5rem; text-align: center; background-color: var(--bg-primary);">
-                    <h4>Shift Roster Status</h4>
-                    <div style="margin: 1rem 0;" id="roster-status-container">
-                        <!-- Injected dynamically -->
-                    </div>
-                    
-                    <div id="roster-btn-container">
-                        <!-- Injected dynamically -->
-                    </div>
-                </div>
-            </aside>
-            
-            <!-- Main Content Area -->
-            <main class="dashboard-main">
-                
-                <!-- Active Consultation Box -->
-                <div id="active-consultation-container">
-                    <!-- Injected dynamically when a checkup is running -->
-                </div>
-                
-                <!-- Out-Patient Waiting Queue -->
-                <section class="card" style="padding: 2rem; margin-bottom: 2rem;">
-                    <h3 id="queue-header">Out-Patient Waiting Queue (0 patients)</h3>
-                    
-                    <div class="table-wrap" style="margin-top: 1rem;">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Patient Name</th>
-                                    <th>Email</th>
-                                    <th>Joined Queue At</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="waiting-queue-tbody">
-                                <!-- Injected dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-                
-                <!-- Completed Checkups History -->
-                <section class="card" style="padding: 2rem;">
-                    <h3>Recent Completed Checkups</h3>
-                    <div class="table-wrap" style="margin-top: 1rem;">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Patient</th>
-                                    <th>Checkup Time</th>
-                                    <th>Wait Duration</th>
-                                    <th>Diagnosis Summary</th>
-                                </tr>
-                            </thead>
-                            <tbody id="completed-queue-tbody">
-                                <!-- Injected dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-                
-            </main>
-            
+        
+        <!-- Tab Controls -->
+        <div class="tabs-header">
+            <button class="tab-btn active" onclick="switchTab('consults-tab')">🩺 Consultations Queue</button>
+            <button class="tab-btn" onclick="switchTab('appointments-tab')">📅 Appointments Console</button>
+            <button class="tab-btn" onclick="switchTab('schedule-tab')">🕒 Manage Schedule</button>
         </div>
+
+        <!-- TAB 1: CONSULTATIONS QUEUE -->
+        <div id="consults-tab" class="tab-content active">
+            <div class="dashboard-grid">
+                <!-- Sidebar Clocking Module -->
+                <aside class="dashboard-sidebar">
+                    <h4 style="margin-bottom: 1.5rem;">Clock Terminal</h4>
+                    
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🩺</div>
+                        <h3 id="doctor-portal-name">Dr. Loading...</h3>
+                        <p class="badge badge-success" style="margin-top: 0.5rem;" id="availability-badge">On Call</p>
+                    </div>
+                    
+                    <div class="card" style="padding: 1.5rem; text-align: center; background-color: var(--bg-primary);">
+                        <h4>Shift Roster Status</h4>
+                        <div style="margin: 1rem 0;" id="roster-status-container">
+                            <!-- Injected dynamically -->
+                        </div>
+                        
+                        <div id="roster-btn-container">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+                </aside>
+                
+                <!-- Main Content Area -->
+                <main class="dashboard-main">
+                    <!-- Active Consultation Box -->
+                    <div id="active-consultation-container">
+                        <!-- Injected dynamically when a checkup is running -->
+                    </div>
+                    
+                    <!-- Out-Patient Waiting Queue -->
+                    <section class="card" style="padding: 2rem; margin-bottom: 2rem;">
+                        <h3 id="queue-header">Out-Patient Waiting Queue (0 patients)</h3>
+                        
+                        <div class="table-wrap" style="margin-top: 1rem;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Patient Name</th>
+                                        <th>Email</th>
+                                        <th>Joined Queue At</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="waiting-queue-tbody">
+                                    <!-- Injected dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                    
+                    <!-- Completed Checkups History -->
+                    <section class="card" style="padding: 2rem;">
+                        <h3>Recent Completed Checkups</h3>
+                        <div class="table-wrap" style="margin-top: 1rem;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Patient</th>
+                                        <th>Checkup Time</th>
+                                        <th>Wait Duration</th>
+                                        <th>Diagnosis Summary</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="completed-queue-tbody">
+                                    <!-- Injected dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </main>
+            </div>
+        </div>
+
+        <!-- TAB 2: APPOINTMENTS CONSOLE -->
+        <div id="appointments-tab" class="tab-content">
+            <div class="card" style="padding: 2.5rem; margin-bottom: 2rem;">
+                <h3>Pending Booking Requests</h3>
+                <div class="table-wrap" style="margin-top: 1.2rem;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Patient Name</th>
+                                <th>Date Requested</th>
+                                <th>Preferred Time Slot</th>
+                                <th>Symptoms</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pending-appointments-tbody">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" style="padding: 2.5rem;">
+                <h3>Upcoming / Approved Appointments</h3>
+                <div class="table-wrap" style="margin-top: 1.2rem;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Patient Name</th>
+                                <th>Email</th>
+                                <th>Date</th>
+                                <th>Time Slot</th>
+                                <th>Symptoms</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="approved-appointments-tbody">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: MANAGE SCHEDULE -->
+        <div id="schedule-tab" class="tab-content">
+            <div class="dashboard-grid">
+                <!-- Add slot form -->
+                <aside class="dashboard-sidebar">
+                    <div class="card" style="padding: 2rem;">
+                        <h3>Define Availability Slot</h3>
+                        <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Declare hours when patients can request appointments with you.</p>
+                        
+                        <form id="add-schedule-form" class="auth-form" novalidate>
+                            <label>
+                                Date
+                                <input type="date" id="sched-date" required />
+                            </label>
+                            
+                            <label>
+                                Start Time
+                                <input type="time" id="sched-start" required />
+                            </label>
+                            
+                            <label>
+                                End Time
+                                <input type="time" id="sched-end" required />
+                            </label>
+                            
+                            <button type="submit" class="btn btn-primary btn-full" style="margin-top: 0.5rem;">Publish Available Slot</button>
+                        </form>
+                    </div>
+                </aside>
+
+                <!-- List slots -->
+                <main class="dashboard-main">
+                    <div class="card" style="padding: 2.5rem;">
+                        <h3>My Scheduled Availability Blocks</h3>
+                        <div class="table-wrap" style="margin-top: 1.2rem;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Time Block</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="schedules-tbody">
+                                    <!-- Injected dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+
     </div>
 
     <!-- Site Core Client Scripts -->
@@ -106,13 +242,52 @@
             currentDoc = db.getCurrentUser();
             if (!currentDoc) return;
             
-            document.getElementById('doctor-portal-name').textContent = currentDoc.name;
+            document.getElementById('doctor-portal-name').textContent = 'Dr. ' + currentDoc.name;
             
             renderClockTerminal();
             renderQueues();
+            renderAppointmentsConsole();
+            renderDoctorScheduleSlots();
+
+            // Set default date picker
+            document.getElementById('sched-date').value = new Date().toISOString().split('T')[0];
+
+            // Schedule form submission
+            const scheduleForm = document.getElementById('add-schedule-form');
+            scheduleForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const date = document.getElementById('sched-date').value;
+                const start = document.getElementById('sched-start').value;
+                const end = document.getElementById('sched-end').value;
+
+                if (!date || !start || !end) {
+                    showToast('Please fill in all schedule slot details.', 'error');
+                    return;
+                }
+
+                const res = db.setDoctorSchedule(currentDoc.id, date, start, end);
+                if (res.success) {
+                    showToast('Time slot published successfully!', 'success');
+                    scheduleForm.reset();
+                    document.getElementById('sched-date').value = new Date().toISOString().split('T')[0];
+                    renderDoctorScheduleSlots();
+                } else {
+                    showToast(res.message || 'Failed to publish slot.', 'error');
+                }
+            });
         });
-        
-        // --- 1. CLOCK TERMINAL ---
+
+        // Tab switches
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.outerHTML.includes(tabId));
+            if (activeBtn) activeBtn.classList.add('active');
+        };
+
+        // --- 1. SHIFT TERMINAL ---
         function renderClockTerminal() {
             const attendance = db.getDoctorAttendance();
             const todayStr = new Date().toISOString().split('T')[0];
@@ -120,6 +295,7 @@
             
             const statusContainer = document.getElementById('roster-status-container');
             const btnContainer = document.getElementById('roster-btn-container');
+            const availabilityBadge = document.getElementById('availability-badge');
             
             const formatTime = (timeStr) => {
                 if (!timeStr) return '--:--';
@@ -135,20 +311,25 @@
             if (!record) {
                 statusContainer.innerHTML = `<p class="badge badge-danger">Not Clocked In</p>`;
                 btnContainer.innerHTML = `<button class="btn btn-primary btn-full" onclick="clockIn()">⏰ Check In Shift</button>`;
+                availabilityBadge.textContent = 'Offline';
+                availabilityBadge.className = 'badge badge-danger';
             } else if (!record.check_out) {
                 statusContainer.innerHTML = `<p class="badge badge-success">Clocked In at ${formatTime(record.check_in)}</p>`;
                 btnContainer.innerHTML = `<button class="btn btn-danger btn-full" onclick="clockOut()">⏰ Check Out Shift</button>`;
+                availabilityBadge.textContent = 'Available';
+                availabilityBadge.className = 'badge badge-success';
             } else {
                 statusContainer.innerHTML = `<p class="badge badge-info">Shift Completed (In: ${formatTime(record.check_in)} | Out: ${formatTime(record.check_out)})</p>`;
                 btnContainer.innerHTML = `<button class="btn btn-secondary btn-full" disabled>Shift Ended</button>`;
+                availabilityBadge.textContent = 'Offline (Shift Ended)';
+                availabilityBadge.className = 'badge badge-danger';
             }
         }
-        
+
         window.clockIn = function() {
             const now = new Date();
             const curTime = now.toTimeString().split(' ')[0].substring(0, 5); // HH:MM
             
-            // Lateness check: > 09:15 AM
             let status = 'present';
             const boundary = new Date();
             boundary.setHours(9, 15, 0, 0);
@@ -160,7 +341,7 @@
             showToast(`You checked in at ${formatTimeStr(curTime)} (${status}).`, 'success');
             renderClockTerminal();
         };
-        
+
         window.clockOut = function() {
             const now = new Date();
             const curTime = now.toTimeString().split(' ')[0].substring(0, 5); // HH:MM
@@ -169,7 +350,7 @@
             showToast(`You checked out at ${formatTimeStr(curTime)}.`, 'success');
             renderClockTerminal();
         };
-        
+
         function formatTimeStr(timeStr) {
             if (!timeStr) return '--:--';
             const parts = timeStr.split(':');
@@ -180,7 +361,7 @@
             hrs = hrs ? hrs : 12;
             return `${hrs.toString().padStart(2, '0')}:${mins} ${ampm}`;
         }
-        
+
         // --- 2. QUEUES AND CONSULTATIONS ---
         function renderQueues() {
             const flow = db.getPatientFlow();
@@ -191,7 +372,6 @@
                 return u ? { name: u.name, email: u.email } : { name: 'Unknown', email: '--' };
             };
             
-            // 1. Waiting Queue
             const waiting = flow.filter(f => f.doctor_id === currentDoc.id && f.status === 'waiting');
             document.getElementById('queue-header').textContent = `Out-Patient Waiting Queue (${waiting.length} patients)`;
             
@@ -223,7 +403,6 @@
                 `;
             }
             
-            // 2. Active Consultation Container
             const activeContainer = document.getElementById('active-consultation-container');
             if (activeConsult) {
                 const patient = getUserDetails(activeConsult.patient_id);
@@ -234,7 +413,7 @@
                         <h2>Active Patient: ${patient.name}</h2>
                         <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Email: ${patient.email} | Queue Entry: ${dt}</p>
                         
-                        <form id="active-consult-form" class="auth-form">
+                        <form id="active-consult-form" class="auth-form" novalidate>
                             <label>
                                 Diagnosis Notes & Prescriptions (Medicines to dispense)
                                 <textarea id="consult-notes" rows="6" placeholder="e.g. Diagnosed with seasonal flu. Prescribed: Paracetamol 650mg twice daily for 3 days. Take bed rest." required></textarea>
@@ -258,12 +437,10 @@
                 activeContainer.innerHTML = '';
             }
             
-            // 3. Completed Consultations today
             const completed = flow.filter(f => f.doctor_id === currentDoc.id && f.status === 'completed');
             const completedTbody = document.getElementById('completed-queue-tbody');
             
             if (completed.length > 0) {
-                // Show latest 5 completed checkups
                 const latestCompleted = completed.slice(-5).reverse();
                 completedTbody.innerHTML = latestCompleted.map(c => {
                     const patient = getUserDetails(c.patient_id);
@@ -285,7 +462,7 @@
                 `;
             }
         }
-        
+
         window.startConsult = function(flowId) {
             const flow = db.getPatientFlow();
             const idx = flow.findIndex(f => f.id === flowId);
@@ -296,7 +473,6 @@
                 
                 db.updateQueueStatus(flowId, 'in-consultation');
                 
-                // Update wait time minutes
                 const updatedFlow = db.getPatientFlow();
                 const uIdx = updatedFlow.findIndex(f => f.id === flowId);
                 if (uIdx !== -1) {
@@ -309,11 +485,10 @@
                 renderQueues();
             }
         };
-        
+
         window.completeConsult = function(flowId, notes) {
             const res = db.updateQueueStatus(flowId, 'completed', notes);
             if (res.success) {
-                // Notify pharmacists to dispense medicines
                 const pharmacists = db.getUsers().filter(u => u.role === 'pharmacist');
                 const flow = db.getPatientFlow();
                 const record = flow.find(f => f.id === flowId);
@@ -329,6 +504,136 @@
                 renderQueues();
             } else {
                 showToast('Failed to complete consultation.', 'error');
+            }
+        };
+
+        // --- 3. APPOINTMENTS CONSOLE ---
+        function renderAppointmentsConsole() {
+            const appts = db.getAppointments().filter(a => a.doctor_id === currentDoc.id);
+            const users = db.getUsers();
+
+            const getPatientDetails = (pid) => {
+                const pat = users.find(u => u.id === pid);
+                return pat ? { name: pat.name, email: pat.email } : { name: 'Unknown', email: '--' };
+            };
+
+            const pendingTbody = document.getElementById('pending-appointments-tbody');
+            const approvedTbody = document.getElementById('approved-appointments-tbody');
+
+            const pendingList = appts.filter(a => a.status === 'pending');
+            const approvedList = appts.filter(a => a.status === 'approved' || a.status === 'completed');
+
+            // Render Pending
+            if (pendingList.length > 0) {
+                pendingTbody.innerHTML = pendingList.map(a => {
+                    const pat = getPatientDetails(a.patient_id);
+                    return `
+                        <tr>
+                            <td style="font-weight: 700;">${pat.name}</td>
+                            <td>${a.appointment_date}</td>
+                            <td>${a.time_slot}</td>
+                            <td>${a.symptoms || '--'}</td>
+                            <td>
+                                <button class="btn btn-primary" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;" onclick="approveAppt(${a.id})">Approve</button>
+                                <button class="btn btn-danger" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;" onclick="rejectAppt(${a.id})">Reject</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                pendingTbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="auth-subtitle" style="text-align: center; padding: 2rem;">No pending appointment requests.</td>
+                    </tr>
+                `;
+            }
+
+            // Render Approved
+            if (approvedList.length > 0) {
+                approvedTbody.innerHTML = approvedList.map(a => {
+                    const pat = getPatientDetails(a.patient_id);
+                    const badgeClass = a.status === 'approved' ? 'badge-success' : 'badge-info';
+                    return `
+                        <tr>
+                            <td style="font-weight: 700;">${pat.name}</td>
+                            <td>${pat.email}</td>
+                            <td>${a.appointment_date}</td>
+                            <td>${a.time_slot}</td>
+                            <td>${a.symptoms || '--'}</td>
+                            <td><span class="badge ${badgeClass}">${a.status}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                approvedTbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="auth-subtitle" style="text-align: center; padding: 2rem;">No upcoming appointments.</td>
+                    </tr>
+                `;
+            }
+        }
+
+        window.approveAppt = function(aid) {
+            const res = db.updateAppointmentStatus(aid, 'approved');
+            if (res.success) {
+                showToast('Appointment approved successfully.', 'success');
+                renderAppointmentsConsole();
+            } else {
+                showToast('Failed to approve appointment.', 'error');
+            }
+        };
+
+        window.rejectAppt = function(aid) {
+            const reason = prompt('Please enter reason for rejection:', 'Doctor is unavailable at this slot');
+            if (reason) {
+                const res = db.updateAppointmentStatus(aid, 'rejected', reason);
+                if (res.success) {
+                    showToast('Appointment rejected successfully.', 'success');
+                    renderAppointmentsConsole();
+                } else {
+                    showToast('Failed to reject appointment.', 'error');
+                }
+            }
+        };
+
+        // --- 4. DOCTOR SCHEDULE BLOCKS ---
+        function renderDoctorScheduleSlots() {
+            const scheds = db.getDoctorSchedules().filter(s => s.doctor_id === currentDoc.id);
+            const tbody = document.getElementById('schedules-tbody');
+
+            if (scheds.length > 0) {
+                tbody.innerHTML = scheds.map(s => {
+                    let badgeClass = s.status === 'available' ? 'badge-success' : 'badge-danger';
+                    
+                    const actionBtn = s.status === 'available'
+                        ? `<button class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="toggleSchedStatus(${s.id}, 'offline')">Mark Offline</button>`
+                        : `<button class="btn btn-primary" style="padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="toggleSchedStatus(${s.id}, 'available')">Mark Active</button>`;
+
+                    return `
+                        <tr>
+                            <td>${s.available_date}</td>
+                            <td style="font-weight: 700;">${s.start_time} - ${s.end_time}</td>
+                            <td><span class="badge ${badgeClass}">${s.status}</span></td>
+                            <td>${actionBtn}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="auth-subtitle" style="text-align: center; padding: 2rem;">No schedules declared. Use the left panel to add hours.</td>
+                    </tr>
+                `;
+            }
+        }
+
+        window.toggleSchedStatus = function(sid, state) {
+            const res = db.updateDoctorScheduleStatus(sid, state);
+            if (res.success) {
+                showToast(`Schedule slot state updated to ${state}.`, 'success');
+                renderDoctorScheduleSlots();
+            } else {
+                showToast('Failed to update schedule status.', 'error');
             }
         };
     </script>

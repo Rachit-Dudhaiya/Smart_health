@@ -65,6 +65,50 @@
         </div>
     </section>
 
+    <!-- Senior Citizen Quick Assist Section -->
+    <section class="section" style="background-color: var(--color-primary-light); padding: 5rem 0; border-bottom: 2px solid var(--color-border);">
+        <div class="container">
+            <div class="section-heading" style="margin-bottom: 3.5rem;">
+                <p class="eyebrow">Senior Citizen Hub</p>
+                <h2>Quick Care Access</h2>
+            </div>
+            
+            <div class="card-grid two-up" style="max-width: 1000px; margin: 0 auto;">
+                <a href="pages/medicine-stock.html" class="senior-hub-link">
+                    <span class="material-icons">medication</span>
+                    <div>
+                        <h3>Medicine Stock</h3>
+                        <p>Check if your prescribed medicine is currently in stock at the dispensary.</p>
+                    </div>
+                </a>
+                
+                <a href="pages/bed-availability.html" class="senior-hub-link">
+                    <span class="material-icons">single_bed</span>
+                    <div>
+                        <h3>Bed Vacancy</h3>
+                        <p>Monitor general, emergency, or ICU bed capacity live.</p>
+                    </div>
+                </a>
+                
+                <a href="pages/doctor-attendance.html" class="senior-hub-link">
+                    <span class="material-icons">medical_services</span>
+                    <div>
+                        <h3>Doctor Attendance</h3>
+                        <p>Check if specialist doctors are currently checked-in at the facility.</p>
+                    </div>
+                </a>
+                
+                <a href="pages/patient-flow.html" class="senior-hub-link">
+                    <span class="material-icons">groups</span>
+                    <div>
+                        <h3>Queue Wait Time</h3>
+                        <p>Verify waiting times and consult with on-duty doctors.</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
     <!-- Core Modules Section -->
     <section class="section">
         <div class="container">
@@ -213,26 +257,52 @@
             const welcomeContainer = document.getElementById('welcome-message-container');
             const heroActions = document.getElementById('hero-actions-container');
 
+            const ROLE_HOMEPAGE_ACTIONS = {
+                patient: [
+                    { label: 'My Dashboard', path: 'pages/dashboard/patient.html', class: 'btn btn-primary' },
+                    { label: 'Check Bed Availability', path: 'pages/bed-availability.html', class: 'btn btn-secondary' }
+                ],
+                doctor: [
+                    { label: 'My Dashboard', path: 'pages/dashboard/doctor.html', class: 'btn btn-primary' }
+                ],
+                pharmacist: [
+                    { label: 'Explore Live Inventory', path: 'pages/medicine-stock.html', class: 'btn btn-primary' },
+                    { label: 'My Dashboard', path: 'pages/dashboard/pharmacist.html', class: 'btn btn-secondary' }
+                ],
+                admin: [
+                    { label: 'Explore Live Inventory', path: 'pages/medicine-stock.html', class: 'btn btn-primary' },
+                    { label: 'My Dashboard', path: 'pages/dashboard/admin.html', class: 'btn btn-secondary' }
+                ],
+                guest: [
+                    { label: 'Sign In', path: 'pages/auth/login.html', class: 'btn btn-primary' },
+                    { label: 'Register Account', path: 'pages/auth/register.html', class: 'btn btn-secondary' }
+                ]
+            };
+
             if (curUser) {
                 welcomeContainer.innerHTML = `
                     <div class="auth-message" style="margin-bottom: 1.5rem;">
-                        👋 Welcome back, <strong>${curUser.name}</strong>! (Role: ${curUser.role.charAt(0).toUpperCase() + curUser.role.slice(1)})
+                        👋 Welcome back, <a href="pages/profile.html" class="welcome-profile-link" style="text-decoration: underline; font-weight: 700; color: var(--color-primary);">${curUser.name}</a>! (Role: ${curUser.role.charAt(0).toUpperCase() + curUser.role.slice(1)})
                     </div>
                 `;
                 
-                let dashboardPath = 'pages/dashboard/patient.html';
-                if (curUser.role === 'admin') dashboardPath = 'pages/dashboard/admin.html';
-                else if (curUser.role === 'doctor') dashboardPath = 'pages/dashboard/doctor.html';
-                else if (curUser.role === 'pharmacist') dashboardPath = 'pages/dashboard/pharmacist.html';
-                
-                heroActions.innerHTML += `
-                    <a class="btn btn-secondary" href="${dashboardPath}">My Dashboard</a>
-                `;
+                const actions = ROLE_HOMEPAGE_ACTIONS[curUser.role] || [];
+                heroActions.innerHTML = actions.map(act => `
+                    <a class="${act.class}" href="${act.path}">${act.label}</a>
+                `).join('\n');
             } else {
-                heroActions.innerHTML += `
-                    <a class="btn btn-secondary" href="pages/auth/login.html">Sign In</a>
-                    <a class="btn btn-secondary" href="pages/auth/register.html">Register Account</a>
-                `;
+                const actions = ROLE_HOMEPAGE_ACTIONS['guest'];
+                heroActions.innerHTML = actions.map(act => `
+                    <a class="${act.class}" href="${act.path}">${act.label}</a>
+                `).join('\n');
+            }
+
+            // Route patient and pharmacist roles to Doctor Availability instead of Doctor Attendance
+            if (curUser && (curUser.role === 'patient' || curUser.role === 'pharmacist')) {
+                const doctorLinks = document.querySelectorAll('a[href*="doctor-attendance.html"]');
+                doctorLinks.forEach(link => {
+                    link.setAttribute('href', 'pages/doctor-availability.html');
+                });
             }
 
             // Recent system activities

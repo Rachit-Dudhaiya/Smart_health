@@ -13,19 +13,46 @@ const DB_KEYS = {
     PAGE_CONTENTS: 'sh_page_contents',
     ACTIVITY_LOGS: 'sh_activity_logs',
     CURRENT_USER: 'sh_current_user',
-    GALLERY: 'sh_gallery'
+    GALLERY: 'sh_gallery',
+    APPOINTMENTS: 'sh_appointments',
+    DOCTOR_AVAILABILITY: 'sh_doctor_availability',
+    BILLS: 'sh_bills'
+};
+
+const validate = {
+    email(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(String(email).toLowerCase());
+    },
+    password(password) {
+        return typeof password === 'string' && password.length >= 8;
+    },
+    required(val) {
+        if (typeof val === 'string') {
+            return val.trim().length > 0;
+        }
+        return val !== null && val !== undefined;
+    },
+    integer(val, min = 0) {
+        const parsed = Number(val);
+        return Number.isInteger(parsed) && parsed >= min;
+    },
+    date(dateStr) {
+        const timestamp = Date.parse(dateStr);
+        return !isNaN(timestamp);
+    }
 };
 
 const db = {
     // Initialize DB with seed data if empty
     init() {
         // 1. Users
-        if (!localStorage.getItem(DB_KEYS.USERS)) {
+        if (!localStorage.getItem(DB_KEYS.USERS) || JSON.parse(localStorage.getItem(DB_KEYS.USERS)).length === 0) {
             const seedUsers = [
-                { id: 1, name: 'System Admin', email: 'admin@smarthealth.com', password: 'Admin123!', role: 'admin', status: 'active', profile_photo: '' },
-                { id: 2, name: 'Dr. Aditi Shah', email: 'doctor@smarthealth.com', password: 'Doctor123!', role: 'doctor', status: 'active', profile_photo: '' },
-                { id: 3, name: 'Rahul Pharmacist', email: 'pharmacist@smarthealth.com', password: 'Pharmacist123!', role: 'pharmacist', status: 'active', profile_photo: '' },
-                { id: 4, name: 'Rajesh Kumar', email: 'patient@smarthealth.com', password: 'Patient123!', role: 'patient', status: 'active', profile_photo: '' }
+                { id: 1, name: 'System Admin', email: 'admin@smarthealth.com', password: 'password123', role: 'admin', status: 'active', profile_photo: '' },
+                { id: 2, name: 'Sunita Sharma', email: 'doctor@smarthealth.com', password: 'password123', role: 'doctor', specialty: 'Cardiology', status: 'active', profile_photo: '' },
+                { id: 3, name: 'Rahul Verma', email: 'pharmacist@smarthealth.com', password: 'password123', role: 'pharmacist', status: 'active', profile_photo: '' },
+                { id: 4, name: 'RAchit', email: 'patient@smarthealth.com', password: 'password123', role: 'patient', status: 'active', profile_photo: '' }
             ];
             localStorage.setItem(DB_KEYS.USERS, JSON.stringify(seedUsers));
         }
@@ -118,11 +145,42 @@ const db = {
         if (!localStorage.getItem(DB_KEYS.GALLERY)) {
             localStorage.setItem(DB_KEYS.GALLERY, JSON.stringify([]));
         }
+
+        // 11. Appointments
+        if (!localStorage.getItem(DB_KEYS.APPOINTMENTS)) {
+            const seedAppointments = [
+                { id: 1, patient_id: 4, doctor_id: 2, appointment_date: new Date().toISOString().split('T')[0], time_slot: '10:00 AM', status: 'approved', symptoms: 'Regular cardiology follow-up' }
+            ];
+            localStorage.setItem(DB_KEYS.APPOINTMENTS, JSON.stringify(seedAppointments));
+        }
+
+        // 12. Doctor Availability
+        if (!localStorage.getItem(DB_KEYS.DOCTOR_AVAILABILITY)) {
+            const seedAvailability = [
+                { id: 1, doctor_id: 2, available_date: new Date().toISOString().split('T')[0], start_time: '09:00', end_time: '13:00', status: 'available' },
+                { id: 2, doctor_id: 2, available_date: new Date().toISOString().split('T')[0], start_time: '14:00', end_time: '17:00', status: 'available' }
+            ];
+            localStorage.setItem(DB_KEYS.DOCTOR_AVAILABILITY, JSON.stringify(seedAvailability));
+        }
+
+        // 13. Bills
+        if (!localStorage.getItem(DB_KEYS.BILLS)) {
+            const seedBills = [
+                { id: 1, patient_id: 4, pharmacist_id: 3, total_amount: 120.00, discount: 0.00, final_amount: 120.00, payment_status: 'paid', payment_method: 'Cash', created_at: new Date().toISOString(), items: [{ name: 'Paracetamol 650mg', quantity: 2, unit_price: 60.00, total_price: 120.00 }] }
+            ];
+            localStorage.setItem(DB_KEYS.BILLS, JSON.stringify(seedBills));
+        }
     },
 
     // --- User Management ---
     getUsers() {
-        return JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
+        const users = JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
+        users.forEach(u => {
+            if (u.role) {
+                u.role = u.role.trim().toLowerCase();
+            }
+        });
+        return users;
     },
     saveUsers(users) {
         localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
@@ -148,9 +206,27 @@ const db = {
         sessionStorage.removeItem(DB_KEYS.CURRENT_USER);
     },
     getCurrentUser() {
-        return JSON.parse(sessionStorage.getItem(DB_KEYS.CURRENT_USER)) || null;
+        const user = JSON.parse(sessionStorage.getItem(DB_KEYS.CURRENT_USER)) || null;
+        if (user && user.role) {
+            user.role = user.role.trim().toLowerCase();
+        }
+        return user;
     },
     register(name, email, password, role = 'patient') {
+        if (!validate.required(name) || !validate.required(email) || !validate.required(password)) {
+            return { success: false, message: 'Name, email, and password are required.' };
+        }
+        if (!validate.email(email)) {
+            return { success: false, message: 'Please enter a valid email address.' };
+        }
+        if (!validate.password(password)) {
+            return { success: false, message: 'Password must be at least 8 characters long.' };
+        }
+        const allowedRoles = ['patient', 'doctor', 'pharmacist', 'admin'];
+        if (!allowedRoles.includes(role)) {
+            return { success: false, message: 'Invalid role type.' };
+        }
+
         const users = this.getUsers();
         if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
             return { success: false, message: 'Email address already registered.' };
@@ -174,6 +250,10 @@ const db = {
         return { success: true, user: newUser };
     },
     updateProfile(userId, name, photoUrl) {
+        if (!validate.required(name)) {
+            return { success: false, message: 'Name is required.' };
+        }
+
         const users = this.getUsers();
         const index = users.findIndex(u => u.id === userId);
         if (index !== -1) {
@@ -198,6 +278,10 @@ const db = {
         return { success: false, message: 'User not found.' };
     },
     changePassword(userId, newPassword) {
+        if (!validate.password(newPassword)) {
+            return { success: false, message: 'Password must be at least 8 characters long.' };
+        }
+
         const users = this.getUsers();
         const index = users.findIndex(u => u.id === userId);
         if (index !== -1) {
@@ -217,6 +301,13 @@ const db = {
         localStorage.setItem(DB_KEYS.MEDICINES, JSON.stringify(medicines));
     },
     updateMedicine(id, stock, threshold, expiryDate) {
+        if (!validate.integer(stock) || !validate.integer(threshold)) {
+            return { success: false, message: 'Stock and threshold must be positive integers.' };
+        }
+        if (!validate.date(expiryDate)) {
+            return { success: false, message: 'Invalid expiry date format.' };
+        }
+
         const medicines = this.getMedicines();
         const index = medicines.findIndex(m => m.id === id);
         if (index !== -1) {
@@ -258,6 +349,16 @@ const db = {
         return { success: false, message: 'Medicine not found.' };
     },
     addMedicine(name, stock, threshold, expiryDate) {
+        if (!validate.required(name) || !validate.required(expiryDate)) {
+            return { success: false, message: 'Medicine name and expiry date are required.' };
+        }
+        if (!validate.integer(stock) || !validate.integer(threshold)) {
+            return { success: false, message: 'Stock and threshold must be positive integers.' };
+        }
+        if (!validate.date(expiryDate)) {
+            return { success: false, message: 'Invalid expiry date format.' };
+        }
+
         const medicines = this.getMedicines();
         const newMed = {
             id: medicines.length > 0 ? Math.max(...medicines.map(m => m.id)) + 1 : 1,
@@ -284,10 +385,15 @@ const db = {
         return { success: true, medicine: newMed };
     },
     deleteMedicine(id) {
+        const parsedId = parseInt(id, 10);
+        if (isNaN(parsedId)) {
+            return { success: false, message: 'Invalid medicine ID.' };
+        }
+
         let medicines = this.getMedicines();
-        const item = medicines.find(m => m.id === id);
+        const item = medicines.find(m => m.id === parsedId);
         if (item) {
-            medicines = medicines.filter(m => m.id !== id);
+            medicines = medicines.filter(m => m.id !== parsedId);
             this.saveMedicines(medicines);
             const cur = this.getCurrentUser();
             this.logActivity(`Deleted medicine: ${item.name}`, cur ? cur.id : 1);
@@ -304,6 +410,13 @@ const db = {
         localStorage.setItem(DB_KEYS.BEDS, JSON.stringify(beds));
     },
     updateBeds(id, total, occupied) {
+        if (!validate.integer(total) || !validate.integer(occupied)) {
+            return { success: false, message: 'Total beds and occupied beds must be positive integers.' };
+        }
+        if (parseInt(occupied, 10) > parseInt(total, 10)) {
+            return { success: false, message: 'Occupied beds cannot exceed total bed capacity.' };
+        }
+
         const beds = this.getBeds();
         const index = beds.findIndex(b => b.id === id);
         if (index !== -1) {
@@ -325,25 +438,31 @@ const db = {
         localStorage.setItem(DB_KEYS.PATIENT_FLOW, JSON.stringify(flow));
     },
     joinQueue(patientId, doctorId) {
+        const parsedPatientId = parseInt(patientId, 10);
+        const parsedDoctorId = parseInt(doctorId, 10);
+        if (isNaN(parsedPatientId) || isNaN(parsedDoctorId)) {
+            return { success: false, message: 'Invalid patient or doctor identifier.' };
+        }
+
         const flow = this.getPatientFlow();
         // Check if already active in queue
-        const active = flow.find(f => f.patient_id === patientId && (f.status === 'waiting' || f.status === 'in-consultation'));
+        const active = flow.find(f => f.patient_id === parsedPatientId && (f.status === 'waiting' || f.status === 'in-consultation'));
         if (active) {
             return { success: false, message: 'You are already active in the queue.' };
         }
         
         const doctors = this.getUsers().filter(u => u.role === 'doctor');
-        const doc = doctors.find(d => d.id === doctorId);
+        const doc = doctors.find(d => d.id === parsedDoctorId);
         if (!doc) {
             return { success: false, message: 'Selected doctor is invalid.' };
         }
 
         const newFlow = {
             id: flow.length > 0 ? Math.max(...flow.map(f => f.id)) + 1 : 1,
-            patient_id: patientId,
-            doctor_id: doctorId,
+            patient_id: parsedPatientId,
+            doctor_id: parsedDoctorId,
             queue_time: new Date().toISOString(),
-            wait_time_minutes: this.calculateWaitTime(doctorId),
+            wait_time_minutes: this.calculateWaitTime(parsedDoctorId),
             status: 'waiting',
             diagnosis_notes: ''
         };
@@ -353,8 +472,8 @@ const db = {
         
         const curUser = this.getCurrentUser();
         const patientName = curUser ? curUser.name : 'Unknown Patient';
-        this.addNotification(doctorId, `🔔 New Patient queued: ${patientName}`);
-        this.logActivity(`Joined wait queue for Doctor: ${doc.name}`, patientId);
+        this.addNotification(parsedDoctorId, `🔔 New Patient queued: ${patientName}`);
+        this.logActivity(`Joined wait queue for Doctor: ${doc.name}`, parsedPatientId);
         
         return { success: true, message: `Successfully joined Dr. ${doc.name}'s queue.` };
     },
@@ -365,11 +484,20 @@ const db = {
         return (activeQueued.length + 1) * 15;
     },
     updateQueueStatus(flowId, status, diagnosisNotes = '') {
+        const parsedFlowId = parseInt(flowId, 10);
+        if (isNaN(parsedFlowId)) {
+            return { success: false, message: 'Invalid flow record identifier.' };
+        }
+        const allowedStatuses = ['waiting', 'in-consultation', 'completed', 'cancelled'];
+        if (!allowedStatuses.includes(status)) {
+            return { success: false, message: 'Invalid status type.' };
+        }
+
         const flow = this.getPatientFlow();
-        const index = flow.findIndex(f => f.id === flowId);
+        const index = flow.findIndex(f => f.id === parsedFlowId);
         if (index !== -1) {
             flow[index].status = status;
-            if (diagnosisNotes) {
+            if (diagnosisNotes !== undefined) {
                 flow[index].diagnosis_notes = diagnosisNotes;
             }
             this.savePatientFlow(flow);
@@ -398,10 +526,19 @@ const db = {
         localStorage.setItem(DB_KEYS.ATTENDANCE, JSON.stringify(attendance));
     },
     markAttendance(doctorId, status, checkIn = null, checkOut = null) {
+        const parsedDoctorId = parseInt(doctorId, 10);
+        if (isNaN(parsedDoctorId)) {
+            return { success: false, message: 'Invalid doctor identifier.' };
+        }
+        const allowedStatuses = ['present', 'absent', 'on-leave'];
+        if (!allowedStatuses.includes(status)) {
+            return { success: false, message: 'Invalid attendance status.' };
+        }
+
         const attendance = this.getDoctorAttendance();
         const todayStr = new Date().toISOString().split('T')[0];
         
-        const index = attendance.findIndex(a => a.doctor_id === doctorId && a.record_date === todayStr);
+        const index = attendance.findIndex(a => a.doctor_id === parsedDoctorId && a.record_date === todayStr);
         if (index !== -1) {
             attendance[index].status = status;
             if (checkIn) attendance[index].check_in = checkIn;
@@ -409,7 +546,7 @@ const db = {
         } else {
             attendance.push({
                 id: attendance.length > 0 ? Math.max(...attendance.map(a => a.id)) + 1 : 1,
-                doctor_id: doctorId,
+                doctor_id: parsedDoctorId,
                 record_date: todayStr,
                 status,
                 check_in: checkIn || new Date().toTimeString().split(' ')[0].substring(0, 5),
@@ -417,7 +554,7 @@ const db = {
             });
         }
         this.saveDoctorAttendance(attendance);
-        this.logActivity(`Marked attendance as ${status.toUpperCase()}`, doctorId);
+        this.logActivity(`Marked attendance as ${status.toUpperCase()}`, parsedDoctorId);
         return { success: true };
     },
 
@@ -429,6 +566,14 @@ const db = {
         localStorage.setItem(DB_KEYS.PAGE_CONTENTS, JSON.stringify(contents));
     },
     updateCMS(slug, title, content) {
+        if (!validate.required(title) || !validate.required(content)) {
+            return { success: false, message: 'Title and content are required.' };
+        }
+        const allowedSlugs = ['about', 'services'];
+        if (!allowedSlugs.includes(slug)) {
+            return { success: false, message: 'Invalid page identifier.' };
+        }
+
         const contents = this.getPageContents();
         const index = contents.findIndex(c => c.slug === slug);
         if (index !== -1) {
@@ -485,6 +630,17 @@ const db = {
         localStorage.setItem(DB_KEYS.FEEDBACK, JSON.stringify(feedbacks));
     },
     addFeedback(name, email, formType, subject, message) {
+        if (!validate.required(name) || !validate.required(email) || !validate.required(subject) || !validate.required(message)) {
+            return { success: false, message: 'All form fields are required.' };
+        }
+        if (!validate.email(email)) {
+            return { success: false, message: 'Please enter a valid email address.' };
+        }
+        const allowedFormTypes = ['general', 'inventory', 'bug', 'feedback', 'contact'];
+        if (!allowedFormTypes.includes(formType)) {
+            return { success: false, message: 'Invalid form category type.' };
+        }
+
         const feedbacks = this.getFeedback();
         const newFeedback = {
             id: feedbacks.length > 0 ? Math.max(...feedbacks.map(f => f.id)) + 1 : 1,
@@ -497,6 +653,15 @@ const db = {
         };
         feedbacks.push(newFeedback);
         this.saveFeedback(feedbacks);
+
+        // Sync to Firebase Firestore under inquiries collection
+        if (typeof firebase !== 'undefined') {
+            try {
+                firebase.firestore().collection('inquiries').add(newFeedback);
+            } catch (e) {
+                console.error("Firestore sync failed for inquiry:", e);
+            }
+        }
         
         // Notify admin
         this.addNotification(1, `📬 New ${formType} submitted: "${subject}" by ${name}`);
@@ -511,6 +676,10 @@ const db = {
         localStorage.setItem(DB_KEYS.GALLERY, JSON.stringify(gallery));
     },
     addGalleryImage(caption, base64Data) {
+        if (!validate.required(caption) || !validate.required(base64Data)) {
+            return { success: false, message: 'Caption and image data are required.' };
+        }
+
         const gallery = this.getGallery();
         const newImg = {
             id: gallery.length > 0 ? Math.max(...gallery.map(g => g.id)) + 1 : 1,
@@ -526,10 +695,15 @@ const db = {
         return { success: true };
     },
     deleteGalleryImage(id) {
+        const parsedId = parseInt(id, 10);
+        if (isNaN(parsedId)) {
+            return { success: false, message: 'Invalid gallery image identifier.' };
+        }
+
         let gallery = this.getGallery();
-        const item = gallery.find(g => g.id === id);
+        const item = gallery.find(g => g.id === parsedId);
         if (item) {
-            gallery = gallery.filter(g => g.id !== id);
+            gallery = gallery.filter(g => g.id !== parsedId);
             this.saveGallery(gallery);
             const cur = this.getCurrentUser();
             this.logActivity(`Deleted gallery image with caption: ${item.caption}`, cur ? cur.id : 1);
@@ -577,7 +751,6 @@ const db = {
         const todayStr = new Date().toISOString().split('T')[0];
         const presentToday = attendance.filter(a => a.record_date === todayStr && a.status === 'present').length;
         const attendanceRate = activeDoctorsCount > 0 ? Math.round((presentToday / activeDoctorsCount) * 100) : 92;
-
         return {
             hospitalsCount: 4, // static mock
             doctorsCount: activeDoctorsCount,
@@ -586,6 +759,140 @@ const db = {
             lowStockCount,
             attendanceRate
         };
+    },
+
+    // --- Appointments Management ---
+    getAppointments() {
+        return JSON.parse(localStorage.getItem(DB_KEYS.APPOINTMENTS)) || [];
+    },
+    saveAppointments(appts) {
+        localStorage.setItem(DB_KEYS.APPOINTMENTS, JSON.stringify(appts));
+    },
+    bookAppointment(patientId, doctorId, date, slot, symptoms) {
+        const appts = this.getAppointments();
+        const newAppt = {
+            id: appts.length > 0 ? Math.max(...appts.map(a => a.id)) + 1 : 1,
+            patient_id: parseInt(patientId),
+            doctor_id: parseInt(doctorId),
+            appointment_date: date,
+            time_slot: slot,
+            status: 'pending',
+            symptoms: symptoms,
+            cancellation_reason: ''
+        };
+        appts.push(newAppt);
+        this.saveAppointments(appts);
+        this.logActivity(`Booked appointment with Doctor ID: ${doctorId}`, patientId);
+        
+        // Notify doctor
+        this.addNotification(doctorId, `📅 New appointment request received from Patient ID: ${patientId}`);
+        return { success: true, appointment: newAppt };
+    },
+    updateAppointmentStatus(id, status, reason = '') {
+        const appts = this.getAppointments();
+        const idx = appts.findIndex(a => a.id === parseInt(id));
+        if (idx !== -1) {
+            appts[idx].status = status;
+            if (reason) appts[idx].cancellation_reason = reason;
+            this.saveAppointments(appts);
+            
+            const patientId = appts[idx].patient_id;
+            const doctorId = appts[idx].doctor_id;
+            const doc = this.getUsers().find(u => u.id === doctorId);
+            const docName = doc ? doc.name : 'Doctor';
+            
+            // Notify patient
+            this.addNotification(patientId, `📅 Your appointment with Dr. ${docName} has been ${status.toUpperCase()}.`);
+            this.logActivity(`Updated appointment ID ${id} status to ${status}`, doctorId);
+            return { success: true };
+        }
+        return { success: false, message: 'Appointment not found.' };
+    },
+
+    // --- Doctor Availability Roster ---
+    getDoctorSchedules() {
+        return JSON.parse(localStorage.getItem(DB_KEYS.DOCTOR_AVAILABILITY)) || [];
+    },
+    saveDoctorSchedules(scheds) {
+        localStorage.setItem(DB_KEYS.DOCTOR_AVAILABILITY, JSON.stringify(scheds));
+    },
+    setDoctorSchedule(doctorId, date, startTime, endTime, status = 'available') {
+        const scheds = this.getDoctorSchedules();
+        const newSched = {
+            id: scheds.length > 0 ? Math.max(...scheds.map(s => s.id)) + 1 : 1,
+            doctor_id: parseInt(doctorId),
+            available_date: date,
+            start_time: startTime,
+            end_time: endTime,
+            status: status
+        };
+        scheds.push(newSched);
+        this.saveDoctorSchedules(scheds);
+        this.logActivity(`Added availability slot on ${date} ${startTime}-${endTime}`, doctorId);
+        return { success: true, schedule: newSched };
+    },
+    updateDoctorScheduleStatus(scheduleId, status) {
+        const scheds = this.getDoctorSchedules();
+        const idx = scheds.findIndex(s => s.id === parseInt(scheduleId));
+        if (idx !== -1) {
+            scheds[idx].status = status;
+            this.saveDoctorSchedules(scheds);
+            this.logActivity(`Updated schedule ID ${scheduleId} state to ${status}`, scheds[idx].doctor_id);
+            return { success: true };
+        }
+        return { success: false, message: 'Schedule slot not found.' };
+    },
+
+    // --- Billing System ---
+    getBills() {
+        return JSON.parse(localStorage.getItem(DB_KEYS.BILLS)) || [];
+    },
+    saveBills(bills) {
+        localStorage.setItem(DB_KEYS.BILLS, JSON.stringify(bills));
+    },
+    createBill(patientId, pharmacistId, items, discount = 0) {
+        const bills = this.getBills();
+        
+        let total = 0;
+        items.forEach(it => {
+            it.total_price = it.quantity * it.unit_price;
+            total += it.total_price;
+        });
+        
+        const finalAmt = Math.max(0, total - parseFloat(discount));
+        
+        const newBill = {
+            id: bills.length > 0 ? Math.max(...bills.map(b => b.id)) + 1 : 1,
+            patient_id: parseInt(patientId),
+            pharmacist_id: parseInt(pharmacistId),
+            total_amount: total,
+            discount: parseFloat(discount),
+            final_amount: finalAmt,
+            payment_status: 'unpaid',
+            payment_method: '',
+            created_at: new Date().toISOString(),
+            items: items
+        };
+        
+        bills.push(newBill);
+        this.saveBills(bills);
+        
+        // Notify patient
+        this.addNotification(patientId, `💵 A new bill of amount ₹${finalAmt.toFixed(2)} has been generated for you.`);
+        this.logActivity(`Created bill ID ${newBill.id} for Patient ID: ${patientId}`, pharmacistId);
+        return { success: true, bill: newBill };
+    },
+    payBill(billId, method) {
+        const bills = this.getBills();
+        const idx = bills.findIndex(b => b.id === parseInt(billId));
+        if (idx !== -1) {
+            bills[idx].payment_status = 'paid';
+            bills[idx].payment_method = method;
+            this.saveBills(bills);
+            this.logActivity(`Processed payment for Bill ID: ${billId} using ${method}`, bills[idx].patient_id);
+            return { success: true };
+        }
+        return { success: false, message: 'Bill not found.' };
     }
 };
 

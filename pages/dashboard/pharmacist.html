@@ -11,92 +11,300 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="../../assets/css/styles.css" />
+    <style>
+        .tabs-header {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 2px solid var(--color-border);
+            margin-bottom: 2rem;
+            padding-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--color-text-muted);
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-fast);
+        }
+        .tab-btn.active {
+            background-color: var(--color-primary);
+            color: #ffffff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .billing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        @media (max-width: 992px) {
+            .billing-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .print-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1100;
+            justify-content: center;
+            align-items: center;
+        }
+        .print-modal-content {
+            background: var(--bg-surface);
+            padding: 2.5rem;
+            border-radius: var(--radius-lg);
+            width: min(600px, 90vw);
+            box-shadow: var(--shadow-hover);
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-area, .print-area * {
+                visibility: visible;
+            }
+            .print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
 </head>
 <body data-path-prefix="../../" data-restricted-roles="pharmacist,admin">
     
     <div class="container" style="padding: 2rem 0;">
-        <div class="dashboard-grid">
-            
-            <!-- Sidebar -->
-            <aside class="dashboard-sidebar">
-                <h4 style="margin-bottom: 1.5rem;">Inventory Alerts</h4>
-                
-                <div class="card" style="padding: 1.5rem; background-color: var(--bg-primary);">
-                    <h4>Low & Expired Drugs</h4>
-                    <div id="critical-meds-container" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.8rem;">
-                        <!-- Injected dynamically -->
-                    </div>
-                </div>
-            </aside>
-            
-            <!-- Main Area -->
-            <main class="dashboard-main">
-                
-                <!-- Add Medicine Card -->
-                <section class="card" style="padding: 2rem; margin-bottom: 2rem;">
-                    <h3>Add New Medicine / Drug Item</h3>
-                    <form id="add-medicine-form" class="auth-form" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 1rem; align-items: end; margin-top: 1.2rem;">
-                        <label>
-                            Drug / Medicine Name
-                            <input type="text" id="add-med-name" placeholder="e.g. Paracetamol 500mg" required />
-                        </label>
-                        
-                        <label>
-                            Initial Stock
-                            <input type="number" id="add-med-stock" value="0" min="0" required />
-                        </label>
-                        
-                        <label>
-                            Alert Threshold
-                            <input type="number" id="add-med-threshold" value="10" min="0" required />
-                        </label>
-                        
-                        <label>
-                            Expiry Date
-                            <input type="date" id="add-med-expiry" required />
-                        </label>
-                        
-                        <button type="submit" class="btn btn-primary" style="grid-column: span 4; width: 100%;">Add to Inventory Database</button>
-                    </form>
-                </section>
-                
-                <!-- List Inventory -->
-                <section class="card" style="padding: 2rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
-                        <h3>Dispensation & Stock Table</h3>
-                        
-                        <div class="search-bar-wrap" style="margin: 0; display: flex; gap: 0.5rem;">
-                            <input type="text" id="search-input" placeholder="Search medicine..." style="padding: 0.5rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: var(--bg-surface); color: var(--color-text-main);" />
-                            <button id="search-btn" class="btn btn-primary" style="padding: 0.5rem 1rem;">Search</button>
+        
+        <!-- Tab Controls -->
+        <div class="tabs-header">
+            <button class="tab-btn active" onclick="switchTab('inventory-tab')">💊 Medicine Inventory</button>
+            <button class="tab-btn" onclick="switchTab('billing-tab')">💳 Create Patient Invoice</button>
+            <button class="tab-btn" onclick="switchTab('history-tab')">📜 Billing History Ledger</button>
+        </div>
+
+        <!-- TAB 1: MEDICINE INVENTORY -->
+        <div id="inventory-tab" class="tab-content active">
+            <div class="dashboard-grid">
+                <!-- Sidebar -->
+                <aside class="dashboard-sidebar">
+                    <h4 style="margin-bottom: 1.5rem;">Inventory Alerts</h4>
+                    
+                    <div class="card" style="padding: 1.5rem; background-color: var(--bg-primary);">
+                        <h4>Low & Expired Drugs</h4>
+                        <div id="critical-meds-container" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.8rem;">
+                            <!-- Injected dynamically -->
                         </div>
                     </div>
+                </aside>
+                
+                <!-- Main Area -->
+                <main class="dashboard-main">
+                    <!-- Add Medicine Card -->
+                    <section class="card" style="padding: 2rem; margin-bottom: 2rem;">
+                        <h3>Add New Medicine / Drug Item</h3>
+                        <form id="add-medicine-form" class="auth-form dashboard-form-grid" style="margin-top: 1.2rem;" novalidate>
+                            <label>
+                                Drug / Medicine Name
+                                <input type="text" id="add-med-name" placeholder="e.g. Paracetamol 500mg" required />
+                            </label>
+                            
+                            <label>
+                                Initial Stock
+                                <input type="number" id="add-med-stock" value="0" min="0" required />
+                            </label>
+                            
+                            <label>
+                                Alert Threshold
+                                <input type="number" id="add-med-threshold" value="10" min="0" required />
+                            </label>
+                            
+                            <label>
+                                Expiry Date
+                                <input type="date" id="add-med-expiry" required />
+                            </label>
+                            
+                            <button type="submit" class="btn btn-primary" style="grid-column: span 4; width: 100%;">Add to Inventory Database</button>
+                        </form>
+                    </section>
+                    
+                    <!-- List Inventory -->
+                    <section class="card" style="padding: 2rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                            <h3>Dispensation & Stock Table</h3>
+                            
+                            <div class="search-bar-wrap" style="margin: 0; display: flex; gap: 0.5rem;">
+                                <input type="text" id="search-input" placeholder="Search medicine..." style="padding: 0.5rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: var(--bg-surface); color: var(--color-text-main);" />
+                                <button id="search-btn" class="btn btn-primary" style="padding: 0.5rem 1rem;">Search</button>
+                            </div>
+                        </div>
+                        
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Medicine Name</th>
+                                        <th>Stock Left</th>
+                                        <th>Warning Limit</th>
+                                        <th>Expiry Date</th>
+                                        <th>State</th>
+                                        <th>Adjust Stock</th>
+                                        <th>Delete</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inventory-tbody">
+                                    <!-- Injected dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div id="pagination-container" style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 0.5rem;">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </section>
+                </main>
+            </div>
+        </div>
+
+        <!-- TAB 2: CREATE PATIENT INVOICE -->
+        <div id="billing-tab" class="tab-content">
+            <div class="billing-grid">
+                <!-- Left: Form selectors -->
+                <div class="card" style="padding: 2.5rem;">
+                    <h3>New Billing Details</h3>
+                    <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Assemble prescription items and generate billing statements.</p>
+                    
+                    <form id="invoice-builder-form" class="auth-form" novalidate>
+                        <label>
+                            Select Patient
+                            <select id="bill-patient-select" required>
+                                <option value="">-- Choose Patient --</option>
+                            </select>
+                        </label>
+                        
+                        <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 1.5rem 0;" />
+                        
+                        <h4 style="margin-bottom: 1rem;">Add Medicine Line Item</h4>
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <label style="flex: 2; min-width: 180px;">
+                                Drug / Item Name
+                                <select id="bill-item-select">
+                                    <option value="">-- Choose Drug --</option>
+                                </select>
+                            </label>
+                            <label style="flex: 1; min-width: 80px;">
+                                Quantity
+                                <input type="number" id="bill-item-qty" value="1" min="1" />
+                            </label>
+                            <label style="flex: 1; min-width: 90px;">
+                                Price (₹)
+                                <input type="number" id="bill-item-price" value="50.00" min="0" step="0.5" />
+                            </label>
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-full" onclick="addInvoiceLineItem()" style="margin-top: 0.5rem;">➕ Add Item to List</button>
+                        
+                        <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 1.5rem 0;" />
+                        
+                        <label>
+                            Discount Amount (₹)
+                            <input type="number" id="bill-discount" value="0.00" min="0" />
+                        </label>
+                        
+                        <button type="submit" class="btn btn-primary btn-full" style="margin-top: 1rem;">💰 Finalize & Generate Invoice</button>
+                    </form>
+                </div>
+
+                <!-- Right: Added Items Preview -->
+                <div class="card" style="padding: 2.5rem;">
+                    <h3>Invoice Lines Preview</h3>
+                    <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Current active items on draft statement.</p>
                     
                     <div class="table-wrap">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Medicine Name</th>
-                                    <th>Stock Left</th>
-                                    <th>Warning Limit</th>
-                                    <th>Expiry Date</th>
-                                    <th>State</th>
-                                    <th>Adjust Stock</th>
-                                    <th>Delete</th>
+                                    <th>Item Name</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Total Price</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="inventory-tbody">
-                                <!-- Injected dynamically -->
+                            <tbody id="invoice-items-tbody">
+                                <tr>
+                                    <td colspan="5" class="auth-subtitle" style="text-align: center; padding: 2rem;">No items added to current draft yet.</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                     
-                    <div id="pagination-container" style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 0.5rem;">
-                        <!-- Injected dynamically -->
+                    <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end;" id="invoice-preview-totals">
+                        <div>Subtotal: <strong>₹0.00</strong></div>
+                        <div>Discount: <strong>₹0.00</strong></div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-primary);">Grand Total: <strong>₹0.00</strong></div>
                     </div>
-                </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: BILLING LEDGER -->
+        <div id="history-tab" class="tab-content">
+            <div class="card" style="padding: 2.5rem;">
+                <h3>Billing Transaction Ledger</h3>
+                <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Review all historical pharmacy invoices and payment states.</p>
                 
-            </main>
-            
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Invoice ID</th>
+                                <th>Patient Name</th>
+                                <th>Billing Date</th>
+                                <th>Grand Total</th>
+                                <th>Discount</th>
+                                <th>Final Amount</th>
+                                <th>Payment Method</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="billing-history-tbody">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Print Bill Modal -->
+    <div id="bill-print-modal" class="print-modal">
+        <div class="print-modal-content">
+            <div class="print-area" id="print-bill-area">
+                <!-- Injected dynamically during print action -->
+            </div>
+            <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;" class="no-print">
+                <button class="btn btn-secondary" onclick="closePrintModal()">Close</button>
+                <button class="btn btn-primary" onclick="window.print()">🖨️ Print Receipt</button>
+            </div>
         </div>
     </div>
 
@@ -110,8 +318,14 @@
         let currentPage = 1;
         let searchKeyword = '';
         let pharmacistMeds = [];
+        let curPharmacist = null;
+        let draftInvoiceItems = [];
 
         document.addEventListener('DOMContentLoaded', () => {
+            curPharmacist = db.getCurrentUser();
+            if (!curPharmacist) return;
+            
+            // Add medicine form submit
             const form = document.getElementById('add-medicine-form');
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
@@ -132,12 +346,13 @@
                     document.getElementById('add-med-stock').value = 0;
                     document.getElementById('add-med-threshold').value = 10;
                     loadData();
+                    populateInvoicingDropdowns();
                 } else {
                     showToast(res.message || 'Failed to add medicine.', 'error');
                 }
             });
             
-            // Search
+            // Search controls
             const searchInput = document.getElementById('search-input');
             const searchBtn = document.getElementById('search-btn');
             
@@ -153,17 +368,172 @@
                     loadData();
                 }
             });
+
+            // Invoice Form submit
+            const invoiceForm = document.getElementById('invoice-builder-form');
+            invoiceForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const patientId = document.getElementById('bill-patient-select').value;
+                const discount = parseFloat(document.getElementById('bill-discount').value) || 0;
+
+                if (!patientId) {
+                    showToast('Please select a patient.', 'error');
+                    return;
+                }
+                if (draftInvoiceItems.length === 0) {
+                    showToast('Please add at least one line item to the invoice.', 'error');
+                    return;
+                }
+
+                const res = db.createBill(patientId, curPharmacist.id, draftInvoiceItems, discount);
+                if (res.success) {
+                    showToast(`Invoice INV-${res.bill.id} generated successfully!`, 'success');
+                    
+                    // Deduct inventory items
+                    draftInvoiceItems.forEach(it => {
+                        const med = db.getMedicines().find(m => m.name === it.name);
+                        if (med) {
+                            db.updateMedicine(med.id, Math.max(0, med.stock - it.quantity), med.threshold, med.expiry_date);
+                        }
+                    });
+
+                    draftInvoiceItems = [];
+                    invoiceForm.reset();
+                    renderInvoiceDraft();
+                    loadData();
+                    renderBillingHistory();
+                } else {
+                    showToast(res.message || 'Failed to generate invoice.', 'error');
+                }
+            });
+
+            // Re-render discount changes dynamically
+            document.getElementById('bill-discount').addEventListener('input', () => {
+                renderInvoiceDraft();
+            });
             
             // Initial load
             loadData();
+            populateInvoicingDropdowns();
+            renderBillingHistory();
         });
+
+        // Tab Switching
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.outerHTML.includes(tabId));
+            if (activeBtn) activeBtn.classList.add('active');
+        };
+
+        // Populate dropdowns
+        function populateInvoicingDropdowns() {
+            const patients = db.getUsers().filter(u => u.role === 'patient');
+            const patientSelect = document.getElementById('bill-patient-select');
+            patientSelect.innerHTML = '<option value="">-- Choose Patient --</option>' + patients.map(p => {
+                return `<option value="${p.id}">${p.name} (${p.email})</option>`;
+            }).join('');
+
+            const medicines = db.getMedicines().filter(m => m.status !== 'expired' && m.stock > 0);
+            const medSelect = document.getElementById('bill-item-select');
+            medSelect.innerHTML = '<option value="">-- Choose Drug --</option>' + medicines.map(m => {
+                return `<option value="${m.name}" data-stock="${m.stock}">${m.name} (${m.stock} left)</option>`;
+            }).join('');
+        }
+
+        // Add line item to draft
+        window.addInvoiceLineItem = function() {
+            const selectEl = document.getElementById('bill-item-select');
+            const name = selectEl.value;
+            const qty = parseInt(document.getElementById('bill-item-qty').value) || 1;
+            const price = parseFloat(document.getElementById('bill-item-price').value) || 0;
+
+            if (!name) {
+                showToast('Please select a drug item.', 'error');
+                return;
+            }
+
+            const selectedOption = selectEl.options[selectEl.selectedIndex];
+            const stock = parseInt(selectedOption.getAttribute('data-stock'));
+            if (qty > stock) {
+                showToast(`Insufficient stock! Only ${stock} units available for ${name}.`, 'warning');
+                return;
+            }
+
+            // check if item already exists in draft
+            const existingIdx = draftInvoiceItems.findIndex(it => it.name === name);
+            if (existingIdx !== -1) {
+                if (draftInvoiceItems[existingIdx].quantity + qty > stock) {
+                    showToast(`Cannot add. Exceeds stock limit of ${stock} units.`, 'warning');
+                    return;
+                }
+                draftInvoiceItems[existingIdx].quantity += qty;
+                draftInvoiceItems[existingIdx].total_price = draftInvoiceItems[existingIdx].quantity * draftInvoiceItems[existingIdx].unit_price;
+            } else {
+                draftInvoiceItems.push({
+                    name: name,
+                    quantity: qty,
+                    unit_price: price,
+                    total_price: qty * price
+                });
+            }
+
+            showToast(`Added ${name} x${qty} to invoice draft.`, 'success');
+            renderInvoiceDraft();
+        };
+
+        window.removeInvoiceLineItem = function(idx) {
+            draftInvoiceItems.splice(idx, 1);
+            renderInvoiceDraft();
+        };
+
+        function renderInvoiceDraft() {
+            const tbody = document.getElementById('invoice-items-tbody');
+            if (draftInvoiceItems.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="auth-subtitle" style="text-align: center; padding: 2rem;">No items added to current draft yet.</td>
+                    </tr>
+                `;
+                document.getElementById('invoice-preview-totals').innerHTML = `
+                    <div>Subtotal: <strong>₹0.00</strong></div>
+                    <div>Discount: <strong>₹0.00</strong></div>
+                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-primary);">Grand Total: <strong>₹0.00</strong></div>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = draftInvoiceItems.map((it, idx) => {
+                return `
+                    <tr>
+                        <td style="font-weight: 700;">${it.name}</td>
+                        <td>${it.quantity}</td>
+                        <td>₹${it.unit_price.toFixed(2)}</td>
+                        <td style="font-weight: 700;">₹${it.total_price.toFixed(2)}</td>
+                        <td>
+                            <button type="button" class="btn btn-danger" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="removeInvoiceLineItem(${idx})">Remove</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            let subtotal = draftInvoiceItems.reduce((sum, it) => sum + it.total_price, 0);
+            let discount = parseFloat(document.getElementById('bill-discount').value) || 0;
+            let grandTotal = Math.max(0, subtotal - discount);
+
+            document.getElementById('invoice-preview-totals').innerHTML = `
+                <div>Subtotal: <strong>₹${subtotal.toFixed(2)}</strong></div>
+                <div>Discount: <strong>-₹${discount.toFixed(2)}</strong></div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-primary);">Grand Total: <strong>₹${grandTotal.toFixed(2)}</strong></div>
+            `;
+        }
         
         function loadData() {
             const medicines = db.getMedicines();
             
-            // 1. Sidebar critical warnings
             const critical = medicines.filter(m => m.status === 'low' || m.status === 'critical' || m.status === 'expired');
-            // Sort by state expired first, then low/critical
             critical.sort((a, b) => {
                 if (a.status === 'expired' && b.status !== 'expired') return -1;
                 if (a.status !== 'expired' && b.status === 'expired') return 1;
@@ -186,7 +556,6 @@
                 sidebarContainer.innerHTML = '<p class="auth-subtitle" style="font-size: 0.8rem;">All medicines are in normal stock levels.</p>';
             }
             
-            // 2. Table filters
             let filtered = medicines;
             if (searchKeyword) {
                 filtered = filtered.filter(m => m.name.toLowerCase().includes(searchKeyword));
@@ -254,7 +623,6 @@
                 `;
             }).join('');
             
-            // Pagination
             if (totalPages > 1) {
                 let pagHtml = '';
                 for (let i = 1; i <= totalPages; i++) {
@@ -280,6 +648,7 @@
                 if (res.success) {
                     showToast(`Stock adjusted successfully.`, 'success');
                     loadData();
+                    populateInvoicingDropdowns();
                 } else {
                     showToast('Failed to adjust stock.', 'error');
                 }
@@ -292,10 +661,124 @@
                 if (res.success) {
                     showToast('Medicine removed successfully.', 'success');
                     loadData();
+                    populateInvoicingDropdowns();
                 } else {
                     showToast(res.message || 'Failed to delete medicine.', 'error');
                 }
             }
+        };
+
+        // --- BILLING HISTORY LEDGER ---
+        function renderBillingHistory() {
+            const bills = db.getBills();
+            const tbody = document.getElementById('billing-history-tbody');
+            const users = db.getUsers();
+
+            const getUserName = (uid) => {
+                const u = users.find(user => user.id === uid);
+                return u ? u.name : 'Unknown';
+            };
+
+            if (bills.length > 0) {
+                tbody.innerHTML = bills.slice().reverse().map(b => {
+                    const badgeClass = b.payment_status === 'paid' ? 'badge-success' : 'badge-danger';
+                    return `
+                        <tr>
+                            <td style="font-weight: 700;">#INV-${b.id}</td>
+                            <td>${getUserName(b.patient_id)}</td>
+                            <td>${new Date(b.created_at).toLocaleDateString('en-GB')}</td>
+                            <td>₹${b.total_amount.toFixed(2)}</td>
+                            <td>₹${b.discount.toFixed(2)}</td>
+                            <td style="font-weight: 700;">₹${b.final_amount.toFixed(2)}</td>
+                            <td>${b.payment_method || '--'}</td>
+                            <td><span class="badge ${badgeClass}">${b.payment_status}</span></td>
+                            <td>
+                                <button class="btn btn-secondary" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;" onclick="printInvoice(${b.id})">🖨️ Print Receipt</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="auth-subtitle" style="text-align: center; padding: 2rem;">No billing history transactions recorded yet.</td>
+                    </tr>
+                `;
+            }
+        }
+
+        window.printInvoice = function(bid) {
+            const bill = db.getBills().find(b => b.id === bid);
+            if (!bill) return;
+
+            const users = db.getUsers();
+            const patient = users.find(u => u.id === bill.patient_id);
+            const pharmacist = users.find(u => u.id === bill.pharmacist_id);
+
+            const itemsMarkup = bill.items.map(it => `
+                <tr style="border-bottom: 1px solid var(--color-border);">
+                    <td style="padding: 0.5rem 0;">${it.name}</td>
+                    <td style="text-align: right;">${it.quantity}</td>
+                    <td style="text-align: right;">₹${it.unit_price.toFixed(2)}</td>
+                    <td style="text-align: right; font-weight: 700;">₹${it.total_price.toFixed(2)}</td>
+                </tr>
+            `).join('');
+
+            const modalContent = document.getElementById('print-bill-area');
+            modalContent.innerHTML = `
+                <div style="font-family: 'Outfit', sans-serif;">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <span style="font-size: 2.5rem;">🏥</span>
+                        <h2 style="margin: 0.5rem 0 0;">Smart Health Center</h2>
+                        <p style="color: var(--color-text-muted); font-size: 0.85rem; margin: 0;">24/7 Digital Dispensary & Roster Command</p>
+                    </div>
+                    
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 1.5rem; font-size: 0.9rem;">
+                        <div>
+                            <strong>Invoice Details:</strong>
+                            <div>ID: #INV-${bill.id}</div>
+                            <div>Date: ${new Date(bill.created_at).toLocaleString()}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <strong>Patient Details:</strong>
+                            <div>Name: ${patient ? patient.name : 'Unknown'}</div>
+                            <div>Email: ${patient ? patient.email : '--'}</div>
+                        </div>
+                    </div>
+                    
+                    <hr style="border: 0; border-top: 1px solid var(--color-border); margin-bottom: 1rem;" />
+                    
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--color-border);">
+                                <th style="text-align: left; padding: 0.5rem 0;">Item Name</th>
+                                <th style="text-align: right;">Qty</th>
+                                <th style="text-align: right;">Price</th>
+                                <th style="text-align: right;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsMarkup}
+                        </tbody>
+                    </table>
+                    
+                    <div style="margin-top: 1.5rem; text-align: right; font-size: 0.95rem; display: flex; flex-direction: column; gap: 0.4rem; align-items: flex-end;">
+                        <div>Total Cost: ₹${bill.total_amount.toFixed(2)}</div>
+                        <div>Discount Applied: ₹${bill.discount.toFixed(2)}</div>
+                        <div style="font-size: 1.15rem; font-weight: 800; color: var(--color-primary);">Grand Total: ₹${bill.final_amount.toFixed(2)}</div>
+                    </div>
+                    
+                    <div style="margin-top: 2rem; border: 1px dashed var(--color-border); padding: 1rem; border-radius: var(--radius-sm); font-size: 0.8rem; text-align: center; color: var(--color-text-muted);">
+                        Thank you for using Smart Health Center services. Payment method: ${bill.payment_method || 'UPI/Card'}. Issued by: ${pharmacist ? pharmacist.name : 'Pharmacist'}.
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('bill-print-modal').style.display = 'flex';
+        };
+
+        window.closePrintModal = function() {
+            document.getElementById('bill-print-modal').style.display = 'none';
         };
     </script>
 </body>

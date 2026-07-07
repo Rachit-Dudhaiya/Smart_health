@@ -22,7 +22,7 @@
             
             <div id="register-error-msg" class="auth-message auth-message-error" style="display: none;"></div>
             
-            <form id="register-form" class="auth-form">
+            <form id="register-form" class="auth-form" novalidate>
                 <label>
                     Full Name
                     <input type="text" id="register-name" placeholder="e.g. Sunita Devi" required />
@@ -35,22 +35,22 @@
                 
                 <label>
                     Password (Min 8 characters)
-                    <input type="password" id="register-password" placeholder="••••••••" required minlength="8" />
+                    <div class="password-input-container" style="position: relative; width: 100%;">
+                        <input type="password" id="register-password" placeholder="••••••••" required minlength="8" style="padding-right: 2.75rem;" />
+                        <button type="button" class="password-toggle-btn" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--color-text-muted); display: flex; align-items: center; justify-content: center; padding: 4px;" aria-label="Toggle password visibility">
+                            <span class="material-icons" style="font-size: 1.25rem;">visibility</span>
+                        </button>
+                    </div>
                 </label>
                 
                 <label>
                     Confirm Password
-                    <input type="password" id="register-confirm" placeholder="••••••••" required minlength="8" />
-                </label>
-                
-                <label>
-                    System Role Type
-                    <select id="register-role">
-                        <option value="patient" selected>Patient / Citizen</option>
-                        <option value="doctor">Doctor / Physician</option>
-                        <option value="pharmacist">Pharmacist Staff</option>
-                        <option value="admin">System Administrator</option>
-                    </select>
+                    <div class="password-input-container" style="position: relative; width: 100%;">
+                        <input type="password" id="register-confirm" placeholder="••••••••" required minlength="8" style="padding-right: 2.75rem;" />
+                        <button type="button" class="password-toggle-btn" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--color-text-muted); display: flex; align-items: center; justify-content: center; padding: 4px;" aria-label="Toggle password visibility">
+                            <span class="material-icons" style="font-size: 1.25rem;">visibility</span>
+                        </button>
+                    </div>
                 </label>
                 
                 <button class="btn btn-primary btn-full" type="submit" style="margin-top: 0.5rem;">Register Now</button>
@@ -65,6 +65,12 @@
     <script src="../../assets/js/db.js"></script>
     <script src="../../assets/js/layout.js"></script>
     
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="../../assets/js/firebase-auth.js"></script>
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Redirect if already logged in
@@ -76,16 +82,33 @@
             const form = document.getElementById('register-form');
             const errorMsg = document.getElementById('register-error-msg');
             
-            form.addEventListener('submit', (e) => {
+            // Password toggle logic
+            const toggleBtns = document.querySelectorAll('.password-toggle-btn');
+            toggleBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const container = btn.closest('.password-input-container');
+                    const input = container.querySelector('input');
+                    const icon = btn.querySelector('.material-icons');
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.textContent = 'visibility_off';
+                    } else {
+                        input.type = 'password';
+                        icon.textContent = 'visibility';
+                    }
+                });
+            });
+            
+            form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
                 const name = document.getElementById('register-name').value.trim();
                 const email = document.getElementById('register-email').value.trim();
                 const password = document.getElementById('register-password').value;
                 const confirmPassword = document.getElementById('register-confirm').value;
-                const role = document.getElementById('register-role').value;
+                const role = 'patient';
                 
-                if (!name || !email || !password || !confirmPassword || !role) {
+                if (!name || !email || !password || !confirmPassword) {
                     errorMsg.textContent = 'Please fill in all fields.';
                     errorMsg.style.display = 'block';
                     return;
@@ -103,14 +126,72 @@
                     return;
                 }
                 
-                const res = db.register(name, email, password, role);
-                if (res.success) {
-                    errorMsg.style.display = 'none';
-                    setFlashMessage('Registration successful. Please login below.', 'success');
-                    window.location.href = 'login.html';
-                } else {
-                    errorMsg.textContent = res.message || 'Registration failed.';
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating Account...';
+                errorMsg.style.display = 'none';
+                
+                try {
+                    const auth = await window.firebaseAuthPromise;
+                    
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                    const uid = userCredential.user.uid;
+                    
+                    // Create Firestore document profile
+                    try {
+                        await firebase.firestore().collection('users').doc(uid).set({
+                            name: name,
+                            email: email,
+                            role: role,
+                            status: 'active',
+                            profile_photo: ''
+                        });
+                    } catch (firestoreErr) {
+                        console.error("Firestore write failed, fallback to local:", firestoreErr);
+                    }
+                    
+                    const res = db.register(name, email, password, role);
+                    if (res.success) {
+                        const users = db.getUsers();
+                        const idx = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+                        if (idx !== -1) {
+                            users[idx].firebase_uid = uid;
+                            db.saveUsers(users);
+                        }
+                    
+                        // Construct user session object
+                        const localUser = {
+                            id: uid,
+                            name: name,
+                            email: email,
+                            role: role,
+                            status: 'active',
+                            profile_photo: ''
+                        };
+
+                        sessionStorage.setItem('sh_current_user', JSON.stringify(localUser));
+                        db.logActivity('Registered and logged in automatically (Firebase)', localUser.id);
+
+                        setFlashMessage(`Account created successfully! Welcome, ${name}!`, 'success');
+                        window.location.href = '../dashboard/patient.html';
+                    } else {
+                        throw new Error(res.message || 'Registration failed locally.');
+                    }
+                } catch (err) {
+                    let errMsg = err.message;
+                    if (err.code === 'auth/email-already-in-use') {
+                        errMsg = 'This email address is already registered.';
+                    } else if (err.code === 'auth/invalid-email') {
+                        errMsg = 'Please enter a valid email address.';
+                    } else if (err.code === 'auth/weak-password') {
+                        errMsg = 'Password is too weak. Please use a stronger password.';
+                    }
+                    errorMsg.textContent = errMsg;
                     errorMsg.style.display = 'block';
+                    
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
                 }
             });
         });

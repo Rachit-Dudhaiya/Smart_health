@@ -22,7 +22,7 @@
             
             <div id="login-error-msg" class="auth-message auth-message-error" style="display: none;"></div>
             
-            <form id="login-form" class="auth-form">
+            <form id="login-form" class="auth-form" novalidate>
                 <label>
                     Email Address
                     <input type="email" id="login-email" placeholder="you@example.com" required autofocus />
@@ -30,7 +30,12 @@
                 
                 <label>
                     Password
-                    <input type="password" id="login-password" placeholder="••••••••" required />
+                    <div class="password-input-container" style="position: relative; width: 100%;">
+                        <input type="password" id="login-password" placeholder="••••••••" required style="padding-right: 2.75rem;" />
+                        <button type="button" class="password-toggle-btn" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--color-text-muted); display: flex; align-items: center; justify-content: center; padding: 4px;" aria-label="Toggle password visibility">
+                            <span class="material-icons" style="font-size: 1.25rem;">visibility</span>
+                        </button>
+                    </div>
                 </label>
                 
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
@@ -44,16 +49,6 @@
             </form>
             
             <p class="auth-link">New to Smart Health? <a href="register.html">Create an Account</a></p>
-            
-            <div class="card" style="margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; border-color: var(--color-border); background-color: var(--bg-primary);">
-                <strong>Seed Credentials for Testing:</strong>
-                <ul style="margin-top: 0.3rem; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.2rem;">
-                    <li>Admin: <code>admin@smarthealth.com</code> / <code>Admin123!</code></li>
-                    <li>Doctor: <code>doctor@smarthealth.com</code> / <code>Doctor123!</code></li>
-                    <li>Pharmacist: <code>pharmacist@smarthealth.com</code> / <code>Pharmacist123!</code></li>
-                    <li>Patient: <code>patient@smarthealth.com</code> / <code>Patient123!</code></li>
-                </ul>
-            </div>
         </div>
     </div>
 
@@ -61,6 +56,12 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="../../assets/js/db.js"></script>
     <script src="../../assets/js/layout.js"></script>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="../../assets/js/firebase-auth.js"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -73,7 +74,24 @@
             const form = document.getElementById('login-form');
             const errorMsg = document.getElementById('login-error-msg');
             
-            form.addEventListener('submit', (e) => {
+            // Password toggle logic
+            const toggleBtns = document.querySelectorAll('.password-toggle-btn');
+            toggleBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const container = btn.closest('.password-input-container');
+                    const input = container.querySelector('input');
+                    const icon = btn.querySelector('.material-icons');
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.textContent = 'visibility_off';
+                    } else {
+                        input.type = 'password';
+                        icon.textContent = 'visibility';
+                    }
+                });
+            });
+            
+            form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
                 const email = document.getElementById('login-email').value.trim();
@@ -85,21 +103,68 @@
                     return;
                 }
                 
-                const res = db.login(email, password);
-                if (res.success) {
-                    errorMsg.style.display = 'none';
-                    setFlashMessage(`Welcome back, ${res.user.name}!`, 'success');
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Verifying...';
+                errorMsg.style.display = 'none';
+                
+                try {
+                    const auth = await window.firebaseAuthPromise;
                     
-                    // Redirect to correct dashboard
-                    let dashboardPath = 'pages/dashboard/patient.html';
-                    if (res.user.role === 'admin') dashboardPath = 'pages/dashboard/admin.html';
-                    else if (res.user.role === 'doctor') dashboardPath = 'pages/dashboard/doctor.html';
-                    else if (res.user.role === 'pharmacist') dashboardPath = 'pages/dashboard/pharmacist.html';
+                    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                    const uid = userCredential.user.uid;
                     
+                    // Fetch profile from Firestore
+                    let firestoreUser = null;
+                    try {
+                        const userDoc = await firebase.firestore().collection('users').doc(uid).get();
+                        if (userDoc.exists) {
+                            firestoreUser = userDoc.data();
+                        }
+                    } catch (firestoreErr) {
+                        console.error("Firestore read failed, synchronizing locally:", firestoreErr);
+                    }
+                    
+                    // Build local user representation
+                    let localUser = {
+                        id: uid,
+                        name: firestoreUser ? firestoreUser.name : email.split('@')[0],
+                        email: email,
+                        role: firestoreUser ? firestoreUser.role : 'patient',
+                        status: firestoreUser ? firestoreUser.status : 'active',
+                        profile_photo: firestoreUser ? firestoreUser.profile_photo : ''
+                    };
+                    
+                    // Sync to local mock database array
+                    const localUsers = db.getUsers();
+                    const existingIdx = localUsers.findIndex(u => u.email.toLowerCase() === email.toLowerCase() || u.id === uid);
+                    if (existingIdx !== -1) {
+                        localUsers[existingIdx] = { ...localUsers[existingIdx], ...localUser };
+                    } else {
+                        localUsers.push(localUser);
+                    }
+                    db.saveUsers(localUsers);
+                    
+                    sessionStorage.setItem('sh_current_user', JSON.stringify(localUser));
+                    db.logActivity('Logged into the portal (Firebase)', localUser.id);
+                    
+                    setFlashMessage(`Welcome back, ${localUser.name}!`, 'success');
+                    
+                    const dashboardPath = window.ROLE_DASHBOARDS[localUser.role] || 'pages/dashboard/patient.html';
                     window.location.href = '../../' + dashboardPath;
-                } else {
-                    errorMsg.textContent = res.message || 'Invalid email or password.';
+                } catch (err) {
+                    let errMsg = err.message;
+                    if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+                        errMsg = 'Invalid email or password.';
+                    } else if (err.code === 'auth/invalid-email') {
+                        errMsg = 'Please enter a valid email address.';
+                    }
+                    errorMsg.textContent = errMsg;
                     errorMsg.style.display = 'block';
+                    
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
                 }
             });
         });
