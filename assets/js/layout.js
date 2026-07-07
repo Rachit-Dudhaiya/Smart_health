@@ -1,9 +1,9 @@
 const ROLE_NAV_CONFIG = {
     guest: ['home', 'about', 'services', 'patient_flow', 'bed_availability', 'contact'],
-    patient: ['home', 'about', 'services', 'patient_flow', 'bed_availability', 'doctor_availability', 'contact'],
-    doctor: ['home', 'about', 'services', 'doctor_attendance', 'contact'],
+    patient: ['home', 'about', 'services', 'patient_flow', 'bed_availability', 'doctor_availability', 'ambulance_tracker', 'contact'],
+    doctor: ['home', 'about', 'services', 'doctor_attendance', 'ambulance_tracker', 'contact'],
     pharmacist: ['home', 'about', 'services', 'medicine_stock', 'bed_availability', 'doctor_availability', 'contact'],
-    admin: ['home', 'about', 'services', 'profile', 'medicine_stock', 'patient_flow', 'bed_availability', 'doctor_availability', 'doctor_attendance', 'contact']
+    admin: ['home', 'about', 'services', 'profile', 'medicine_stock', 'patient_flow', 'bed_availability', 'doctor_availability', 'doctor_attendance', 'ambulance_tracker', 'contact']
 };
 
 const ROLE_DASHBOARDS = {
@@ -24,6 +24,8 @@ const NAV_ITEMS = [
     { id: 'bed_availability', label: 'Bed Availability', path: 'pages/bed-availability.html', activePattern: 'bed-availability.html' },
     { id: 'doctor_availability', label: 'Doctor Availability', path: 'pages/doctor-availability.html', activePattern: 'doctor-availability.html' },
     { id: 'doctor_attendance', label: 'Doctor Attendance', path: 'pages/doctor-attendance.html', activePattern: 'doctor-attendance.html' },
+    { id: 'ambulance_tracker', label: 'Ambulance Tracking', path: 'pages/ambulance-tracker.html', activePattern: 'ambulance-tracker.html' },
+    { id: 'ambulance_dispatch', label: 'Ambulance Dispatch', path: 'pages/dashboard/admin.html#ambulance', activePattern: 'admin.html' },
     { id: 'contact', label: 'Contact', path: 'pages/contact.html', activePattern: 'contact.html' }
 ];
 
@@ -1392,7 +1394,7 @@ async function setupRealtimeRoleSync(pathPrefix, currentUser) {
             await loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js');
             await loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js');
             await loadScript('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js');
-            await loadScript(`${pathPrefix}assets/js/firebase-auth.js`);
+            await loadScript(`${pathPrefix}assets/js/firebase-auth.js?v=ambulance-1`);
             // Wait for firebase init promise to resolve
             if (window.firebaseAuthPromise) {
                 await window.firebaseAuthPromise;
@@ -1401,6 +1403,10 @@ async function setupRealtimeRoleSync(pathPrefix, currentUser) {
             console.error("Failed to load Firebase scripts for real-time role sync:", e);
             return;
         }
+    }
+
+    if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) {
+        return;
     }
 
     const uid = currentUser.firebase_uid || currentUser.id;

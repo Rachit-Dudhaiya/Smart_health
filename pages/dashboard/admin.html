@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="../../assets/css/styles.css" />
+    <link rel="stylesheet" href="../../assets/css/styles.css?v=ambulance-1" />
     <style>
         .tabs-header {
             display: flex;
@@ -90,6 +90,7 @@
                     <button class="nav-tab-btn" data-tab="users">👥 User Directory</button>
                     <button class="nav-tab-btn" data-tab="beds">🛏️ Manage Wards</button>
                     <button class="nav-tab-btn" data-tab="appointments">📅 Appointments Console</button>
+                    <button class="nav-tab-btn" data-tab="ambulance">🚑 Ambulance Dispatch</button>
                     <button class="nav-tab-btn" data-tab="bills">💵 Billings Ledger</button>
                     <button class="nav-tab-btn" data-tab="cms">📝 CMS Manager</button>
                     <button class="nav-tab-btn" data-tab="queries">📬 Inquiries Feed</button>
@@ -221,7 +222,45 @@
                     </div>
                 </section>
 
-                <!-- 5. MANAGE BILLINGS PANEL -->
+                <!-- 5. AMBULANCE DISPATCH PANEL -->
+                <section id="panel-ambulance" class="dashboard-panel" style="display: none;">
+                    <div class="page-header" style="margin-bottom: 2rem;">
+                        <h1>Ambulance Dispatch Console</h1>
+                        <p class="auth-subtitle">Review incoming ambulance requests, assign available units, and monitor completed trips.</p>
+                    </div>
+
+                    <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+                        <h3>Pending Requests</h3>
+                        <div class="table-wrap" style="margin-top: 1rem;">
+                            <table>
+                                <thead><tr><th>Patient</th><th>Age</th><th>Symptoms</th><th>Priority</th><th>Requested</th><th>Action</th></tr></thead>
+                                <tbody id="ambulance-pending-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+                        <h3>Assigned / Dispatched Requests</h3>
+                        <div class="table-wrap" style="margin-top: 1rem;">
+                            <table>
+                                <thead><tr><th>Patient</th><th>Driver</th><th>Vehicle</th><th>Status</th><th>ETA</th><th>Action</th></tr></thead>
+                                <tbody id="ambulance-assigned-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card" style="padding: 2rem;">
+                        <h3>Completed / Cancelled Trips</h3>
+                        <div class="table-wrap" style="margin-top: 1rem;">
+                            <table>
+                                <thead><tr><th>Patient</th><th>Status</th><th>Driver</th><th>Last Updated</th></tr></thead>
+                                <tbody id="ambulance-history-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. MANAGE BILLINGS PANEL -->
                 <section id="panel-bills" class="dashboard-panel" style="display: none;">
                     <div class="page-header" style="margin-bottom: 2rem;">
                         <h1>Pharmacy Billings Master</h1>
@@ -253,7 +292,7 @@
                     </div>
                 </section>
 
-                <!-- 6. CONTENT MANAGER PANEL -->
+                <!-- 7. CONTENT MANAGER PANEL -->
                 <section id="panel-cms" class="dashboard-panel" style="display: none;">
                     <div class="page-header" style="margin-bottom: 2rem;">
                         <h1>CMS Content Manager</h1>
@@ -283,7 +322,7 @@
                     </div>
                 </section>
 
-                <!-- 7. INQUIRIES PANEL -->
+                <!-- 8. INQUIRIES PANEL -->
                 <section id="panel-queries" class="dashboard-panel" style="display: none;">
                     <div class="page-header" style="margin-bottom: 2rem;">
                         <h1>Inquiries Feed</h1>
@@ -312,7 +351,7 @@
                     </div>
                 </section>
 
-                <!-- 8. SYSTEM AUDIT LOGS PANEL -->
+                <!-- 9. SYSTEM AUDIT LOGS PANEL -->
                 <section id="panel-logs" class="dashboard-panel" style="display: none;">
                     <div class="page-header" style="margin-bottom: 2rem;">
                         <h1>Activity Audit Logs</h1>
@@ -346,14 +385,14 @@
 
     <!-- Site Core Client Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="../../assets/js/db.js"></script>
-    <script src="../../assets/js/layout.js"></script>
+    <script src="../../assets/js/db.js?v=ambulance-1"></script>
+    <script src="../../assets/js/layout.js?v=ambulance-1"></script>
     
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="../../assets/js/firebase-auth.js"></script>
+    <script src="../../assets/js/firebase-auth.js?v=ambulance-1"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -409,6 +448,8 @@
                 renderBeds();
             } else if (tab === 'appointments') {
                 renderAppointments();
+            } else if (tab === 'ambulance') {
+                renderAmbulanceDispatch();
             } else if (tab === 'bills') {
                 renderBills();
             } else if (tab === 'cms') {
@@ -596,6 +637,78 @@
                 db.logActivity(`Admin updated ward ID ${bid} capacity (Total: ${total}, Occupied: ${occupied})`, db.getCurrentUser().id);
                 showToast('Ward capacity updated successfully.', 'success');
                 renderBeds();
+            }
+        };
+
+        function renderAmbulanceDispatch() {
+            const requests = db.getAmbulanceRequests();
+            const ambulances = db.getAmbulances();
+            const pendingTbody = document.getElementById('ambulance-pending-tbody');
+            const assignedTbody = document.getElementById('ambulance-assigned-tbody');
+            const historyTbody = document.getElementById('ambulance-history-tbody');
+
+            const pending = requests.filter(r => r.status === 'pending');
+            pendingTbody.innerHTML = pending.length ? pending.map(req => `
+                <tr>
+                    <td>${req.patient_name}</td>
+                    <td>${req.age}</td>
+                    <td>${req.symptoms}</td>
+                    <td><span class="badge badge-warning">${req.priority}</span></td>
+                    <td>${new Date(req.requested_at).toLocaleString()}</td>
+                    <td>
+                        <select id="assign-ambulance-${req.id}" style="padding:0.3rem 0.5rem; margin-right:0.5rem;">
+                            <option value="">Select Ambulance</option>
+                            ${ambulances.filter(a => a.status === 'available').map(a => `<option value="${a.id}">${a.name} - ${a.driver_name}</option>`).join('')}
+                        </select>
+                        <button class="btn btn-primary" onclick="assignAmbulanceFromAdmin(${req.id})">Assign</button>
+                        <button class="btn btn-danger" onclick="rejectAmbulanceRequest(${req.id})">Reject</button>
+                    </td>
+                </tr>
+            `).join('') : '<tr><td colspan="6">No pending requests.</td></tr>';
+
+            const assigned = requests.filter(r => ['assigned', 'dispatched', 'near-patient', 'arriving', 'arrived'].includes(r.status));
+            assignedTbody.innerHTML = assigned.length ? assigned.map(req => `
+                <tr>
+                    <td>${req.patient_name}</td>
+                    <td>${req.driver_name || '—'}</td>
+                    <td>${req.vehicle || '—'}</td>
+                    <td><span class="badge badge-info">${req.status}</span></td>
+                    <td>${req.eta_min} min</td>
+                    <td><button class="btn btn-secondary" onclick="window.location.href='../../pages/ambulance-tracker.html?requestId=${req.id}'">Track</button></td>
+                </tr>
+            `).join('') : '<tr><td colspan="6">No active trips.</td></tr>';
+
+            const history = requests.filter(r => ['completed', 'cancelled'].includes(r.status));
+            historyTbody.innerHTML = history.length ? history.map(req => `
+                <tr>
+                    <td>${req.patient_name}</td>
+                    <td><span class="badge ${req.status === 'completed' ? 'badge-success' : 'badge-danger'}">${req.status}</span></td>
+                    <td>${req.driver_name || '—'}</td>
+                    <td>${new Date(req.last_updated).toLocaleString()}</td>
+                </tr>
+            `).join('') : '<tr><td colspan="4">No completed or cancelled trips.</td></tr>';
+        }
+
+        window.assignAmbulanceFromAdmin = function(requestId) {
+            const select = document.getElementById(`assign-ambulance-${requestId}`);
+            if (!select || !select.value) {
+                showToast('Please choose an ambulance before assigning.', 'warning');
+                return;
+            }
+            const res = db.assignAmbulanceRequest(requestId, select.value, db.getCurrentUser().id);
+            if (res.success) {
+                showToast('🚑 Ambulance assigned and dispatch started.', 'success');
+                renderAmbulanceDispatch();
+            } else {
+                showToast(res.message || 'Unable to assign ambulance.', 'error');
+            }
+        };
+
+        window.rejectAmbulanceRequest = function(requestId) {
+            const res = db.updateAmbulanceRequestStatus(requestId, 'cancelled');
+            if (res.success) {
+                showToast('Ambulance request rejected.', 'warning');
+                renderAmbulanceDispatch();
             }
         };
 

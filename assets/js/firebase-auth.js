@@ -4,19 +4,19 @@
  */
 
 (function () {
-    window.firebaseAuthPromise = new Promise(async (resolve, reject) => {
+    window.firebaseAuthPromise = new Promise(async (resolve) => {
         try {
             const bodyEl = document.body;
             const pathPrefix = bodyEl.getAttribute('data-path-prefix') || './';
 
-            // Fetch .env file
             const response = await fetch(`${pathPrefix}.env`);
             if (!response.ok) {
-                throw new Error(`Failed to load .env configuration: ${response.status} ${response.statusText}`);
+                console.warn('Firebase config not found; continuing in local demo mode.');
+                resolve(null);
+                return;
             }
             const text = await response.text();
-            
-            // Parse environment variables
+
             const env = {};
             text.split(/\r?\n/).forEach(line => {
                 const trimmed = line.trim();
@@ -30,7 +30,6 @@
                 }
             });
 
-            // Map configurations supporting potential variable typos in .env
             const apiKey = env.FIREABSE_API_KEY || env.FIREBASE_API_KEY;
             const authDomain = env.FIREABASE_AUTH_DOMAIN || env.FIREBASE_AUTH_DOMAIN;
             const projectId = env.FIREABSE_PROJECT_ID || env.FIREBASE_PROJECT_ID;
@@ -39,7 +38,9 @@
             const measurementId = env.FIREBASE_MEASUREMENT_ID;
 
             if (!apiKey || !authDomain || !projectId) {
-                throw new Error("Missing Firebase keys in .env. Ensure FIREABSE_API_KEY, FIREABASE_AUTH_DOMAIN, and FIREABSE_PROJECT_ID are defined.");
+                console.warn('Firebase keys missing; continuing in local demo mode.');
+                resolve(null);
+                return;
             }
 
             const firebaseConfig = {
@@ -51,16 +52,14 @@
                 measurementId: measurementId
             };
 
-            // Initialize Firebase App
             if (!firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
             }
 
-            const auth = firebase.auth();
-            resolve(auth);
+            resolve(firebase.auth());
         } catch (err) {
-            console.error("Firebase auth initialization failed:", err);
-            reject(err);
+            console.warn('Firebase auth initialization unavailable; continuing in local demo mode.', err);
+            resolve(null);
         }
     });
 })();

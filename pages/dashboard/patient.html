@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="../../assets/css/styles.css" />
+    <link rel="stylesheet" href="../../assets/css/styles.css?v=ambulance-1" />
     <style>
         .tabs-header {
             display: flex;
@@ -99,10 +99,27 @@
                     
                     <div class="card" style="padding: 1.5rem; text-align: center; border-color: var(--color-danger); background-color: #fef2f2;">
                         <span style="font-size: 3rem;">🚑</span>
-                        <h4 style="color: var(--color-danger); margin-top: 0.5rem;">Need an Ambulance?</h4>
-                        <p style="font-size: 0.8rem; color: #7f1d1d; margin: 0.5rem 0 1.2rem;">Clicking the button below broadcasts an emergency SOS request to clinical dispatchers.</p>
+                        <h4 style="color: var(--color-danger); margin-top: 0.5rem;">Emergency Ambulance</h4>
+                        <p style="font-size: 0.8rem; color: #7f1d1d; margin: 0.5rem 0 1rem;">Request a live ambulance, monitor its movement, and receive dispatch updates in real time.</p>
                         
-                        <button class="btn btn-danger btn-full" onclick="triggerSOS()">🚨 Trigger SOS Request</button>
+                        <div id="ambulance-request-status" style="margin-bottom: 1rem;"></div>
+                        <div id="ambulance-request-form" style="text-align: left; display: none;">
+                            <label>
+                                Priority
+                                <select id="ambulance-priority" style="margin-top: 0.3rem; margin-bottom: 0.8rem;">
+                                    <option value="critical">Critical</option>
+                                    <option value="high">High</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="low">Low</option>
+                                </select>
+                            </label>
+                            <label>
+                                Symptoms / Notes
+                                <textarea id="ambulance-symptoms" rows="2" style="margin-top: 0.3rem;" placeholder="Describe the emergency briefly"></textarea>
+                            </label>
+                        </div>
+                        <div id="ambulance-request-actions" style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.8rem;"></div>
+                        <a href="../../pages/ambulance-tracker.html" class="btn btn-secondary btn-full" style="margin-top: 0.7rem; display: inline-block; text-align: center;">🗺️ Open Live Tracker</a>
                     </div>
                     
                     <div class="card" style="padding: 1.5rem; margin-top: 1.5rem; text-align: center;">
@@ -281,8 +298,8 @@
 
     <!-- Site Core Client Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="../../assets/js/db.js"></script>
-    <script src="../../assets/js/layout.js"></script>
+    <script src="../../assets/js/db.js?v=ambulance-1"></script>
+    <script src="../../assets/js/layout.js?v=ambulance-1"></script>
     
     <script>
         let curPatient = null;
@@ -293,8 +310,10 @@
             
             renderSidebarBeds();
             renderPatientDashboard();
+            renderAmbulancePanel();
             renderAppointments();
             renderBillingHistory();
+            setInterval(() => renderAmbulancePanel(), 3000);
             
             // Set default date picker to today
             document.getElementById('appt-date').value = new Date().toISOString().split('T')[0];
@@ -650,17 +669,86 @@
             document.getElementById('bill-print-modal').style.display = 'none';
         };
 
+        function renderAmbulancePanel() {
+            const statusEl = document.getElementById('ambulance-request-status');
+            const formEl = document.getElementById('ambulance-request-form');
+            const actionsEl = document.getElementById('ambulance-request-actions');
+            if (!statusEl || !formEl || !actionsEl) return;
+
+            const existing = db.getActiveAmbulanceRequest(curPatient.id);
+            if (!existing) {
+                statusEl.innerHTML = '<span class="badge badge-warning">No active ambulance request</span>';
+                formEl.style.display = 'block';
+                actionsEl.innerHTML = `
+                    <button class="btn btn-danger btn-full" onclick="requestAmbulance()">🚑 Request Ambulance</button>
+                    <button class="btn btn-secondary btn-full" onclick="triggerSOS()">🚨 Quick SOS</button>
+                `;
+                return;
+            }
+
+            const statusBadgeClass = existing.status === 'completed' ? 'badge-success' : existing.status === 'cancelled' ? 'badge-danger' : 'badge-info';
+            const statusText = existing.status.replace(/-/g, ' ').toUpperCase();
+            statusEl.innerHTML = `<div class="badge ${statusBadgeClass}" style="text-transform: uppercase;">${statusText}</div>`;
+            formEl.style.display = 'none';
+
+            const actions = [];
+            if (['pending', 'assigned'].includes(existing.status)) {
+                actions.push(`<button class="btn btn-secondary btn-full" onclick="cancelAmbulanceRequest()">Cancel Request</button>`);
+            }
+            actions.push(`<button class="btn btn-primary btn-full" onclick="openTrackingPage()">${existing.status === 'pending' ? 'View Request' : 'Track Ambulance'}</button>`);
+            actions.push(`<button class="btn btn-danger btn-full" onclick="callDriver()">📞 Call Driver</button>`);
+
+            actionsEl.innerHTML = `
+                <div style="border: 1px solid var(--color-border); padding: 0.8rem; border-radius: var(--radius-md); text-align: left; font-size: 0.9rem; background: var(--bg-surface);">
+                    <div><strong>Priority:</strong> ${existing.priority.toUpperCase()}</div>
+                    <div><strong>ETA:</strong> ${existing.eta_min} min</div>
+                    <div><strong>Distance:</strong> ${existing.distance_km} km</div>
+                    <div><strong>Driver:</strong> ${existing.driver_name || 'Awaiting dispatch'}</div>
+                    <div><strong>Symptoms:</strong> ${existing.symptoms}</div>
+                </div>
+                ${actions.join('')}
+            `;
+        }
+
+        window.requestAmbulance = function() {
+            const priority = document.getElementById('ambulance-priority').value;
+            const symptoms = document.getElementById('ambulance-symptoms').value.trim() || 'Emergency assistance requested';
+            const res = db.createAmbulanceRequest(curPatient.id, { priority, symptoms, patient_name: curPatient.name });
+            if (res.success) {
+                showToast('🚑 Ambulance request submitted. Dispatch is evaluating the case.', 'success');
+                renderAmbulancePanel();
+            } else {
+                showToast(res.message || 'Unable to request ambulance.', 'error');
+            }
+        };
+
+        window.cancelAmbulanceRequest = function() {
+            const existing = db.getActiveAmbulanceRequest(curPatient.id);
+            if (!existing) return;
+            const res = db.updateAmbulanceRequestStatus(existing.id, 'cancelled');
+            if (res.success) {
+                showToast('🚑 Ambulance request cancelled.', 'success');
+                renderAmbulancePanel();
+            }
+        };
+
+        window.openTrackingPage = function() {
+            const existing = db.getActiveAmbulanceRequest(curPatient.id);
+            const requestId = existing ? existing.id : '';
+            window.location.href = `../../pages/ambulance-tracker.html${requestId ? `?requestId=${requestId}` : ''}`;
+        };
+
+        window.callDriver = function() {
+            showToast('📞 Simulated call connected to the ambulance driver.', 'success');
+        };
+
         window.triggerSOS = function() {
-            if (confirm('WARNING: Are you sure you want to trigger an Ambulance SOS Emergency? False requests are logged.')) {
-                const staff = db.getUsers().filter(u => u.role === 'admin' || u.role === 'doctor');
-                const msg = `🚨 EMERGENCY: Patient ${curPatient.name} raised an Ambulance SOS Request! Ward check initiated.`;
-                
-                staff.forEach(s => {
-                    db.addNotification(s.id, msg);
-                });
-                
-                db.logActivity('Triggered Emergency SOS Ambulance request', curPatient.id);
-                showToast('🚨 Emergency SOS ambulance requested successfully. Wards and ambulance staff have been notified.', 'success');
+            const priority = document.getElementById('ambulance-priority') ? document.getElementById('ambulance-priority').value : 'critical';
+            const symptoms = document.getElementById('ambulance-symptoms') ? document.getElementById('ambulance-symptoms').value.trim() || 'Critical emergency' : 'Critical emergency';
+            const res = db.createAmbulanceRequest(curPatient.id, { priority, symptoms, patient_name: curPatient.name });
+            if (res.success) {
+                showToast('🚨 Emergency SOS ambulance requested successfully. Wards and dispatch staff have been notified.', 'success');
+                renderAmbulancePanel();
             }
         };
     </script>

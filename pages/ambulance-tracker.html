@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ambulance Tracking | Smart Health</title>
+    <link rel="stylesheet" href="../assets/css/styles.css?v=ambulance-1" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { background: var(--bg-primary); }
+        .tracker-layout { display: grid; grid-template-columns: 1.1fr 0.65fr; gap: 1.5rem; padding: 2rem 0 3rem; }
+        .tracker-map { height: 70vh; min-height: 480px; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-hover); }
+        .tracker-panel { display: flex; flex-direction: column; gap: 1rem; }
+        .tracker-card { background: var(--bg-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1.2rem; box-shadow: var(--shadow-main); }
+        .metric-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+        .metric-pill { background: var(--color-primary-light); border-radius: var(--radius-md); padding: 0.8rem; }
+        .progress-bar { height: 10px; background: var(--bg-primary); border-radius: var(--radius-full); overflow: hidden; }
+        .progress-bar > div { height: 100%; background: linear-gradient(90deg, var(--color-success), var(--color-info)); transition: width 0.3s ease; }
+        .badge { display: inline-block; padding: 0.25rem 0.65rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .badge-success { background: #dcfce7; color: var(--color-success); }
+        .badge-info { background: #dbeafe; color: var(--color-info); }
+        .badge-warning { background: #fef3c7; color: var(--color-accent); }
+        .badge-danger { background: #fee2e2; color: var(--color-danger); }
+        .ambulance-marker {
+            width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgba(37, 99, 235, 0.15); box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.2); animation: pulse 1.4s infinite; font-size: 1.4rem;
+        }
+        @keyframes pulse { 0% { transform: scale(0.96); } 50% { transform: scale(1.03); } 100% { transform: scale(0.96); } }
+        @media (max-width: 980px) { .tracker-layout { grid-template-columns: 1fr; } .tracker-map { height: 50vh; } }
+    </style>
+</head>
+<body data-path-prefix="../" data-restricted-roles="admin,doctor,patient">
+    <div class="container">
+        <div class="tracker-layout">
+            <div id="ambulance-map" class="tracker-map"></div>
+            <div class="tracker-panel">
+                <div class="tracker-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom: 1rem;">
+                        <div>
+                            <h2 style="margin-bottom:0.2rem;">Live Ambulance Tracking</h2>
+                            <p id="tracker-subtitle" class="auth-subtitle">Dispatch live feed in progress</p>
+                        </div>
+                        <span id="tracker-status-badge" class="badge badge-info">Pending</span>
+                    </div>
+                    <div class="metric-grid">
+                        <div class="metric-pill"><strong id="eta-value">--</strong><div>ETA</div></div>
+                        <div class="metric-pill"><strong id="distance-value">--</strong><div>Distance Remaining</div></div>
+                        <div class="metric-pill"><strong id="progress-value">0%</strong><div>Trip Progress</div></div>
+                        <div class="metric-pill"><strong id="speed-value">0 km/h</strong><div>Current Speed</div></div>
+                    </div>
+                    <div style="margin-top:1rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.35rem;"><span>Journey Progress</span><span id="progress-caption">0%</span></div>
+                        <div class="progress-bar"><div id="progress-fill" style="width:0%"></div></div>
+                    </div>
+                </div>
+                <div class="tracker-card">
+                    <h3>Driver & Vehicle</h3>
+                    <div id="driver-details" style="margin-top:0.8rem; line-height:1.8;"></div>
+                </div>
+                <div class="tracker-card">
+                    <h3>Route Summary</h3>
+                    <div id="route-summary" style="margin-top:0.8rem; line-height:1.8;"></div>
+                </div>
+                <div class="tracker-card">
+                    <h3>Demo Controls</h3>
+                    <div style="display:flex; flex-wrap:wrap; gap:0.6rem; margin-top:0.8rem;">
+                        <button class="btn btn-primary" onclick="startDemoMode()">▶ Start Demo</button>
+                        <button class="btn btn-secondary" onclick="pauseDemoMode()">⏸ Pause</button>
+                        <button class="btn btn-secondary" onclick="restartDemoMode()">↻ Restart</button>
+                        <button class="btn btn-danger" onclick="resetDemoMode()">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="../assets/js/db.js?v=ambulance-1"></script>
+    <script src="../assets/js/layout.js?v=ambulance-1"></script>
+    <script>
+        let map = null;
+        let marker = null;
+        let hospitalMarker = null;
+        let patientMarker = null;
+        let routeLine = null;
+        let completedLine = null;
+        let routeCoords = [];
+        let currentIndex = 0;
+        let animationFrame = null;
+        let requestId = null;
+        let request = null;
+        let demoTimer = null;
+        let demoPaused = false;
+        let demoStateIndex = 0;
+        let demoSteps = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            requestId = params.get('requestId');
+            if (requestId) {
+                request = db.getAmbulanceRequests().find(item => item.id === parseInt(requestId, 10));
+            }
+            if (!request) {
+                const active = db.getAmbulanceRequests().find(item => ['pending','assigned','dispatched','near-patient','arriving','arrived','completed'].includes(item.status));
+                request = active || null;
+            }
+            initMap();
+            if (request) {
+                loadRoute();
+                startAnimationLoop();
+            } else {
+                document.getElementById('tracker-subtitle').textContent = 'No active ambulance request available yet.';
+            }
+        });
+
+        function initMap() {
+            map = L.map('ambulance-map').setView([19.0760, 72.8777], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+            hospitalMarker = L.marker([19.0760, 72.8777], { icon: L.divIcon({ html: '🏥', iconSize: [36, 36] }) }).addTo(map);
+            patientMarker = L.marker([19.0840, 72.8820], { icon: L.divIcon({ html: '🧑‍⚕️', iconSize: [36, 36] }) }).addTo(map);
+            marker = L.marker([19.0760, 72.8777], { icon: L.divIcon({ html: '<div class="ambulance-marker">🚑</div>', iconSize: [38, 38] }) }).addTo(map);
+            routeLine = L.polyline([], { color: '#2563eb', weight: 5, opacity: 0.85 }).addTo(map);
+            completedLine = L.polyline([], { color: '#16a34a', weight: 5, opacity: 0.85 }).addTo(map);
+            marker.bindPopup('Ambulance dispatch in progress');
+        }
+
+        async function loadRoute() {
+            if (!request) return;
+            const start = [request.hospital_lng, request.hospital_lat];
+            const end = [request.patient_lng, request.patient_lat];
+            const url = `https://router.project-osrm.org/route/v1/driving/${start.join(',')};${end.join(',')}?overview=full&geometries=geojson`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('OSRM unavailable');
+                const data = await response.json();
+                if (data.routes && data.routes[0] && data.routes[0].geometry && data.routes[0].geometry.coordinates) {
+                    routeCoords = data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+                    request.route_coords = routeCoords;
+                    db.updateAmbulanceRequest(request.id, { route_coords: routeCoords });
+                }
+            } catch (e) {
+                if (!request.route_coords || !request.route_coords.length) {
+                    routeCoords = [
+                        [request.hospital_lat, request.hospital_lng],
+                        [request.hospital_lat + 0.005, request.hospital_lng + 0.004],
+                        [request.patient_lat - 0.001, request.patient_lng - 0.002],
+                        [request.patient_lat, request.patient_lng]
+                    ];
+                    db.updateAmbulanceRequest(request.id, { route_coords: routeCoords });
+                }
+            }
+            renderTracker();
+        }
+
+        function renderTracker() {
+            if (!request) return;
+            const statusBadge = document.getElementById('tracker-status-badge');
+            statusBadge.className = `badge ${request.status === 'completed' ? 'badge-success' : request.status === 'cancelled' ? 'badge-danger' : request.status === 'assigned' || request.status === 'dispatched' ? 'badge-warning' : 'badge-info'}`;
+            statusBadge.textContent = request.status.replace(/-/g, ' ').toUpperCase();
+            document.getElementById('tracker-subtitle').textContent = `${request.patient_name} • ${request.symptoms}`;
+            document.getElementById('eta-value').textContent = `${request.eta_min} min`;
+            document.getElementById('distance-value').textContent = `${request.distance_km.toFixed(1)} km`;
+            document.getElementById('progress-value').textContent = `${Math.round(request.progress)}%`;
+            document.getElementById('speed-value').textContent = `${request.speed || 0} km/h`;
+            document.getElementById('progress-caption').textContent = `${Math.round(request.progress)}%`;
+            document.getElementById('progress-fill').style.width = `${Math.min(100, request.progress)}%`;
+            document.getElementById('driver-details').innerHTML = `
+                <div><strong>Driver:</strong> ${request.driver_name || 'Awaiting dispatch'}</div>
+                <div><strong>Vehicle:</strong> ${request.vehicle || '—'}</div>
+                <div><strong>Phone:</strong> ${request.phone || '—'}</div>
+                <div><strong>Status:</strong> ${request.status}</div>
+            `;
+            document.getElementById('route-summary').innerHTML = `
+                <div><strong>Hospital:</strong> ${request.hospital_name}</div>
+                <div><strong>Patient:</strong> ${request.patient_name}</div>
+                <div><strong>Last Updated:</strong> ${new Date(request.last_updated).toLocaleTimeString()}</div>
+                <div><strong>Current Coordinates:</strong> ${request.current_lat.toFixed(4)}, ${request.current_lng.toFixed(4)}</div>
+            `;
+            if (request.route_coords && request.route_coords.length) {
+                routeCoords = request.route_coords;
+            } else {
+                routeCoords = [
+                    [request.hospital_lat, request.hospital_lng],
+                    [request.hospital_lat + 0.005, request.hospital_lng + 0.004],
+                    [request.patient_lat - 0.001, request.patient_lng - 0.002],
+                    [request.patient_lat, request.patient_lng]
+                ];
+            }
+            const latlngs = routeCoords.map(([lat, lng]) => [lat, lng]);
+            routeLine.setLatLngs(latlngs);
+            const completedLength = Math.max(1, Math.round(currentIndex / Math.max(1, latlngs.length - 1) * (latlngs.length - 1)));
+            completedLine.setLatLngs(latlngs.slice(0, completedLength + 1));
+            map.fitBounds([latlngs[0], latlngs[latlngs.length - 1]]);
+            patientMarker.setLatLng([request.patient_lat, request.patient_lng]);
+            hospitalMarker.setLatLng([request.hospital_lat, request.hospital_lng]);
+            if (latlngs.length) {
+                marker.setLatLng([request.current_lat, request.current_lng]);
+            }
+        }
+
+        function animateAlongRoute() {
+            if (!request || !routeCoords.length) return;
+            if (animationFrame) cancelAnimationFrame(animationFrame);
+            const totalPoints = routeCoords.length - 1;
+            const targetProgress = request.progress || 0;
+            currentIndex = Math.round((targetProgress / 100) * totalPoints);
+            const startPoint = routeCoords[Math.min(totalPoints, Math.max(0, currentIndex))];
+            const endPoint = routeCoords[Math.min(totalPoints, Math.max(0, currentIndex + 1))] || startPoint;
+            const ratio = totalPoints > 0 ? (targetProgress / 100) * totalPoints - Math.floor((targetProgress / 100) * totalPoints) : 0;
+            const lat = startPoint[0] + (endPoint[0] - startPoint[0]) * ratio;
+            const lng = startPoint[1] + (endPoint[1] - startPoint[1]) * ratio;
+            const update = () => {
+                if (request) {
+                    db.updateAmbulanceRequest(request.id, { current_lat: lat, current_lng: lng });
+                    request.current_lat = lat;
+                    request.current_lng = lng;
+                    renderTracker();
+                }
+            };
+            animationFrame = requestAnimationFrame(update);
+        }
+
+        function startAnimationLoop() {
+            if (demoTimer) clearInterval(demoTimer);
+            demoTimer = setInterval(() => {
+                if (!request || demoPaused) return;
+                const requests = db.getAmbulanceRequests();
+                const fresh = requests.find(item => item.id === request.id);
+                if (fresh) request = fresh;
+                if (!request) return;
+                const nextProgress = Math.min(100, request.progress + 4);
+                const nextEta = Math.max(1, request.eta_min - 1);
+                const nextDistance = Math.max(0.5, request.distance_km - 0.4);
+                const nextStatus = nextProgress >= 100 ? 'completed' : nextProgress >= 75 ? 'arrived' : nextProgress >= 50 ? 'arriving' : nextProgress >= 25 ? 'near-patient' : request.status === 'assigned' ? 'dispatched' : request.status;
+                db.updateAmbulanceRequestStatus(request.id, nextStatus, { progress: nextProgress, eta_min: nextEta, distance_km: nextDistance, route_coords: routeCoords });
+                request = db.getAmbulanceRequests().find(item => item.id === request.id);
+                animateAlongRoute();
+            }, 1800);
+        }
+
+        function startDemoMode() {
+            demoPaused = false;
+            const active = db.getAmbulanceRequests().find(item => item.id === requestId || ['pending','assigned','dispatched','near-patient','arriving','arrived','completed'].includes(item.status));
+            if (!active) {
+                const patient = db.getCurrentUser() || { id: 4, name: 'Demo Patient' };
+                const created = db.createAmbulanceRequest(patient.id, { priority: 'critical', symptoms: 'Demo emergency request', patient_name: patient.name });
+                request = created.request;
+                requestId = request.id;
+                db.assignAmbulanceRequest(request.id, 1, 1);
+                db.updateAmbulanceRequestStatus(request.id, 'dispatched', { progress: 15, eta_min: 8, distance_km: 3.7, current_lat: 19.0760, current_lng: 72.8777 });
+            } else {
+                request = active;
+                requestId = active.id;
+            }
+            renderTracker();
+            startAnimationLoop();
+            showToast('🎬 Demo mode started. The ambulance lifecycle is now playing automatically.', 'success');
+        }
+
+        function pauseDemoMode() { demoPaused = true; showToast('Demo paused.', 'info'); }
+        function restartDemoMode() { startDemoMode(); }
+        function resetDemoMode() { clearInterval(demoTimer); demoPaused = false; if (request) { db.updateAmbulanceRequestStatus(request.id, 'pending'); } showToast('Demo reset.', 'warning'); }
+    </script>
+</body>
+</html>

@@ -16,7 +16,9 @@ const DB_KEYS = {
     GALLERY: 'sh_gallery',
     APPOINTMENTS: 'sh_appointments',
     DOCTOR_AVAILABILITY: 'sh_doctor_availability',
-    BILLS: 'sh_bills'
+    BILLS: 'sh_bills',
+    AMBULANCES: 'sh_ambulances',
+    AMBULANCE_REQUESTS: 'sh_ambulance_requests'
 };
 
 const validate = {
@@ -169,6 +171,21 @@ const db = {
                 { id: 1, patient_id: 4, pharmacist_id: 3, total_amount: 120.00, discount: 0.00, final_amount: 120.00, payment_status: 'paid', payment_method: 'Cash', created_at: new Date().toISOString(), items: [{ name: 'Paracetamol 650mg', quantity: 2, unit_price: 60.00, total_price: 120.00 }] }
             ];
             localStorage.setItem(DB_KEYS.BILLS, JSON.stringify(seedBills));
+        }
+
+        // 14. Ambulances
+        if (!localStorage.getItem(DB_KEYS.AMBULANCES)) {
+            const seedAmbulances = [
+                { id: 1, name: 'AMB-101', driver_name: 'Ravi Kumar', phone: '9876543210', vehicle: 'Swift Dzire', status: 'available', lat: 19.0760, lng: 72.8777, eta_min: 5, speed: 0, battery: 92, assigned_request_id: null },
+                { id: 2, name: 'AMB-202', driver_name: 'Suresh Patil', phone: '9876543211', vehicle: 'Tata Winger', status: 'available', lat: 19.0822, lng: 72.8813, eta_min: 7, speed: 0, battery: 88, assigned_request_id: null },
+                { id: 3, name: 'AMB-303', driver_name: 'Asha Rao', phone: '9876543212', vehicle: 'Toyota Innova', status: 'available', lat: 19.0712, lng: 72.8697, eta_min: 6, speed: 0, battery: 95, assigned_request_id: null }
+            ];
+            localStorage.setItem(DB_KEYS.AMBULANCES, JSON.stringify(seedAmbulances));
+        }
+
+        // 15. Ambulance Requests
+        if (!localStorage.getItem(DB_KEYS.AMBULANCE_REQUESTS)) {
+            localStorage.setItem(DB_KEYS.AMBULANCE_REQUESTS, JSON.stringify([]));
         }
     },
 
@@ -586,6 +603,176 @@ const db = {
             return { success: true };
         }
         return { success: false, message: 'CMS page not found.' };
+    },
+
+    // --- Ambulance Management ---
+    getAmbulances() {
+        return JSON.parse(localStorage.getItem(DB_KEYS.AMBULANCES)) || [];
+    },
+    saveAmbulances(ambulances) {
+        localStorage.setItem(DB_KEYS.AMBULANCES, JSON.stringify(ambulances));
+    },
+    getAmbulanceRequests() {
+        return JSON.parse(localStorage.getItem(DB_KEYS.AMBULANCE_REQUESTS)) || [];
+    },
+    saveAmbulanceRequests(requests) {
+        localStorage.setItem(DB_KEYS.AMBULANCE_REQUESTS, JSON.stringify(requests));
+    },
+    getActiveAmbulanceRequest(patientId) {
+        const requests = this.getAmbulanceRequests();
+        return requests.find(req => req.patient_id === parseInt(patientId, 10) && ['pending', 'assigned', 'dispatched', 'near-patient', 'arriving', 'arrived'].includes(req.status)) || null;
+    },
+    createAmbulanceRequest(patientId, details = {}) {
+        const parsedPatientId = parseInt(patientId, 10);
+        if (isNaN(parsedPatientId)) {
+            return { success: false, message: 'Invalid patient identifier.' };
+        }
+        const existing = this.getActiveAmbulanceRequest(parsedPatientId);
+        if (existing) {
+            return { success: false, message: 'You already have an active ambulance request.', request: existing };
+        }
+
+        const currentUser = this.getCurrentUser() || { name: 'Patient', role: 'patient' };
+        const requests = this.getAmbulanceRequests();
+        const newRequest = {
+            id: requests.length > 0 ? Math.max(...requests.map(r => r.id)) + 1 : 1,
+            patient_id: parsedPatientId,
+            patient_name: details.patient_name || currentUser.name || 'Patient',
+            age: details.age || 32,
+            symptoms: details.symptoms || 'Emergency assistance requested',
+            priority: details.priority || 'medium',
+            requested_at: new Date().toISOString(),
+            status: 'pending',
+            assigned_ambulance_id: null,
+            ambulance_id: null,
+            eta_min: 12,
+            distance_km: 4.8,
+            progress: 0,
+            route_coords: [],
+            current_lat: 19.0760,
+            current_lng: 72.8777,
+            last_updated: new Date().toISOString(),
+            driver_name: '',
+            vehicle: '',
+            phone: '',
+            hospital_name: 'Smart Health Hub',
+            hospital_lat: 19.0760,
+            hospital_lng: 72.8777,
+            patient_lat: 19.0840,
+            patient_lng: 72.8820
+        };
+
+        requests.push(newRequest);
+        this.saveAmbulanceRequests(requests);
+        this.addNotification(parsedPatientId, '🚑 Ambulance requested successfully. Dispatch team is reviewing your request.');
+        this.addNotification(1, `🚨 New ambulance request received from ${newRequest.patient_name} (${newRequest.priority.toUpperCase()}).`);
+        this.logActivity(`Requested ambulance for patient ID ${parsedPatientId}`, parsedPatientId);
+        return { success: true, request: newRequest };
+    },
+    assignAmbulanceRequest(requestId, ambulanceId, assignedByUserId = null) {
+        const parsedRequestId = parseInt(requestId, 10);
+        const parsedAmbulanceId = parseInt(ambulanceId, 10);
+        if (isNaN(parsedRequestId) || isNaN(parsedAmbulanceId)) {
+            return { success: false, message: 'Invalid request or ambulance identifier.' };
+        }
+
+        const requests = this.getAmbulanceRequests();
+        const request = requests.find(item => item.id === parsedRequestId);
+        const ambulances = this.getAmbulances();
+        const ambulance = ambulances.find(item => item.id === parsedAmbulanceId);
+        if (!request || !ambulance) {
+            return { success: false, message: 'Ambulance request or ambulance not found.' };
+        }
+        if (ambulance.status !== 'available') {
+            return { success: false, message: 'Selected ambulance is currently unavailable.' };
+        }
+
+        request.status = 'assigned';
+        request.assigned_ambulance_id = parsedAmbulanceId;
+        request.ambulance_id = parsedAmbulanceId;
+        request.driver_name = ambulance.driver_name;
+        request.vehicle = ambulance.vehicle;
+        request.phone = ambulance.phone;
+        request.last_updated = new Date().toISOString();
+        request.progress = 10;
+        request.eta_min = 6;
+        request.distance_km = 3.8;
+        ambulance.status = 'assigned';
+        ambulance.assigned_request_id = parsedRequestId;
+        this.saveAmbulanceRequests(requests);
+        this.saveAmbulances(ambulances);
+        this.addNotification(request.patient_id, `🚑 Ambulance ${ambulance.name} has been assigned to you. Dispatch is in progress.`);
+        this.addNotification(1, `🚑 Ambulance request #${request.id} assigned to ${ambulance.name}.`);
+        this.logActivity(`Assigned ambulance ${ambulance.name} to request ${request.id}`, assignedByUserId || request.patient_id);
+        return { success: true, request };
+    },
+    updateAmbulanceRequest(requestId, updates = {}) {
+        const parsedRequestId = parseInt(requestId, 10);
+        if (isNaN(parsedRequestId)) {
+            return { success: false, message: 'Invalid request identifier.' };
+        }
+
+        const requests = this.getAmbulanceRequests();
+        const index = requests.findIndex(item => item.id === parsedRequestId);
+        if (index === -1) {
+            return { success: false, message: 'Ambulance request not found.' };
+        }
+
+        requests[index] = { ...requests[index], ...updates, last_updated: new Date().toISOString() };
+        this.saveAmbulanceRequests(requests);
+        return { success: true, request: requests[index] };
+    },
+    updateAmbulanceRequestStatus(requestId, status, details = {}) {
+        const parsedRequestId = parseInt(requestId, 10);
+        const allowedStatuses = ['pending', 'assigned', 'dispatched', 'near-patient', 'arriving', 'arrived', 'completed', 'cancelled'];
+        if (isNaN(parsedRequestId) || !allowedStatuses.includes(status)) {
+            return { success: false, message: 'Invalid ambulance request state.' };
+        }
+
+        const requests = this.getAmbulanceRequests();
+        const request = requests.find(item => item.id === parsedRequestId);
+        if (!request) {
+            return { success: false, message: 'Ambulance request not found.' };
+        }
+
+        request.status = status;
+        request.last_updated = new Date().toISOString();
+        if (details.eta_min !== undefined) request.eta_min = details.eta_min;
+        if (details.distance_km !== undefined) request.distance_km = details.distance_km;
+        if (details.progress !== undefined) request.progress = details.progress;
+        if (details.current_lat !== undefined) request.current_lat = details.current_lat;
+        if (details.current_lng !== undefined) request.current_lng = details.current_lng;
+        if (details.route_coords) request.route_coords = details.route_coords;
+        if (details.driver_name !== undefined) request.driver_name = details.driver_name;
+        if (details.vehicle !== undefined) request.vehicle = details.vehicle;
+        if (details.phone !== undefined) request.phone = details.phone;
+
+        const ambulances = this.getAmbulances();
+        const ambulance = ambulances.find(item => item.id === request.assigned_ambulance_id);
+        if (ambulance) {
+            if (status === 'completed' || status === 'cancelled') {
+                ambulance.status = 'available';
+                ambulance.assigned_request_id = null;
+            } else if (status === 'dispatched' || status === 'near-patient' || status === 'arriving' || status === 'arrived') {
+                ambulance.status = 'on-route';
+                ambulance.assigned_request_id = request.id;
+            }
+            this.saveAmbulances(ambulances);
+        }
+
+        this.saveAmbulanceRequests(requests);
+        const statusMessage = {
+            assigned: '🚑 Ambulance assigned successfully.',
+            dispatched: '🚑 Ambulance is now on the way.',
+            'near-patient': '🚑 Ambulance is nearing your location.',
+            arriving: '🚑 Ambulance is arriving at your location.',
+            arrived: '🚑 Ambulance has arrived at your location.',
+            completed: '✅ Ambulance trip completed successfully.',
+            cancelled: '❌ Ambulance request was cancelled.'
+        }[status] || 'Ambulance status updated.';
+        this.addNotification(request.patient_id, statusMessage);
+        this.logActivity(`Updated ambulance request ${request.id} to ${status}`, request.patient_id);
+        return { success: true, request };
     },
 
     // --- Notifications ---
