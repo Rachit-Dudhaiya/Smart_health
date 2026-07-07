@@ -191,6 +191,27 @@ a {
     background-color: var(--color-primary-light);
 }
 
+/* Responsive theme toggle positioning */
+@media(min-width: 769px) {
+    #theme-toggle {
+        margin-left: 1.5rem;
+        margin-right: auto;
+    }
+}
+@media(max-width: 768px) {
+    #theme-toggle {
+        margin-left: auto;
+        margin-right: 0.5rem;
+        order: 2;
+    }
+    .nav-controls {
+        order: 3;
+    }
+    .brand {
+        order: 1;
+    }
+}
+
 .sun-icon {
     display: block;
 }

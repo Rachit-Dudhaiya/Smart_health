@@ -154,11 +154,12 @@ function injectHeader(pathPrefix, currentUser) {
                 <span>Smart Health</span>
             </a>
             
+            <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme" type="button">
+                <span class="sun-icon">☀️</span>
+                <span class="moon-icon">🌙</span>
+            </button>
+            
             <div class="nav-controls">
-                <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme" type="button">
-                    <span class="sun-icon">☀️</span>
-                    <span class="moon-icon">🌙</span>
-                </button>
                 <button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false" id="menu-toggle">
                     <span></span><span></span><span></span>
                 </button>
@@ -875,7 +876,6 @@ function injectAccessibilityBar() {
             </div>
             <div class="acc-control-group">
                 <span class="acc-label">
-                    <span class="material-icons acc-icon notranslate">volume_up</span>
                     <span class="acc-label-text">आवाज़ / Sound:</span>
                 </span>
                 <button type="button" class="acc-btn" id="voice-hover-toggle">
@@ -1293,34 +1293,8 @@ function getCleanText(el) {
 }
 
 function injectSpeakerButtonsForNode(container) {
-    // Only scan headings and card labels
-    const selectors = ['h1', 'h2', 'h3', '.card-icon + h3', '.mini-card strong', '.section-heading h2'];
-    const elements = container.querySelectorAll ? container.querySelectorAll(selectors.join(',')) : [];
-
-    elements.forEach(el => {
-        // Skip accessibility bar, speak buttons themselves, or already-injected elements
-        if (el.closest('.acc-bar')) return;
-        if (el.querySelector('.tts-speak-btn') || el.classList.contains('tts-speak-btn')) return;
-
-        const btn = document.createElement('button');
-        btn.className = 'tts-speak-btn';
-        btn.setAttribute('type', 'button');
-        btn.setAttribute('aria-label', 'Read Aloud / बोलकर सुनें');
-
-        const iconSpan = document.createElement('span');
-        iconSpan.className = 'material-icons notranslate';
-        iconSpan.style.marginRight = '0';
-        iconSpan.textContent = 'volume_up';
-        btn.appendChild(iconSpan);
-
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const textToSpeak = getCleanText(el);
-            speakText(textToSpeak, window.currentLanguage);
-        });
-
-        el.appendChild(btn);
-    });
+    // Disabled speaker button rendering next to headings per user request
+    return;
 }
 
 function addNoTranslateToIcons(rootNode = document.body) {
