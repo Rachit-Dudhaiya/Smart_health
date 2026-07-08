@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="../../assets/css/styles.css" />
+    <link rel="stylesheet" href="../../assets/css/styles.css?v=1783530550932" />
     <style>
         .tabs-header {
             display: flex;
@@ -49,9 +49,9 @@
         
         <!-- Tab Controls -->
         <div class="tabs-header">
-            <button class="tab-btn active" onclick="switchTab('consults-tab')">🩺 Consultations Queue</button>
-            <button class="tab-btn" onclick="switchTab('appointments-tab')">📅 Appointments Console</button>
-            <button class="tab-btn" onclick="switchTab('schedule-tab')">🕒 Manage Schedule</button>
+            <button class="tab-btn active" onclick="switchTab('consults-tab')"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">medical_services</span> Consultations Queue</button>
+            <button class="tab-btn" onclick="switchTab('appointments-tab')"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">star</span> Appointments Console</button>
+            <button class="tab-btn" onclick="switchTab('schedule-tab')"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">schedule</span> Manage Schedule</button>
         </div>
 
         <!-- TAB 1: CONSULTATIONS QUEUE -->
@@ -62,7 +62,7 @@
                     <h4 style="margin-bottom: 1.5rem;">Clock Terminal</h4>
                     
                     <div style="text-align: center; margin-bottom: 2rem;">
-                        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🩺</div>
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem;"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">medical_services</span></div>
                         <h3 id="doctor-portal-name">Dr. Loading...</h3>
                         <p class="badge badge-success" style="margin-top: 0.5rem;" id="availability-badge">On Call</p>
                     </div>
@@ -310,12 +310,12 @@
             
             if (!record) {
                 statusContainer.innerHTML = `<p class="badge badge-danger">Not Clocked In</p>`;
-                btnContainer.innerHTML = `<button class="btn btn-primary btn-full" onclick="clockIn()">⏰ Check In Shift</button>`;
+                btnContainer.innerHTML = `<button class="btn btn-primary btn-full" onclick="clockIn()"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">alarm</span> Check In Shift</button>`;
                 availabilityBadge.textContent = 'Offline';
                 availabilityBadge.className = 'badge badge-danger';
             } else if (!record.check_out) {
                 statusContainer.innerHTML = `<p class="badge badge-success">Clocked In at ${formatTime(record.check_in)}</p>`;
-                btnContainer.innerHTML = `<button class="btn btn-danger btn-full" onclick="clockOut()">⏰ Check Out Shift</button>`;
+                btnContainer.innerHTML = `<button class="btn btn-danger btn-full" onclick="clockOut()"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">alarm</span> Check Out Shift</button>`;
                 availabilityBadge.textContent = 'Available';
                 availabilityBadge.className = 'badge badge-success';
             } else {
@@ -496,7 +496,7 @@
                 const patientName = patient ? patient.name : 'Unknown Patient';
                 
                 pharmacists.forEach(p => {
-                    db.addNotification(p.id, `💊 Prescriptions uploaded for Patient: ${patientName}. Please prepare dispensary stock.`);
+                    db.addNotification(p.id, `<span class="material-icons" style="font-size: inherit; vertical-align: middle;">medication</span> Prescriptions uploaded for Patient: ${patientName}. Please prepare dispensary stock.`);
                 });
                 
                 db.logActivity(`Completed consultation flow ID: ${flowId}`, currentDoc.id);

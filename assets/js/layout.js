@@ -39,6 +39,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const pathPrefix = bodyEl.getAttribute('data-path-prefix') || './';
 
     // 2. Perform authorization check before rendering layout
+    // PROTOTYPE-ONLY: Client-side role-based access control (RBAC).
+    // This is a demonstration-level security measure. In a production environment,
+    // authorization should be enforced on a secure backend server and with
+    // database-level security rules (e.g., Firebase Rules).
     const restrictedRolesAttr = bodyEl.getAttribute('data-restricted-roles');
     const currentUser = window.db ? window.db.getCurrentUser() : null;
 
@@ -73,6 +77,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4.5 Initialize Accessibility Systems for Indian Elderly
     initAccessibilitySystem();
 
+    // 4.6 Initialize Gemini voice assistant for vernacular access
+    if (!isIframe) {
+        loadScript(`${pathPrefix}assets/js/gemini-config.js?v=local2`)
+            .catch(() => {})
+            .then(() => loadScript(`${pathPrefix}assets/js/gemini-assistant.js?v=gemini-2`))
+            .then(() => {
+                if (window.initGeminiAssistant) {
+                    window.initGeminiAssistant({ pathPrefix });
+                }
+            })
+            .catch((error) => console.warn('Gemini assistant unavailable:', error));
+    }
     // 5. Initialize Theme (Light / Dark Mode)
     initTheme();
 
@@ -124,7 +140,8 @@ function injectHeader(pathPrefix, currentUser) {
 
         navAuthContent = `
             <a href="${pathPrefix}pages/notifications.html" class="nav-notif-bell ${isLinkActive('notifications.html')}" title="Notifications">
-                🔔 <span class="notif-count">${unreadCount}</span>
+                <span class="material-icons notranslate" aria-hidden="true">notifications</span>
+                <span class="notif-count">${unreadCount}</span>
             </a>
             ${dashboardMarkup}
             <div class="user-menu-wrapper">
@@ -154,12 +171,12 @@ function injectHeader(pathPrefix, currentUser) {
         <div class="container nav-row">
             <div class="brand-wrapper" style="display: flex; align-items: center; gap: 0.75rem;">
                 <a href="${pathPrefix}index.html" class="brand">
-                    <span class="brand-icon">🏥</span>
+                    <span class="brand-icon material-icons notranslate" aria-hidden="true">local_hospital</span>
                     <span>Smart Health</span>
                 </a>
                 <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme" type="button" style="margin-left: 0.25rem;">
-                    <span class="sun-icon">☀️</span>
-                    <span class="moon-icon">🌙</span>
+                    <span class="sun-icon material-icons notranslate" aria-hidden="true">light_mode</span>
+                    <span class="moon-icon material-icons notranslate" aria-hidden="true">dark_mode</span>
                 </button>
             </div>
             
@@ -199,15 +216,13 @@ function injectFooter(pathPrefix) {
     footerEl.innerHTML = `
         <div class="container footer-content-grid">
             <div class="footer-brand-info">
-                <h3>🏥 Smart Health</h3>
+                <h3><span class="material-icons notranslate footer-brand-icon" aria-hidden="true">local_hospital</span> Smart Health</h3>
                 <p>Digital intelligence system built to empower clinics, clinicians, patients, and pharmacists for seamless healthcare delivery.</p>
             </div>
             <div class="footer-links-group">
                 <h4>Information</h4>
                 <a href="${pathPrefix}pages/about.html">About Us</a>
                 <a href="${pathPrefix}pages/services.html">Core Services</a>
-                <a href="${pathPrefix}pages/gallery.html">Gallery Portfolio</a>
-                <a href="${pathPrefix}pages/faq.html">Help & FAQ</a>
             </div>
             <div class="footer-links-group">
                 <h4>Get Involved</h4>
@@ -218,8 +233,8 @@ function injectFooter(pathPrefix) {
         <div class="container footer-bottom-row">
             <p>&copy; <span id="year">${new Date().getFullYear()}</span> Smart Health. All rights reserved. Secure clinical operations.</p>
             <div class="footer-meta-stamps">
-                <span>🔒 SSL SECURE</span>
-                <span>⚡ REAL-TIME AI</span>
+                <span><span class="material-icons notranslate" aria-hidden="true">lock</span> SSL SECURE</span>
+                <span><span class="material-icons notranslate" aria-hidden="true">bolt</span> REAL-TIME AI</span>
             </div>
         </div>
     `;
@@ -295,13 +310,13 @@ window.showToast = function (message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
 
-    let icon = 'ℹ️';
-    if (type === 'success') icon = '✅';
-    else if (type === 'error') icon = '❌';
-    else if (type === 'warning') icon = '⚠️';
+    let icon = 'info';
+    if (type === 'success') icon = 'check_circle';
+    else if (type === 'error') icon = 'cancel';
+    else if (type === 'warning') icon = 'warning';
 
     toast.innerHTML = `
-        <span class="toast-icon">${icon}</span>
+        <span class="material-icons notranslate toast-icon" aria-hidden="true">${icon}</span>
         <span class="toast-message">${message}</span>
         <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
     `;
@@ -345,9 +360,29 @@ function showFlashMessage() {
 // 1. Language Translation Dictionary
 const translationDict = {
     // Navigation / Header / Footer
+    "Services": "à¤¸à¥‡à¤µà¤¾à¤à¤‚",
+    "Gallery": "à¤—à¥ˆà¤²à¤°à¥€ (à¤«à¤¼à¥‹à¤Ÿà¥‹)",
+    "FAQ": "à¤®à¤¦à¤¦ à¤µ à¤¸à¤µà¤¾à¤²",
+    "Medicine Stock": "à¤¦à¤µà¤¾à¤‡à¤¯à¥‹à¤‚ à¤•à¤¾ à¤¸à¥à¤Ÿà¥‰à¤•",
+    "Patient Flow": "à¤®à¤°à¥€à¤œà¤¼à¥‹à¤‚ à¤•à¥€ à¤•à¤¤à¤¾à¤°",
+    "Bed Availability": "à¤–à¤¾à¤²à¥€ à¤¬à¤¿à¤¸à¥à¤¤à¤° à¤•à¥€ à¤¸à¥‚à¤šà¥€",
+    "Doctor Attendance": "à¤¡à¥‰à¤•à¥à¤Ÿà¤°à¥‹à¤‚ à¤•à¥€ à¤‰à¤ªà¤¸à¥à¤¥à¤¿à¤¤à¤¿",
+    "Contact": "à¤¸à¤‚à¤ªà¤°à¥à¤• à¤•à¤°à¥‡à¤‚",
+    "Login": "à¤²à¥‰à¤—à¤¿à¤¨ à¤•à¤°à¥‡à¤‚",
+    "Register": "à¤ªà¤‚à¤œà¥€à¤•à¤°à¤£",
+    "Logout": "à¤²à¥‰à¤—à¤†à¤Šà¤Ÿ",
+    "Dashboard": "à¤¡à¥ˆà¤¶à¤¬à¥‹à¤°à¥à¤¡",
+    "My Profile": "à¤®à¥‡à¤°à¥€ à¤ªà¥à¤°à¥‹à¤«à¤¾à¤‡à¤²",
+    "Notifications": "à¤¸à¥‚à¤šà¤¨à¤¾à¤à¤‚",
+    "Patient Feedback": "à¤®à¤°à¥€à¤œà¤¼à¥‹à¤‚ à¤•à¥€ à¤°à¤¾à¤¯",
+    "Information": "à¤œà¤¾à¤¨à¤•à¤¾à¤°à¥€",
+    "About Us": "à¤¹à¤®à¤¾à¤°à¥‡ à¤¬à¤¾à¤°à¥‡ à¤®à¥‡à¤‚ à¤œà¤¾à¤¨à¥‡à¤‚",
+    "Core Services": "à¤®à¥à¤–à¥à¤¯ à¤¸à¥‡à¤µà¤¾à¤à¤‚",
+    "Gallery Portfolio": "à¤…à¤¸à¥à¤ªà¤¤à¤¾à¤² à¤•à¥€ à¤¤à¤¸à¥à¤µà¥€à¤°à¥‡à¤‚",
+    "Help & FAQ": "à¤¸à¤¹à¤¾à¤¯à¤¤à¤¾ à¤à¤µà¤‚ à¤¸à¤µà¤¾à¤²",
     "Smart Health": "स्मार्ट हेल्थ",
-    "🏥 Smart Health": "🏥 स्मार्ट हेल्थ",
     "Home": "मुख्य पृष्ठ",
+    "local_hospital Smart Health": "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>local_hospital</span> स्मार्ट हेल्थ",
     "About": "हमारे बारे में",
     "Services": "सेवाएं",
     "Gallery": "गैलरी (फ़ोटो)",
@@ -375,7 +410,7 @@ const translationDict = {
     "All rights reserved.": "सर्वाधिकार सुरक्षित।",
 
     // Landing Page
-    "🏥 PHC & CHC Command Hub": "🏥 प्राथमिक एवं सामुदायिक चिकित्सा केंद्र",
+    "local_hospital PHC & CHC Command Hub": "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>local_hospital</span> प्राथमिक एवं सामुदायिक चिकित्सा केंद्र",
     "Real-time digital management for rural and urban healthcare nodes": "ग्रामीण और शहरी स्वास्थ्य केंद्रों के लिए वास्तविक समय डिजिटल प्रबंधन प्रणाली",
     "Smarter clinics. Faster care. Zero guesswork.": "बेहतर क्लिनिक। तुरंत इलाज। आसान संचालन।",
     "Smart Health integrates medicine stocks, patient footfalls, bed occupancy, doctor rosters, and real-time emergency notifications into one elegant digital command center.": "स्मार्ट हेल्थ दवाओं के स्टॉक, मरीज़ों की संख्या, खाली बिस्तरों, डॉक्टरों की उपस्थिति सूची और आपातकालीन अलर्ट को एक सरल डिजिटल कंट्रोल रूम में लाता है।",
@@ -430,8 +465,6 @@ const translationDict = {
     "Queue Wait Time": "मरीज़ों की कतार",
     "Senior Citizen Hub": "वरिष्ठ नागरिक सेवा केंद्र",
     "Quick Care Access": "आसान क्लिक द्वारा अस्पताल सेवाओं की जांच करें",
-
-    // Medicine Stock Page
     "Inventory Tracking": "दवाखाना ट्रैकिंग",
     "Clinical Medicine Stock": "दवाइयों का लाइव स्टॉक",
     "Verify drug volumes, safety warning thresholds, and upcoming expiration cycles.": "दवाओं की मात्रा, सुरक्षा सीमा और समाप्त होने वाली दवाओं की सूची जांचें।",
@@ -449,10 +482,10 @@ const translationDict = {
     "Available Stock": "उपलब्ध स्टॉक",
     "Alert Threshold": "चेतावनी थ्रेसहोल्ड",
     "Expiration Date": "समाप्ति तिथि",
-    "Status": "स्थिति",
+    "Status": "स्थिति", 
     "No medicines matched in stock registry.": "स्टॉक रजिस्ट्री में कोई दवा नहीं मिली।",
-    "✏️ Manage Pharmacy Registry": "✏️ दवाखाना स्टॉक प्रबंधित करें",
     "Normal": "सामान्य",
+    "edit Manage Pharmacy Registry": "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span> दवाखाना स्टॉक प्रबंधित करें",
     "Critical": "अति महत्वपूर्ण",
     "Low": "कम स्टॉक",
     "Expired": "समाप्त",
@@ -492,7 +525,7 @@ const translationDict = {
     "Total Beds Capacity": "कुल बिस्तर क्षमता",
     "Active Occupied Beds": "भरे हुए बिस्तर",
     "Available Vacancy": "खाली बिस्तर",
-    "✏️ Update Bed Capacity": "✏️ बिस्तरों की संख्या अपडेट करें",
+    "edit Update Bed Capacity": "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span> बिस्तरों की संख्या अपडेट करें",
     "ICU": "आईसीयू (ICU)",
     "General": "सामान्य वार्ड (General)",
     "Pediatric": "बच्चों का वार्ड (Pediatric)",
@@ -510,8 +543,8 @@ const translationDict = {
     "Specialty Role": "विशेषज्ञता",
     "Check-in Time": "आने का समय",
     "Check-out Time": "जाने का समय",
-    "Shift Status": "स्थिति",
-    "✏️ Mark My Attendance": "✏️ अपनी उपस्थिति दर्ज करें",
+    "Shift Status": "स्थिति", 
+    "edit Mark My Attendance": "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span> अपनी उपस्थिति दर्ज करें",
     "Not Checked-in": "उपस्थित नहीं",
     "Present": "उपस्थित",
     "On Leave": "छुट्टी पर",
@@ -656,7 +689,6 @@ function announceLanguageLoad() {
     if (justChangedLang) {
         sessionStorage.removeItem('sh_just_changed_lang');
         const langNamesMap = {
-            'en': 'English language activated',
             'hi': 'हिन्दी भाषा सक्रिय हो गई है',
             'gu': 'ગુજરાતી ભાષા સક્રિય થઈ છે',
             'mr': 'मराठी भाषा सक्रिय झाली आहे',
@@ -760,72 +792,102 @@ function loadMaterialIcons() {
 }
 
 const emojiToIconMap = {
-    "🏥": "local_hospital",
-    "💊": "medication",
-    "👥": "groups",
-    "🛏️": "single_bed",
-    "🩺": "medical_services",
-    "⏳": "hourglass_empty",
-    "🚨": "warning",
-    "🔔": "notifications",
-    "☀️": "light_mode",
-    "🌙": "dark_mode",
-    "📈": "trending_up",
-    "📊": "bar_chart",
-    "ℹ️": "info",
-    "✅": "check_circle",
-    "❌": "cancel",
-    "⚠️": "warning",
-    "🔒": "lock",
-    "⚡": "bolt",
-    "👋": "waving_hand",
-    "📞": "phone",
-    "🚑": "airport_shuttle",
-    "✏️": "edit"
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>local_hospital</span>": "local_hospital",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>medication</span>": "medication",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>groups</span>": "groups",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>single_bed</span>": "single_bed",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>medical_services</span>": "medical_services",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>hourglass_empty</span>": "hourglass_empty",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "warning",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>notifications</span>": "notifications",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "light_mode",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "dark_mode",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "trending_up",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "bar_chart",
+    "ℹ": "info",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>check_circle</span>": "check_circle",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "cancel",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>warning</span>": "warning",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "lock",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "bolt",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>waving_hand</span>": "waving_hand",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "phone",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>emergency</span>": "airport_shuttle",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "edit",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "place",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "mail",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>schedule</span>": "schedule",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>snooze</span>": "bedtime",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "movie",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "edit_note",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "payments",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "event",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "mark_email_unread",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>folder</span>": "folder",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "map",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "print",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>credit_card</span>": "credit_card",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>payments</span>": "payments",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>add</span>": "add",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>circle</span>": "check_circle",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>cleaning_services</span>": "cleaning_services",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>priority_high</span>": "trending_up",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>medical_services</span>": "medical_information",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>‍<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "medical_information",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span><span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "elderly",
+    "<span class='material-icons' style='font-size: inherit; vertical-align: middle;'>star</span>": "settings"
 };
+
+const emojiPattern = new RegExp(
+    Object.keys(emojiToIconMap)
+        .sort((left, right) => right.length - left.length)
+        .map(symbol => symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        .join('|'),
+    'gu'
+);
+
+function createMaterialIconSpan(iconName) {
+    const span = document.createElement('span');
+    span.className = 'material-icons notranslate emoji-icon';
+    span.textContent = iconName;
+    return span;
+}
 
 function replaceEmojisWithIcons(node) {
     if (!node) return;
     if (['SCRIPT', 'STYLE', 'LINK', 'META', 'IFRAME', 'NOSCRIPT'].includes(node.tagName)) return;
     if (node.classList && (node.classList.contains('material-icons') || node.classList.contains('material-icons-outlined'))) return;
 
-    // Replace inside child text nodes
     for (let child of Array.from(node.childNodes)) {
         if (child.nodeType === Node.TEXT_NODE) {
-            let text = child.nodeValue;
-            let modified = false;
-
-            // Check for each emoji in the map
-            for (let emoji in emojiToIconMap) {
-                if (text.includes(emoji)) {
-                    const span = document.createElement('span');
-                    span.className = 'material-icons notranslate';
-                    span.textContent = emojiToIconMap[emoji];
-
-                    const parent = child.parentNode;
-                    const parts = text.split(emoji);
-
-                    // Insert preceding text
-                    if (parts[0]) {
-                        parent.insertBefore(document.createTextNode(parts[0]), child);
-                    }
-                    // Insert icon span
-                    parent.insertBefore(span, child);
-
-                    // Update text to be processed
-                    text = parts.slice(1).join(emoji);
-                    modified = true;
-                }
+            const text = child.nodeValue || '';
+            if (!emojiPattern.test(text)) {
+                emojiPattern.lastIndex = 0;
+                continue;
             }
 
-            if (modified) {
-                // Insert remaining text
-                if (text) {
-                    child.nodeValue = text;
-                } else {
-                    child.remove();
+            emojiPattern.lastIndex = 0;
+            const fragment = document.createDocumentFragment();
+            let lastIndex = 0;
+            let match;
+
+            while ((match = emojiPattern.exec(text)) !== null) {
+                const matchedEmoji = match[0];
+                const matchIndex = match.index;
+
+                if (matchIndex > lastIndex) {
+                    fragment.appendChild(document.createTextNode(text.slice(lastIndex, matchIndex)));
                 }
+
+                fragment.appendChild(createMaterialIconSpan(emojiToIconMap[matchedEmoji]));
+                lastIndex = matchIndex + matchedEmoji.length;
             }
+
+            if (lastIndex < text.length) {
+                fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+            }
+
+            child.replaceWith(fragment);
         } else if (child.nodeType === Node.ELEMENT_NODE) {
             // Recurse into children
             replaceEmojisWithIcons(child);
@@ -841,7 +903,6 @@ function injectAccessibilityBar() {
     accBar.className = 'acc-bar';
     accBar.innerHTML = `
         <div class="acc-bar-title">
-            <span class="acc-title-emoji">👵👴</span>
             <span class="acc-title-text-hi">वरिष्ठ सहायता</span>
             <span class="acc-title-sep">/</span>
             <span class="acc-title-text-en">Senior Care & Assist</span>
@@ -905,6 +966,11 @@ function injectAccessibilityBar() {
     `;
 
     document.body.insertBefore(accBar, document.body.firstChild);
+
+if (document.body) {
+    loadMaterialIcons();
+    replaceEmojisWithIcons(document.body);
+}
 }
 
 // 5. Inject SOS Modal
@@ -917,7 +983,7 @@ function injectSOSModal() {
     sosOverlay.innerHTML = `
         <div class="sos-modal">
             <div class="sos-modal-header">
-                <span class="sos-modal-icon">🚨</span>
+                <span class="material-icons sos-modal-icon notranslate" aria-hidden="true">warning</span>
                 <h3 class="sos-modal-heading">Emergency Contacts</h3>
                 <p class="sos-modal-sub">Call these numbers for immediate clinical help.</p>
             </div>
@@ -927,21 +993,21 @@ function injectSOSModal() {
                         <h4>National Ambulance Helpline</h4>
                         <p>Toll-free emergency ambulance referral</p>
                     </div>
-                    <a href="tel:108" class="sos-tel-btn">📞 108</a>
+                    <a href="tel:108" class="sos-tel-btn"><span class="material-icons notranslate" aria-hidden="true">phone</span> 108</a>
                 </div>
                 <div class="sos-card">
                     <div class="sos-card-info">
                         <h4>Primary Health Center Helpline</h4>
                         <p>Direct contact with clinic medical officer</p>
                     </div>
-                    <a href="tel:104" class="sos-tel-btn">📞 104</a>
+                    <a href="tel:104" class="sos-tel-btn"><span class="material-icons notranslate" aria-hidden="true">phone</span> 104</a>
                 </div>
                 <div class="sos-card">
                     <div class="sos-card-info">
                         <h4>Smart Health Command Center</h4>
                         <p>Live support desk for general bed availability</p>
                     </div>
-                    <a href="tel:180011112222" class="sos-tel-btn">📞 1800-1111</a>
+                    <a href="tel:180011112222" class="sos-tel-btn"><span class="material-icons notranslate" aria-hidden="true">phone</span> 1800-1111</a>
                 </div>
             </div>
             <button type="button" class="btn btn-danger sos-close-btn" id="sos-close-btn">Close / बंद करें</button>
@@ -975,7 +1041,6 @@ function bindAccessibilityEvents() {
                 if (sessionStorage.getItem('sh_just_changed_lang')) {
                     sessionStorage.removeItem('sh_just_changed_lang');
                     const langNamesMap = {
-                        'en': 'English language activated',
                         'hi': 'हिन्दी भाषा सक्रिय हो गई है',
                         'gu': 'ગુજરાતી ભાષા સક્રિય થઈ છે',
                         'mr': 'मराठी भाषा सक्रिय झाली आहे',
@@ -1168,19 +1233,20 @@ function translateElement(el) {
 
                     // Handle dynamic quantities/units translations
                     if (!translatedVal) {
-                        if (cleanKey.endsWith(" units")) {
-                            const num = parentOrigText.replace(/ units/i, "").trim();
-                            translatedVal = num + " इकाई";
-                        } else if (cleanKey.endsWith(" min")) {
-                            const num = parentOrigText.replace(/ min/i, "").trim();
-                            translatedVal = num + " मिनट";
-                        } else if (cleanKey.endsWith(" patients")) {
-                            const num = parentOrigText.replace(/ patients/i, "").trim();
-                            translatedVal = num + " मरीज़";
-                        } else if (cleanKey.includes(" patients (") && cleanKey.endsWith("%)")) {
+                        if (cleanKey.endsWith(" units")) { 
+                            const num = parentOrigText.replace(/ units/i, "").trim(); 
+                            translatedVal = num + " इकाई"; 
+                        } else if (cleanKey.endsWith(" min")) { 
+                            const num = parentOrigText.replace(/ min/i, "").trim(); 
+                            translatedVal = num + " मिनट"; 
+                        } else if (cleanKey.endsWith(" patients")) { 
+                            const num = parentOrigText.replace(/ patients/i, "").trim(); 
+                            translatedVal = num + " मरीज़"; 
+                        } else if (cleanKey.includes(" patients (") && cleanKey.endsWith("%)")) { 
                             const parts = parentOrigText.split(/ patients \(/i);
                             const num = parts[0].trim();
                             const pct = parts[1].replace(")", "").trim();
+                            translatedVal = `${num} à¤®à¤°à¥€à¤œà¤¼ (${pct})`;
                             translatedVal = `${num} मरीज़ (${pct})`;
                         }
                     }
@@ -1299,9 +1365,8 @@ function getCleanText(el) {
     const speakBtns = clone.querySelectorAll('.tts-speak-btn');
     speakBtns.forEach(btn => btn.remove());
 
-    // Also remove the mobile hamburger menu icon inside brands or links
-    const iconSpan = clone.querySelector('.brand-icon');
-    if (iconSpan) iconSpan.remove();
+    const iconSpans = clone.querySelectorAll('.material-icons, .material-icons-outlined');
+    iconSpans.forEach(icon => icon.remove());
 
     return clone.textContent.trim();
 }
@@ -1320,7 +1385,7 @@ function injectSpeakerButtonsForNode(container) {
 
         const btn = document.createElement('button');
         btn.className = 'tts-speak-btn';
-        btn.setAttribute('type', 'button');
+        btn.setAttribute('type', 'button'); 
         btn.setAttribute('aria-label', 'Read Aloud / बोलकर सुनें');
 
         const iconSpan = document.createElement('span');

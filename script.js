@@ -25,9 +25,9 @@ const homeData = {
         { title: 'AI Chat Assistant', desc: 'Answer questions like “Which hospital has beds?” instantly.' }
     ],
     feed: [
-        '🚑 Emergency ambulance request raised for a critical patient',
-        '🔔 Low-stock alert sent for insulin and paracetamol',
-        '🩺 Doctor attendance status updated for evening shift'
+        '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">emergency</span> Emergency ambulance request raised for a critical patient',
+        '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">notifications</span> Low-stock alert sent for insulin and paracetamol',
+        '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">medical_services</span> Doctor attendance status updated for evening shift'
     ]
 };
 
@@ -44,9 +44,9 @@ const medicineData = {
         { name: 'Amoxicillin', stock: '45', status: 'Normal' }
     ],
     alerts: [
-        '⚠ Reorder insulin within 24 hours',
-        '⚠ 2 vaccine vials expire soon',
-        '✅ ORS stock is stable'
+        '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">warning</span> Reorder insulin within 24 hours',
+        '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">warning</span> 2 vaccine vials expire soon',
+        '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">check_circle</span> ORS stock is stable'
     ]
 };
 
@@ -84,9 +84,9 @@ const patientData = {
         ]
     },
     highlights: {
-        today: ['🔺 Registration queue is longest at 10:00 AM', '✅ Pharmacy counter is operating smoothly', '⚠ 4 patients are waiting for specialist review'],
-        week: ['🔺 Monday morning peak exceeded average by 12%', '✅ Pharmacy throughput improved this week', '⚠ 18 patients remain pending for specialist review'],
-        month: ['🔺 Seasonal flu rush increased evening load', '✅ Resource planning improved monthly throughput', '⚠ 31 patients are awaiting follow-up consultation']
+        today: ['<span class="material-icons" style="font-size: inherit; vertical-align: middle;">priority_high</span> Registration queue is longest at 10:00 AM', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">check_circle</span> Pharmacy counter is operating smoothly', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">warning</span> 4 patients are waiting for specialist review'],
+        week: ['<span class="material-icons" style="font-size: inherit; vertical-align: middle;">priority_high</span> Monday morning peak exceeded average by 12%', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">check_circle</span> Pharmacy throughput improved this week', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">warning</span> 18 patients remain pending for specialist review'],
+        month: ['<span class="material-icons" style="font-size: inherit; vertical-align: middle;">priority_high</span> Seasonal flu rush increased evening load', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">check_circle</span> Resource planning improved monthly throughput', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">warning</span> 31 patients are awaiting follow-up consultation']
     }
 };
 
@@ -131,10 +131,10 @@ const bedData = {
         ]
     },
     actions: {
-        all: ['🛏 Prepare maternity bed for incoming transfer', '🧹 Clean 2 discharge beds before noon', '✅ Emergency room waiting area has capacity'],
-        icu: ['🛏 Prepare ICU bed for emergency transfer', '🧹 Prepare one critical care bay', '✅ Oxygen supply is stable'],
-        general: ['🛏 Shift one patient to a general ward', '🧹 Clean one discharge bed', '✅ General admissions are flowing normally'],
-        pediatrics: ['🛏 Prepare pediatric bed for incoming admission', '🧹 Sanitize one pediatric room', '✅ Pediatric ward has enough capacity']
+        all: ['<span class="material-icons" style="font-size: inherit; vertical-align: middle;">single_bed</span> Prepare maternity bed for incoming transfer', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">cleaning_services</span> Clean 2 discharge beds before noon', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">check_circle</span> Emergency room waiting area has capacity'],
+        icu: ['<span class="material-icons" style="font-size: inherit; vertical-align: middle;">single_bed</span> Prepare ICU bed for emergency transfer', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">cleaning_services</span> Prepare one critical care bay', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">check_circle</span> Oxygen supply is stable'],
+        general: ['<span class="material-icons" style="font-size: inherit; vertical-align: middle;">single_bed</span> Shift one patient to a general ward', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">cleaning_services</span> Clean one discharge bed', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">check_circle</span> General admissions are flowing normally'],
+        pediatrics: ['<span class="material-icons" style="font-size: inherit; vertical-align: middle;">single_bed</span> Prepare pediatric bed for incoming admission', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">cleaning_services</span> Sanitize one pediatric room', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">check_circle</span> Pediatric ward has enough capacity']
     }
 };
 
@@ -160,9 +160,9 @@ const doctorData = {
         { doctor: 'Dr. Kumar', shift: 'Evening', status: 'Present' }
     ],
     notes: {
-        today: ['✅ Morning clinic is fully covered', '⚠ One doctor needs replacement for evening duty', '✅ Attendance reports are synced to admin'],
-        week: ['✅ Attendance improved after reminder alerts', '⚠ Two late arrivals reported on Wednesday', '✅ Weekly roster is stable'],
-        month: ['✅ Monthly attendance target achieved', '⚠ Two leave requests pending approval', '✅ Coverage remained consistent through the month']
+        today: ['<span class="material-icons" style="font-size: inherit; vertical-align: middle;">check_circle</span> Morning clinic is fully covered', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">warning</span> One doctor needs replacement for evening duty', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">check_circle</span> Attendance reports are synced to admin'],
+        week: ['<span class="material-icons" style="font-size: inherit; vertical-align: middle;">check_circle</span> Attendance improved after reminder alerts', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">warning</span> Two late arrivals reported on Wednesday', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">check_circle</span> Weekly roster is stable'],
+        month: ['<span class="material-icons" style="font-size: inherit; vertical-align: middle;">check_circle</span> Monthly attendance target achieved', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">warning</span> Two leave requests pending approval', '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">check_circle</span> Coverage remained consistent through the month']
     }
 };
 

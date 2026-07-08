@@ -1,10 +1,10 @@
-# 🏥 Smart Health Management System
+# Smart Health Management System
 
 Smart Health is an advanced, role-based healthcare management dashboard prototype designed specifically for primary and community health care facilities (PHCs/CHCs). It features a robust dynamic Role-Based Access Control (RBAC) security system, a local database engine, and built-in accessibility helpers tailored for elderly and rural patient care.
 
 ---
 
-## 🔑 Test Accounts & Roster
+## Test Accounts & Roster
 All roles use the default secure password: `password123`
 
 | Roster Role | Test Email address | Capabilities & Key Interfaces |
@@ -16,22 +16,22 @@ All roles use the default secure password: `password123`
 
 ---
 
-## 🏗️ Technical Architecture Highlights
+## Technical Architecture Highlights
 
-### 🛡️ 1. Dynamic Config-Driven RBAC System
+### 1. Dynamic Config-Driven RBAC System
 The site's navigation, redirection rules, and dashboard layouts are governed by a configuration matrix defined in `assets/js/layout.js`:
 * **`ROLE_NAV_CONFIG`**: Maps roles dynamically to permitted navbar links (`guest`, `patient`, `doctor`, `pharmacist`, `admin`).
 * **`ROLE_DASHBOARDS`**: Directs authenticated sessions to their corresponding role dashboards.
 * **`NAV_ITEMS`**: Defines the metadata schema for all application pages, decoupling menus rendering from static code.
 
-### 💾 2. Local Database Layer (`assets/js/db.js`)
+### 2. Local Database Layer (`assets/js/db.js`)
 A mock database wrapper backed by `localStorage` simulates complex transactions, including:
 * **`sh_users`**: Stores security records, active credentials, profiles names, and profile photos.
 * **`sh_appointments`**: Stores consultation slot details, symptoms, requested dates, and checkup status logs.
 * **`sh_doctor_availability`**: Manages clinician shift hours and published bookings schedules.
 * **`sh_bills`**: Compiles patient pharmacy items, discount calculations, payment statuses, and invoice ledgers.
 
-### 🔊 3. Senior Care & Indian Accessibility Hub
+### 3. Senior Care & Indian Accessibility Hub
 Designed with special attention for rural and elderly patients:
 * **Instant TTS Voice Reader**: Select a language from the **Senior Care & Assist** bar dropdown to immediately trigger audio confirmation using browser `window.speechSynthesis`.
 * **Translation Widget Acceleration**: Optimized polling loops trigger Google Translate changes in `15ms` (down from `100ms`).
@@ -40,41 +40,42 @@ Designed with special attention for rural and elderly patients:
 
 ---
 
-## 📂 Project Directory Structure
+## Project Directory Structure
 
 ```text
 Smart_health/
-├── assets/
-│   ├── css/
-│   │   └── styles.css                   # Core stylesheet (layouts, components, theme variables)
-│   └── js/
-│       ├── db.js                        # Mock database client and seed registries
-│       └── layout.js                    # Layout template injector, RBAC guard, & accessibility systems
-├── pages/
-│   ├── auth/
-│   │   ├── login.html                   # Authenticated secure login portal
-│   │   └── register.html                # New patient account constructor
-│   ├── dashboard/
-│   │   ├── admin.html                   # Admin systems portal
-│   │   ├── doctor.html                  # Doctor schedule & waiting list console
-│   │   ├── patient.html                 # Patient queue & bills cabinet
-│   │   └── pharmacist.html              # Inventory editor & bill constructor
-│   ├── about.html                       # General clinic info page
-│   ├── bed-availability.html            # Public live ward beds counts
-│   ├── contact.html                     # Feedback & inventory issue reports
-│   ├── doctor-attendance.html           # Live clinician duty attendance roster
-│   ├── doctor-availability.html         # Published specialist appointment calendar
-│   ├── medicine-stock.html              # Dynamic pharmaceutical stock levels
-│   ├── notifications.html               # Alert messages log
-│   ├── patient-flow.html                # Queue sizes and average waiting times
-│   ├── profile.html                     # Avatar upload & password settings panel
-│   └── services.html                    # Clinical specialties directory
-└── index.html                           # Landing page
+|-- assets/
+|   +-- css/
+|   |   +-- styles.css                   # Core stylesheet (layouts, components, theme variables)
+|   +-- js/
+|       |-- db.js                        # Mock database client and seed registries
+|       |-- gemini-assistant.js          # Gemini voice and chat assistant
+|       +-- layout.js                    # Layout template injector, RBAC guard, & accessibility systems
+|-- pages/
+|   +-- auth/
+|   |   |-- login.html                   # Authenticated secure login portal
+|   |   +-- register.html                # New patient account constructor
+|   +-- dashboard/
+|   |   |-- admin.html                   # Admin systems portal
+|   |   |-- doctor.html                  # Doctor schedule & waiting list console
+|   |   |-- patient.html                 # Patient queue & bills cabinet
+|   |   +-- pharmacist.html              # Inventory editor & bill constructor
+|   |-- about.html                       # General clinic info page
+|   |-- bed-availability.html            # Public live ward beds counts
+|   |-- contact.html                     # Feedback & inventory issue reports
+|   |-- doctor-attendance.html           # Live clinician duty attendance roster
+|   |-- doctor-availability.html         # Published specialist appointment calendar
+|   |-- medicine-stock.html              # Dynamic pharmaceutical stock levels
+|   |-- notifications.html               # Alert messages log
+|   |-- patient-flow.html                # Queue sizes and average waiting times
+|   |-- profile.html                     # Avatar upload & password settings panel
+|   +-- services.html                    # Clinical specialties directory
++-- index.html                           # Landing page
 ```
 
 ---
 
-## 🚀 How to Run Locally
+## How to Run Locally
 
 1. Clone or open the workspace folder.
 2. Spin up a local development server:
@@ -85,6 +86,17 @@ Smart_health/
    ```text
    http://localhost:5500/
    ```
+
+### Gemini Voice Assistant
+
+The app includes a floating **AI Voice Help** button on every page. It supports:
+
+* spoken questions through browser speech recognition,
+* Gemini text answers using `gemini-flash-latest`,
+* Gemini TTS through `gemini-3.1-flash-tts-preview`, with browser TTS fallback,
+* vernacular language selection through the existing Senior Care language dropdown.
+
+For this static prototype, paste the Gemini API key into the assistant once and it will be stored in this browser's local storage. For local demos, you can also create ignored file `assets/js/gemini-config.js` with `window.SMART_HEALTH_GEMINI_API_KEY = 'YOUR_KEY';`. For production, move Gemini calls to a backend proxy so the API key is never exposed to site visitors.
 
 ---
 

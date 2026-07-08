@@ -222,13 +222,13 @@ function showToast(message, type = 'success') {
     toast.className = `toast toast-${type}`;
     
     // Icon selection
-    let icon = 'ℹ️';
-    if (type === 'success') icon = '✅';
-    if (type === 'error') icon = '❌';
-    if (type === 'warning') icon = '⚠️';
+    let icon = 'info';
+    if (type === 'success') icon = 'check_circle';
+    if (type === 'error') icon = 'cancel';
+    if (type === 'warning') icon = 'warning';
 
     toast.innerHTML = `
-        <div class="toast-content">${icon} ${message}</div>
+        <div class="toast-content"><span class="material-icons notranslate toast-icon" aria-hidden="true">${icon}</span><span>${message}</span></div>
         <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
     `;
 

@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="../assets/css/styles.css" />
+    <link rel="stylesheet" href="../assets/css/styles.css?v=1783530550932" />
 </head>
 <body data-path-prefix="../" data-restricted-roles="admin,doctor">
     
@@ -24,17 +24,17 @@
         <!-- Stats Row -->
         <div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 3rem;">
             <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main);">
-                <span style="font-size: 2rem; margin-bottom: 0.5rem;">🩺</span>
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">medical_services</span></span>
                 <strong id="stat-total-doctors">0</strong>
                 <span style="margin-top: 0.5rem;">Total Staff Doctors</span>
             </div>
             <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main); border-bottom: 4px solid var(--color-success);">
-                <span style="font-size: 2rem; margin-bottom: 0.5rem;">🕒</span>
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">schedule</span></span>
                 <strong id="stat-present-today">0</strong>
                 <span style="margin-top: 0.5rem;">Physicians Checked-in Today</span>
             </div>
             <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main); border-bottom: 4px solid var(--color-danger);">
-                <span style="font-size: 2rem; margin-bottom: 0.5rem;">💤</span>
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">snooze</span></span>
                 <strong id="stat-absent-today">0</strong>
                 <span style="margin-top: 0.5rem;">Off-Duty / Absent Today</span>
             </div>
@@ -79,7 +79,7 @@
             if (curUser && (curUser.role === 'doctor' || curUser.role === 'admin')) {
                 const clockContainer = document.getElementById('manage-clocking-container');
                 let dest = curUser.role === 'admin' ? 'dashboard/admin.html' : 'dashboard/doctor.html';
-                clockContainer.innerHTML = `<a href="${dest}" class="btn btn-secondary">⏰ Manage Shift Attendance Clocking</a>`;
+                clockContainer.innerHTML = `<a href="${dest}" class="btn btn-secondary"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">alarm</span> Manage Shift Attendance Clocking</a>`;
                 clockContainer.style.display = 'block';
             }
             

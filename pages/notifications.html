@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="../assets/css/styles.css" />
+    <link rel="stylesheet" href="../assets/css/styles.css?v=1783530550932" />
 </head>
 <body data-path-prefix="../" data-restricted-roles="admin,doctor,pharmacist,patient">
     
@@ -113,13 +113,13 @@
                                 ${notif.message}
                             </p>
                             <span style="font-size: 0.75rem; color: var(--color-text-muted); display: block; margin-top: 0.4rem;">
-                                🕒 ${dt}
+                                <span class="material-icons notranslate" aria-hidden="true" style="font-size: 0.9rem; vertical-align: middle; margin-right: 0.15rem;">schedule</span>${dt}
                             </span>
                         </div>
                         
                         <div style="display: flex; gap: 0.5rem;">
                             ${!notif.is_read ? `
-                                <button class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" title="Mark as Read" onclick="markRead(${notif.id})">✓</button>
+                                <button class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" title="Mark as Read" onclick="markRead(${notif.id})"><span class="material-icons notranslate" aria-hidden="true" style="font-size: 1rem;">check</span></button>
                             ` : ''}
                             <button class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-color: var(--color-danger); color: var(--color-danger);" title="Delete" onclick="deleteNotif(${notif.id})">&times;</button>
                         </div>

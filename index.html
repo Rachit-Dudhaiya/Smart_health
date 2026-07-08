@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="stylesheet" href="assets/css/styles.css?v=1783530550932" />
 </head>
 <body data-path-prefix="./">
     
@@ -19,7 +19,7 @@
     <section class="hero">
         <div class="container hero-grid">
             <div>
-                <div class="hero-badge">🏥 PHC & CHC Command Hub</div>
+                <div class="hero-badge"><span class="material-icons notranslate" style="font-size: 1.2rem; vertical-align: text-bottom; margin-right: 0.2rem;">local_hospital</span>PHC & CHC Command Hub</div>
                 <p class="eyebrow">Real-time digital management for rural and urban healthcare nodes</p>
                 <h1>Smarter clinics. Faster care. Zero guesswork.</h1>
                 <p class="hero-text">
@@ -119,25 +119,25 @@
             
             <div class="card-grid">
                 <article class="card">
-                    <div class="card-icon">💊</div>
+                    <div class="card-icon"><span class="material-icons">medication</span></div>
                     <h3>Medicine Stock</h3>
                     <p>Track stock levels, expiry alerts, and reorder needs instantly in real time.</p>
                     <a href="pages/medicine-stock.html" class="btn btn-secondary" style="margin-top: 1rem; width: 100%;">View Live Data</a>
                 </article>
                 <article class="card">
-                    <div class="card-icon">👥</div>
+                    <div class="card-icon"><span class="material-icons">groups</span></div>
                     <h3>Patient Flow</h3>
                     <p>Understand rush hours, registrations, and specialist consultation demand.</p>
                     <a href="pages/patient-flow.html" class="btn btn-secondary" style="margin-top: 1rem; width: 100%;">View Live Data</a>
                 </article>
                 <article class="card">
-                    <div class="card-icon">🛏️</div>
+                    <div class="card-icon"><span class="material-icons">single_bed</span></div>
                     <h3>Bed Availability</h3>
                     <p>Monitor ICU, general, pediatric, and emergency bed occupancy live.</p>
                     <a href="pages/bed-availability.html" class="btn btn-secondary" style="margin-top: 1rem; width: 100%;">View Live Data</a>
                 </article>
                 <article class="card">
-                    <div class="card-icon">🩺</div>
+                    <div class="card-icon"><span class="material-icons">medical_services</span></div>
                     <h3>Doctor Attendance</h3>
                     <p>Stay on top of shift rosters, punctuality, and staff coverage.</p>
                     <a href="pages/doctor-attendance.html" class="btn btn-secondary" style="margin-top: 1rem; width: 100%;">View Live Data</a>
@@ -189,17 +189,17 @@
             
             <div class="card-grid">
                 <article class="card">
-                    <div class="card-icon">📈</div>
+                    <div class="card-icon"><span class="material-icons">trending_up</span></div>
                     <h3>Medicine Stock Forecasting</h3>
                     <p>Calculates depletion velocity to suggest reorder cycles 14 days before stockouts.</p>
                 </article>
                 <article class="card">
-                    <div class="card-icon">📊</div>
+                    <div class="card-icon"><span class="material-icons">bar_chart</span></div>
                     <h3>Patient Flow Prediction</h3>
                     <p>Identifies historical seasonal peaks (e.g. flu seasons) to optimize check-in queues.</p>
                 </article>
                 <article class="card">
-                    <div class="card-icon">🚨</div>
+                    <div class="card-icon"><span class="material-icons">warning</span></div>
                     <h3>Emergency Bed Reservation</h3>
                     <p>Frees up buffer emergency beds automatically during high local accident rates.</p>
                 </article>
@@ -282,7 +282,7 @@
             if (curUser) {
                 welcomeContainer.innerHTML = `
                     <div class="auth-message" style="margin-bottom: 1.5rem;">
-                        👋 Welcome back, <a href="pages/profile.html" class="welcome-profile-link" style="text-decoration: underline; font-weight: 700; color: var(--color-primary);">${curUser.name}</a>! (Role: ${curUser.role.charAt(0).toUpperCase() + curUser.role.slice(1)})
+                        <span class="material-icons" style="font-size: inherit; vertical-align: middle;">waving_hand</span> Welcome back, <a href="pages/profile.html" class="welcome-profile-link" style="text-decoration: underline; font-weight: 700; color: var(--color-primary);">${curUser.name}</a>! (Role: ${curUser.role.charAt(0).toUpperCase() + curUser.role.slice(1)})
                     </div>
                 `;
                 

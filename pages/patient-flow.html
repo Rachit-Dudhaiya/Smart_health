@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="../assets/css/styles.css" />
+    <link rel="stylesheet" href="../assets/css/styles.css?v=1783530550932" />
 </head>
 <body data-path-prefix="../">
     
@@ -24,17 +24,17 @@
         <!-- Stats Row -->
         <div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 3rem;">
             <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main);">
-                <span style="font-size: 2rem; margin-bottom: 0.5rem;">👥</span>
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">groups</span></span>
                 <strong id="stat-registered-today">0</strong>
                 <span style="margin-top: 0.5rem;">Consultations Registered Today</span>
             </div>
             <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main); border-bottom: 4px solid var(--color-info);">
-                <span style="font-size: 2rem; margin-bottom: 0.5rem;">⏳</span>
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">hourglass_empty</span></span>
                 <strong id="stat-avg-wait">0 min</strong>
                 <span style="margin-top: 0.5rem;">Average Patient Wait Duration</span>
             </div>
             <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main); border-bottom: 4px solid var(--color-primary);">
-                <span style="font-size: 2rem; margin-bottom: 0.5rem;">🩺</span>
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">medical_services</span></span>
                 <strong id="stat-active-queue">0</strong>
                 <span style="margin-top: 0.5rem;">Active Waiting Queue Size</span>
             </div>
@@ -83,10 +83,10 @@
             <article class="card">
                 <h3>Live Queue Status & Highlights</h3>
                 <ul class="check-list" style="margin-top: 1rem;">
-                    <li>⏳ <strong>Peak Period Warning</strong>: Registration queue lengths usually peak at 10:00 AM on weekdays.</li>
-                    <li>👨‍⚕️ <strong>Active Physicians</strong>: Ensure checking doctor check-ins before queue registration.</li>
-                    <li>✅ <strong>Pharmacy Dispatch</strong>: Medicines are ready for pick-up within 15 minutes after consulting.</li>
-                    <li>🚑 <strong>Emergency Referrals</strong>: Critical SOS requests bypass queue sequence automatically.</li>
+                    <li><span class="material-icons" style="font-size: inherit; vertical-align: middle;">hourglass_empty</span> <strong>Peak Period Warning</strong>: Registration queue lengths usually peak at 10:00 AM on weekdays.</li>
+                    <li><span class="material-icons" style="font-size: inherit; vertical-align: middle;">medical_services</span> <strong>Active Physicians</strong>: Ensure checking doctor check-ins before queue registration.</li>
+                    <li><span class="material-icons" style="font-size: inherit; vertical-align: middle;">check_circle</span> <strong>Pharmacy Dispatch</strong>: Medicines are ready for pick-up within 15 minutes after consulting.</li>
+                    <li><span class="material-icons" style="font-size: inherit; vertical-align: middle;">emergency</span> <strong>Emergency Referrals</strong>: Critical SOS requests bypass queue sequence automatically.</li>
                 </ul>
                 
                 <div id="join-queue-container" style="margin-top: 2rem; display: none;">

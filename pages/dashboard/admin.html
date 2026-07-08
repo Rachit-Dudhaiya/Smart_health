@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="../../assets/css/styles.css?v=ambulance-1" />
+    <link rel="stylesheet" href="../../assets/css/styles.css?v=1783530550932" />
     <style>
         .tabs-header {
             display: flex;
@@ -86,15 +86,15 @@
             <aside class="dashboard-sidebar">
                 <h4>Control Center</h4>
                 <div class="sidebar-nav" style="margin-top: 1rem;">
-                    <button class="nav-tab-btn active" data-tab="overview">📊 Operations Overview</button>
-                    <button class="nav-tab-btn" data-tab="users">👥 User Directory</button>
-                    <button class="nav-tab-btn" data-tab="beds">🛏️ Manage Wards</button>
-                    <button class="nav-tab-btn" data-tab="appointments">📅 Appointments Console</button>
-                    <button class="nav-tab-btn" data-tab="ambulance">🚑 Ambulance Dispatch</button>
-                    <button class="nav-tab-btn" data-tab="bills">💵 Billings Ledger</button>
-                    <button class="nav-tab-btn" data-tab="cms">📝 CMS Manager</button>
-                    <button class="nav-tab-btn" data-tab="queries">📬 Inquiries Feed</button>
-                    <button class="nav-tab-btn" data-tab="logs">📁 Activity Audits</button>
+                    <button class="nav-tab-btn active" data-tab="overview"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">star</span> Operations Overview</button>
+                    <button class="nav-tab-btn" data-tab="users"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">groups</span> User Directory</button>
+                    <button class="nav-tab-btn" data-tab="beds"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">single_bed</span> Manage Wards</button>
+                    <button class="nav-tab-btn" data-tab="appointments"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">star</span> Appointments Console</button>
+                    <button class="nav-tab-btn" data-tab="ambulance"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">emergency</span> Ambulance Dispatch</button>
+                    <button class="nav-tab-btn" data-tab="bills"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">star</span> Billings Ledger</button>
+                    <button class="nav-tab-btn" data-tab="cms"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">star</span> CMS Manager</button>
+                    <button class="nav-tab-btn" data-tab="queries"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">star</span> Inquiries Feed</button>
+                    <button class="nav-tab-btn" data-tab="logs"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">folder</span> Activity Audits</button>
                 </div>
             </aside>
             
@@ -697,7 +697,7 @@
             }
             const res = db.assignAmbulanceRequest(requestId, select.value, db.getCurrentUser().id);
             if (res.success) {
-                showToast('🚑 Ambulance assigned and dispatch started.', 'success');
+                showToast('<span class="material-icons" style="font-size: inherit; vertical-align: middle;">emergency</span> Ambulance assigned and dispatch started.', 'success');
                 renderAmbulanceDispatch();
             } else {
                 showToast(res.message || 'Unable to assign ambulance.', 'error');

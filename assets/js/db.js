@@ -262,7 +262,7 @@ const db = {
 
         // Auto notification to admin and user
         this.addNotification(newUser.id, `Welcome ${name}! Your account has been registered successfully.`);
-        this.addNotification(1, `🔔 New User registered: ${name} (${role})`);
+        this.addNotification(1, `<span class="material-icons" style="font-size: inherit; vertical-align: middle;">notifications</span> New User registered: ${name} (${role})`);
         
         return { success: true, user: newUser };
     },
@@ -357,7 +357,7 @@ const db = {
             if (medicines[index].status === 'critical' || medicines[index].status === 'expired') {
                 const adminsAndPharmacists = this.getUsers().filter(u => u.role === 'admin' || u.role === 'pharmacist');
                 adminsAndPharmacists.forEach(ap => {
-                    this.addNotification(ap.id, `🚨 Medicine Warning: "${medicines[index].name}" status is now ${medicines[index].status.toUpperCase()}!`);
+                    this.addNotification(ap.id, `<span class="material-icons" style="font-size: inherit; vertical-align: middle;">star</span> Medicine Warning: "${medicines[index].name}" status is now ${medicines[index].status.toUpperCase()}!`);
                 });
             }
 
@@ -489,7 +489,7 @@ const db = {
         
         const curUser = this.getCurrentUser();
         const patientName = curUser ? curUser.name : 'Unknown Patient';
-        this.addNotification(parsedDoctorId, `🔔 New Patient queued: ${patientName}`);
+        this.addNotification(parsedDoctorId, `<span class="material-icons" style="font-size: inherit; vertical-align: middle;">notifications</span> New Patient queued: ${patientName}`);
         this.logActivity(`Joined wait queue for Doctor: ${doc.name}`, parsedPatientId);
         
         return { success: true, message: `Successfully joined Dr. ${doc.name}'s queue.` };
@@ -523,11 +523,11 @@ const db = {
             const cur = this.getCurrentUser();
             
             if (status === 'completed') {
-                this.addNotification(patientId, `🩺 Your consultation with Dr. ${cur ? cur.name : 'Doctor'} is complete. Diagnosis notes updated.`);
+                this.addNotification(patientId, `<span class="material-icons" style="font-size: inherit; vertical-align: middle;">medical_services</span> Your consultation with Dr. ${cur ? cur.name : 'Doctor'} is complete. Diagnosis notes updated.`);
             } else if (status === 'in-consultation') {
-                this.addNotification(patientId, `🩺 Dr. ${cur ? cur.name : 'Doctor'} has called you in. Please proceed to the room.`);
+                this.addNotification(patientId, `<span class="material-icons" style="font-size: inherit; vertical-align: middle;">medical_services</span> Dr. ${cur ? cur.name : 'Doctor'} has called you in. Please proceed to the room.`);
             } else if (status === 'cancelled') {
-                this.addNotification(patientId, `❌ Your appointment status has been updated to Cancelled.`);
+                this.addNotification(patientId, `<span class="material-icons" style="font-size: inherit; vertical-align: middle;">star</span> Your appointment status has been updated to Cancelled.`);
             }
             
             return { success: true };
@@ -664,8 +664,8 @@ const db = {
 
         requests.push(newRequest);
         this.saveAmbulanceRequests(requests);
-        this.addNotification(parsedPatientId, '🚑 Ambulance requested successfully. Dispatch team is reviewing your request.');
-        this.addNotification(1, `🚨 New ambulance request received from ${newRequest.patient_name} (${newRequest.priority.toUpperCase()}).`);
+        this.addNotification(parsedPatientId, '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">emergency</span> Ambulance requested successfully. Dispatch team is reviewing your request.');
+        this.addNotification(1, `<span class="material-icons" style="font-size: inherit; vertical-align: middle;">star</span> New ambulance request received from ${newRequest.patient_name} (${newRequest.priority.toUpperCase()}).`);
         this.logActivity(`Requested ambulance for patient ID ${parsedPatientId}`, parsedPatientId);
         return { success: true, request: newRequest };
     },
@@ -701,8 +701,8 @@ const db = {
         ambulance.assigned_request_id = parsedRequestId;
         this.saveAmbulanceRequests(requests);
         this.saveAmbulances(ambulances);
-        this.addNotification(request.patient_id, `🚑 Ambulance ${ambulance.name} has been assigned to you. Dispatch is in progress.`);
-        this.addNotification(1, `🚑 Ambulance request #${request.id} assigned to ${ambulance.name}.`);
+        this.addNotification(request.patient_id, `<span class="material-icons" style="font-size: inherit; vertical-align: middle;">emergency</span> Ambulance ${ambulance.name} has been assigned to you. Dispatch is in progress.`);
+        this.addNotification(1, `<span class="material-icons" style="font-size: inherit; vertical-align: middle;">emergency</span> Ambulance request #${request.id} assigned to ${ambulance.name}.`);
         this.logActivity(`Assigned ambulance ${ambulance.name} to request ${request.id}`, assignedByUserId || request.patient_id);
         return { success: true, request };
     },
@@ -762,13 +762,13 @@ const db = {
 
         this.saveAmbulanceRequests(requests);
         const statusMessage = {
-            assigned: '🚑 Ambulance assigned successfully.',
-            dispatched: '🚑 Ambulance is now on the way.',
-            'near-patient': '🚑 Ambulance is nearing your location.',
-            arriving: '🚑 Ambulance is arriving at your location.',
-            arrived: '🚑 Ambulance has arrived at your location.',
-            completed: '✅ Ambulance trip completed successfully.',
-            cancelled: '❌ Ambulance request was cancelled.'
+            assigned: '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">emergency</span> Ambulance assigned successfully.',
+            dispatched: '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">emergency</span> Ambulance is now on the way.',
+            'near-patient': '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">emergency</span> Ambulance is nearing your location.',
+            arriving: '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">emergency</span> Ambulance is arriving at your location.',
+            arrived: '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">emergency</span> Ambulance has arrived at your location.',
+            completed: '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">check_circle</span> Ambulance trip completed successfully.',
+            cancelled: '<span class="material-icons" style="font-size: inherit; vertical-align: middle;">star</span> Ambulance request was cancelled.'
         }[status] || 'Ambulance status updated.';
         this.addNotification(request.patient_id, statusMessage);
         this.logActivity(`Updated ambulance request ${request.id} to ${status}`, request.patient_id);
@@ -851,7 +851,7 @@ const db = {
         }
         
         // Notify admin
-        this.addNotification(1, `📬 New ${formType} submitted: "${subject}" by ${name}`);
+        this.addNotification(1, `<span class="material-icons" style="font-size: inherit; vertical-align: middle;">star</span> New ${formType} submitted: "${subject}" by ${name}`);
         return { success: true };
     },
 
@@ -972,7 +972,7 @@ const db = {
         this.logActivity(`Booked appointment with Doctor ID: ${doctorId}`, patientId);
         
         // Notify doctor
-        this.addNotification(doctorId, `📅 New appointment request received from Patient ID: ${patientId}`);
+        this.addNotification(doctorId, `<span class="material-icons" style="font-size: inherit; vertical-align: middle;">star</span> New appointment request received from Patient ID: ${patientId}`);
         return { success: true, appointment: newAppt };
     },
     updateAppointmentStatus(id, status, reason = '') {
@@ -989,7 +989,7 @@ const db = {
             const docName = doc ? doc.name : 'Doctor';
             
             // Notify patient
-            this.addNotification(patientId, `📅 Your appointment with Dr. ${docName} has been ${status.toUpperCase()}.`);
+            this.addNotification(patientId, `<span class="material-icons" style="font-size: inherit; vertical-align: middle;">star</span> Your appointment with Dr. ${docName} has been ${status.toUpperCase()}.`);
             this.logActivity(`Updated appointment ID ${id} status to ${status}`, doctorId);
             return { success: true };
         }
@@ -1065,7 +1065,7 @@ const db = {
         this.saveBills(bills);
         
         // Notify patient
-        this.addNotification(patientId, `💵 A new bill of amount ₹${finalAmt.toFixed(2)} has been generated for you.`);
+        this.addNotification(patientId, `<span class="material-icons" style="font-size: inherit; vertical-align: middle;">star</span> A new bill of amount ₹${finalAmt.toFixed(2)} has been generated for you.`);
         this.logActivity(`Created bill ID ${newBill.id} for Patient ID: ${patientId}`, pharmacistId);
         return { success: true, bill: newBill };
     },

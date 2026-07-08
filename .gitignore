@@ -2,6 +2,7 @@
 .venv/
 __pycache__/
 .env
+assets/js/gemini-config.js
 # Code Editors Settings
 .vscode/
 .idea/

@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="../../assets/css/styles.css" />
+    <link rel="stylesheet" href="../../assets/css/styles.css?v=1783530550932" />
 </head>
 <body data-path-prefix="../../">
     
@@ -134,35 +134,14 @@
                 
                 try {
                     const auth = await window.firebaseAuthPromise;
-                    
-                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                    const uid = userCredential.user.uid;
-                    
-                    // Create Firestore document profile
-                    try {
-                        await firebase.firestore().collection('users').doc(uid).set({
-                            name: name,
-                            email: email,
-                            role: role,
-                            status: 'active',
-                            profile_photo: ''
-                        });
-                    } catch (firestoreErr) {
-                        console.error("Firestore write failed, fallback to local:", firestoreErr);
-                    }
-                    
-                    const res = db.register(name, email, password, role);
-                    if (res.success) {
-                        const users = db.getUsers();
-                        const idx = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
-                        if (idx !== -1) {
-                            users[idx].firebase_uid = uid;
-                            db.saveUsers(users);
-                        }
-                    
-                        // Construct user session object
-                        const localUser = {
-                            id: uid,
+                    let userToLogin;
+
+                    if (auth) {
+                        // Firebase path
+                        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                        const uid = userCredential.user.uid;
+                        
+                        const firestoreData = {
                             name: name,
                             email: email,
                             role: role,
@@ -170,14 +149,41 @@
                             profile_photo: ''
                         };
 
-                        sessionStorage.setItem('sh_current_user', JSON.stringify(localUser));
-                        db.logActivity('Registered and logged in automatically (Firebase)', localUser.id);
+                        try {
+                            await firebase.firestore().collection('users').doc(uid).set(firestoreData);
+                        } catch (firestoreErr) {
+                            console.warn("Firestore user creation failed, will rely on local data for session.", firestoreErr);
+                        }
+                        
+                        // Also create/update user in local DB for consistency
+                        const localReg = db.register(name, email, password, role);
+                        if(localReg.success) {
+                            const users = db.getUsers();
+                            const justRegistered = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+                            if (justRegistered) {
+                                justRegistered.firebase_uid = uid;
+                                db.saveUsers(users);
+                            }
+                        }
 
-                        setFlashMessage(`Account created successfully! Welcome, ${name}!`, 'success');
-                        window.location.href = '../dashboard/patient.html';
+                        userToLogin = { id: uid, ...firestoreData };
+
                     } else {
-                        throw new Error(res.message || 'Registration failed locally.');
+                        // Local fallback path
+                        console.warn("Firebase not available. Falling back to local-only registration.");
+                        const res = db.register(name, email, password, role);
+                        if (!res.success) {
+                            throw new Error(res.message || 'Local registration failed.');
+                        }
+                        userToLogin = res.user;
                     }
+
+                    // Login and redirect
+                    sessionStorage.setItem('sh_current_user', JSON.stringify(userToLogin));
+                    db.logActivity('Registered and logged in', userToLogin.id);
+                    setFlashMessage(`Account created successfully! Welcome, ${name}!`, 'success');
+                    window.location.href = '../dashboard/patient.html';
+
                 } catch (err) {
                     let errMsg = err.message;
                     if (err.code === 'auth/email-already-in-use') {

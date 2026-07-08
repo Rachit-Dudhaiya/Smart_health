@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ambulance Tracking | Smart Health</title>
-    <link rel="stylesheet" href="../assets/css/styles.css?v=ambulance-1" />
+    <link rel="stylesheet" href="../assets/css/styles.css?v=1783530550932" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { background: var(--bg-primary); }
@@ -115,9 +115,9 @@
         function initMap() {
             map = L.map('ambulance-map').setView([19.0760, 72.8777], 13);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
-            hospitalMarker = L.marker([19.0760, 72.8777], { icon: L.divIcon({ html: '🏥', iconSize: [36, 36] }) }).addTo(map);
-            patientMarker = L.marker([19.0840, 72.8820], { icon: L.divIcon({ html: '🧑‍⚕️', iconSize: [36, 36] }) }).addTo(map);
-            marker = L.marker([19.0760, 72.8777], { icon: L.divIcon({ html: '<div class="ambulance-marker">🚑</div>', iconSize: [38, 38] }) }).addTo(map);
+            hospitalMarker = L.marker([19.0760, 72.8777], { icon: L.divIcon({ html: '<span class="material-icons notranslate map-icon">local_hospital</span>', iconSize: [36, 36] }) }).addTo(map);
+            patientMarker = L.marker([19.0840, 72.8820], { icon: L.divIcon({ html: '<span class="material-icons notranslate map-icon">medical_services</span>', iconSize: [36, 36] }) }).addTo(map);
+            marker = L.marker([19.0760, 72.8777], { icon: L.divIcon({ html: '<div class="ambulance-marker"><span class="material-icons notranslate map-icon">airport_shuttle</span></div>', iconSize: [38, 38] }) }).addTo(map);
             routeLine = L.polyline([], { color: '#2563eb', weight: 5, opacity: 0.85 }).addTo(map);
             completedLine = L.polyline([], { color: '#16a34a', weight: 5, opacity: 0.85 }).addTo(map);
             marker.bindPopup('Ambulance dispatch in progress');
@@ -253,7 +253,7 @@
             }
             renderTracker();
             startAnimationLoop();
-            showToast('🎬 Demo mode started. The ambulance lifecycle is now playing automatically.', 'success');
+            showToast('Demo mode started. The ambulance lifecycle is now playing automatically.', 'success');
         }
 
         function pauseDemoMode() { demoPaused = true; showToast('Demo paused.', 'info'); }

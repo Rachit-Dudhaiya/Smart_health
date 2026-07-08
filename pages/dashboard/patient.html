@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="../../assets/css/styles.css?v=ambulance-1" />
+    <link rel="stylesheet" href="../../assets/css/styles.css?v=1783530550932" />
     <style>
         .tabs-header {
             display: flex;
@@ -89,10 +89,10 @@
         
         <!-- Tab Navigation Header -->
         <div class="tabs-header">
-            <button class="tab-btn active" onclick="switchTab('queue-tab')">🏥 Consult Queue & Beds</button>
-            <button class="tab-btn" onclick="switchTab('appointments-tab')">📅 Appointments</button>
-            <button class="tab-btn" onclick="switchTab('billing-tab')">💵 Bills & Receipts</button>
-            <button class="tab-btn" onclick="switchTab('ambulance-tab')">🚑 Ambulance Tracking</button>
+            <button class="tab-btn active" onclick="switchTab('queue-tab')"><span class="material-icons">local_hospital</span> Consult Queue & Beds</button>
+            <button class="tab-btn" onclick="switchTab('appointments-tab')"><span class="material-icons">event</span> Appointments</button>
+            <button class="tab-btn" onclick="switchTab('billing-tab')"><span class="material-icons">payments</span> Bills & Receipts</button>
+            <button class="tab-btn" onclick="switchTab('ambulance-tab')"><span class="material-icons">airport_shuttle</span> Ambulance Tracking</button>
         </div>
 
         <!-- TAB 1: CONSULT QUEUE & BED STATUS -->
@@ -103,7 +103,7 @@
                     <h4 style="margin-bottom: 1.5rem;">Emergency Tools</h4>
                     
                     <div class="card" style="padding: 1.5rem; text-align: center; border-color: var(--color-danger); background-color: #fef2f2;">
-                        <span style="font-size: 3rem;">🚑</span>
+                        <span style="font-size: 3rem;"><span class="material-icons">airport_shuttle</span></span>
                         <h4 style="color: var(--color-danger); margin-top: 0.5rem;">Emergency Ambulance</h4>
                         <p style="font-size: 0.8rem; color: #7f1d1d; margin: 0.5rem 0 1rem;">Request a live ambulance, monitor its movement, and receive dispatch updates in real time.</p>
                         
@@ -124,7 +124,7 @@
                             </label>
                         </div>
                         <div id="ambulance-request-actions" style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.8rem;"></div>
-                        <a href="../../pages/ambulance-tracker.html" class="btn btn-secondary btn-full" style="margin-top: 0.7rem; display: inline-block; text-align: center;">🗺️ Open Live Tracker</a>
+                        <a href="../../pages/ambulance-tracker.html" class="btn btn-secondary btn-full" style="margin-top: 0.7rem; display: inline-block; text-align: center;"><span class="material-icons">map</span> Open Live Tracker</a>
                     </div>
                     
                     <div class="card" style="padding: 1.5rem; margin-top: 1.5rem; text-align: center;">
@@ -160,7 +160,7 @@
                         </form>
                         
                         <div id="no-doctors-alert" style="background-color: #fee2e2; color: #991b1b; padding: 1rem; border-radius: var(--radius-md); display: none;">
-                            ⚠️ No doctors are currently checked-in or on call. Please try again later.
+                            <span class="material-icons">warning</span> No doctors are currently checked-in or on call. Please try again later.
                         </div>
                     </div>
                     
@@ -212,13 +212,7 @@
                             <label>
                                 Preferred Slot
                                 <select id="appt-slot-select" required>
-                                    <option value="09:00 AM">09:00 AM</option>
-                                    <option value="10:00 AM">10:00 AM</option>
-                                    <option value="11:00 AM">11:00 AM</option>
-                                    <option value="12:00 PM">12:00 PM</option>
-                                    <option value="02:00 PM">02:00 PM</option>
-                                    <option value="03:00 PM">03:00 PM</option>
-                                    <option value="04:00 PM">04:00 PM</option>
+                                    <option value="">-- Select Time Slot --</option>
                                 </select>
                             </label>
                             
@@ -303,7 +297,7 @@
             </div>
             <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;" class="no-print">
                 <button class="btn btn-secondary" onclick="closePrintModal()">Close</button>
-                <button class="btn btn-primary" onclick="window.print()">🖨️ Print Receipt</button>
+                <button class="btn btn-primary" onclick="window.print()"><span class="material-icons">print</span> Print Receipt</button>
             </div>
         </div>
     </div>
@@ -336,6 +330,54 @@
             apptDocSelect.innerHTML = '<option value="">-- Select Doctor --</option>' + doctors.map(d => {
                 return `<option value="${d.id}">Dr. ${d.name} (${d.specialty || 'General'})</option>`;
             }).join('');
+
+            // Dynamic slot generation
+            function updateAvailableSlots() {
+                const docId = parseInt(document.getElementById('appt-doctor-select').value);
+                const dateStr = document.getElementById('appt-date').value;
+                const slotSelect = document.getElementById('appt-slot-select');
+
+                slotSelect.innerHTML = '<option value="">-- Select Time Slot --</option>';
+
+                if (!docId || !dateStr) return;
+
+                const scheds = db.getDoctorSchedules().filter(s => s.doctor_id === docId && s.available_date === dateStr && s.status === 'available');
+
+                if (scheds.length === 0) {
+                    slotSelect.innerHTML += '<option value="" disabled>No slots available</option>';
+                    return;
+                }
+
+                let availableSlots = [];
+                scheds.forEach(s => {
+                    const [startH] = s.start_time.split(':').map(Number);
+                    const [endH, endM] = s.end_time.split(':').map(Number);
+
+                    let currentH = startH;
+                    while (currentH < endH || (currentH === endH && endM > 0)) {
+                        let ampm = currentH >= 12 ? 'PM' : 'AM';
+                        let h = currentH % 12;
+                        h = h ? h : 12;
+                        const slotLabel = `${h.toString().padStart(2, '0')}:00 ${ampm}`;
+                        
+                        if (!availableSlots.includes(slotLabel)) {
+                            availableSlots.push(slotLabel);
+                        }
+                        currentH++;
+                    }
+                });
+
+                availableSlots.sort((a, b) => {
+                    return new Date(`1970/01/01 ${a}`) - new Date(`1970/01/01 ${b}`);
+                });
+
+                availableSlots.forEach(slot => {
+                    slotSelect.innerHTML += `<option value="${slot}">${slot}</option>`;
+                });
+            }
+
+            document.getElementById('appt-doctor-select').addEventListener('change', updateAvailableSlots);
+            document.getElementById('appt-date').addEventListener('change', updateAvailableSlots);
 
             // Queue form submission
             const queueForm = document.getElementById('book-consult-form');
@@ -428,7 +470,7 @@
                 let badgeText = 'WAITING IN QUEUE';
                 let statusMarkup = `
                     <div style="background-color: var(--color-primary-light); padding: 1rem; border-radius: var(--radius-md);">
-                        ⏳ <strong>Current Status</strong>: Please wait near the Out-Patient block. Dr. ${docName} has been notified and will call your name soon.
+                        <span class="material-icons">hourglass_empty</span> <strong>Current Status</strong>: Please wait near the Out-Patient block. Dr. ${docName} has been notified and will call your name soon.
                     </div>
                 `;
                 
@@ -436,7 +478,7 @@
                     badgeText = 'IN CONSULTATION ROOM';
                     statusMarkup = `
                         <div style="background-color: #dbeafe; color: #1e40af; padding: 1rem; border-radius: var(--radius-md);">
-                            🩺 <strong>Current Status</strong>: You are currently inside the consultation room. Physician is diagnosing your symptoms.
+                            <span class="material-icons">medical_services</span> <strong>Current Status</strong>: You are currently inside the consultation room. Physician is diagnosing your symptoms.
                         </div>
                     `;
                 }
@@ -569,8 +611,8 @@
                     let badgeClass = b.payment_status === 'paid' ? 'badge-success' : 'badge-danger';
                     
                     const actionBtn = b.payment_status === 'unpaid'
-                        ? `<button class="btn btn-primary" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="payInvoice(${b.id})">💳 Pay Invoice</button>`
-                        : `<button class="btn btn-secondary" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="printInvoice(${b.id})">🖨️ Print Receipt</button>`;
+                        ? `<button class="btn btn-primary" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="payInvoice(${b.id})"><span class="material-icons">credit_card</span> Pay Invoice</button>`
+                        : `<button class="btn btn-secondary" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="printInvoice(${b.id})"><span class="material-icons">print</span> Print Receipt</button>`;
 
                     return `
                         <tr>
@@ -628,7 +670,7 @@
             modalContent.innerHTML = `
                 <div style="font-family: 'Outfit', sans-serif;">
                     <div style="text-align: center; margin-bottom: 2rem;">
-                        <span style="font-size: 2.5rem;">🏥</span>
+                        <span style="font-size: 2.5rem;"><span class="material-icons">local_hospital</span></span>
                         <h2 style="margin: 0.5rem 0 0;">Smart Health Center</h2>
                         <p style="color: var(--color-text-muted); font-size: 0.85rem; margin: 0;">24/7 Digital Dispensary & Roster Command</p>
                     </div>
@@ -692,8 +734,8 @@
                 statusEl.innerHTML = '<span class="badge badge-warning">No active ambulance request</span>';
                 formEl.style.display = 'block';
                 actionsEl.innerHTML = `
-                    <button class="btn btn-danger btn-full" onclick="requestAmbulance()">🚑 Request Ambulance</button>
-                    <button class="btn btn-secondary btn-full" onclick="triggerSOS()">🚨 Quick SOS</button>
+                    <button class="btn btn-danger btn-full" onclick="requestAmbulance()"><span class="material-icons">airport_shuttle</span> Request Ambulance</button>
+                    <button class="btn btn-secondary btn-full" onclick="triggerSOS()"><span class="material-icons">warning</span> Quick SOS</button>
                 `;
                 return;
             }
@@ -708,7 +750,7 @@
                 actions.push(`<button class="btn btn-secondary btn-full" onclick="cancelAmbulanceRequest()">Cancel Request</button>`);
             }
             actions.push(`<button class="btn btn-primary btn-full" onclick="openTrackingPage()">${existing.status === 'pending' ? 'View Request' : 'Track Ambulance'}</button>`);
-            actions.push(`<button class="btn btn-danger btn-full" onclick="callDriver()">📞 Call Driver</button>`);
+            actions.push(`<button class="btn btn-danger btn-full" onclick="callDriver()"><span class="material-icons">phone</span> Call Driver</button>`);
 
             actionsEl.innerHTML = `
                 <div style="border: 1px solid var(--color-border); padding: 0.8rem; border-radius: var(--radius-md); text-align: left; font-size: 0.9rem; background: var(--bg-surface);">
@@ -727,7 +769,7 @@
             const symptoms = document.getElementById('ambulance-symptoms').value.trim() || 'Emergency assistance requested';
             const res = db.createAmbulanceRequest(curPatient.id, { priority, symptoms, patient_name: curPatient.name });
             if (res.success) {
-                showToast('🚑 Ambulance request submitted. Dispatch is evaluating the case.', 'success');
+                showToast('<span class="material-icons">airport_shuttle</span> Ambulance request submitted. Dispatch is evaluating the case.', 'success');
                 renderAmbulancePanel();
             } else {
                 showToast(res.message || 'Unable to request ambulance.', 'error');
@@ -739,7 +781,7 @@
             if (!existing) return;
             const res = db.updateAmbulanceRequestStatus(existing.id, 'cancelled');
             if (res.success) {
-                showToast('🚑 Ambulance request cancelled.', 'success');
+                showToast('<span class="material-icons">airport_shuttle</span> Ambulance request cancelled.', 'success');
                 renderAmbulancePanel();
             }
         };
@@ -751,7 +793,7 @@
         };
 
         window.callDriver = function() {
-            showToast('📞 Simulated call connected to the ambulance driver.', 'success');
+            showToast('<span class="material-icons">phone</span> Simulated call connected to the ambulance driver.', 'success');
         };
 
         window.triggerSOS = function() {
@@ -759,7 +801,7 @@
             const symptoms = document.getElementById('ambulance-symptoms') ? document.getElementById('ambulance-symptoms').value.trim() || 'Critical emergency' : 'Critical emergency';
             const res = db.createAmbulanceRequest(curPatient.id, { priority, symptoms, patient_name: curPatient.name });
             if (res.success) {
-                showToast('🚨 Emergency SOS ambulance requested successfully. Wards and dispatch staff have been notified.', 'success');
+                showToast('<span class="material-icons">warning</span> Emergency SOS ambulance requested successfully. Wards and dispatch staff have been notified.', 'success');
                 renderAmbulancePanel();
             }
         };

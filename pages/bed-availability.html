@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="../assets/css/styles.css" />
+    <link rel="stylesheet" href="../assets/css/styles.css?v=1783530550932" />
 </head>
 <body data-path-prefix="../">
     
@@ -24,17 +24,17 @@
         <!-- Stats Row -->
         <div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 3rem;">
             <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main);">
-                <span style="font-size: 2rem; margin-bottom: 0.5rem;">🛏️</span>
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">single_bed</span></span>
                 <strong id="stat-total-beds">0</strong>
                 <span style="margin-top: 0.5rem;">Total Ward Beds</span>
             </div>
             <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main); border-bottom: 4px solid var(--color-danger);">
-                <span style="font-size: 2rem; margin-bottom: 0.5rem;">👨‍⚕️</span>
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">medical_services</span></span>
                 <strong id="stat-occupied-beds">0</strong>
                 <span style="margin-top: 0.5rem;">Occupied / Reserved</span>
             </div>
             <div class="mini-card" style="background-color: var(--bg-surface); padding: 2rem; border: 1px solid var(--color-border); box-shadow: var(--shadow-main); border-bottom: 4px solid var(--color-success);">
-                <span style="font-size: 2rem; margin-bottom: 0.5rem;">🏥</span>
+                <span style="font-size: 2rem; margin-bottom: 0.5rem;"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">local_hospital</span></span>
                 <strong id="stat-free-beds">0</strong>
                 <span style="margin-top: 0.5rem;">Vacant Beds Left</span>
             </div>
@@ -66,13 +66,13 @@
                 <p class="auth-subtitle" style="margin: 0.5rem 0 1.5rem;">Procedure for medical referrals and bed allocation.</p>
                 
                 <ul class="check-list">
-                    <li>🏥 <strong>Direct Referrals</strong>: Nearby centers can refer patients by verifying vacant counts.</li>
-                    <li>🚨 <strong>Emergency Buffer</strong>: 2 beds inside Emergency ward are kept vacant for ambulance arrivals.</li>
-                    <li>📝 <strong>Booking confirmation</strong>: Requires clocking of patient checkup by medical officer.</li>
+                    <li><span class="material-icons" style="font-size: inherit; vertical-align: middle;">local_hospital</span> <strong>Direct Referrals</strong>: Nearby centers can refer patients by verifying vacant counts.</li>
+                    <li><span class="material-icons" style="font-size: inherit; vertical-align: middle;">star</span> <strong>Emergency Buffer</strong>: 2 beds inside Emergency ward are kept vacant for ambulance arrivals.</li>
+                    <li><span class="material-icons" style="font-size: inherit; vertical-align: middle;">star</span> <strong>Booking confirmation</strong>: Requires clocking of patient checkup by medical officer.</li>
                 </ul>
                 
                 <div id="emergency-sos-container" style="margin-top: 2rem; display: none;">
-                    <a href="contact.html" class="btn btn-primary btn-full">🚑 Request Emergency SOS / Bed</a>
+                    <a href="contact.html" class="btn btn-primary btn-full"><span class="material-icons" style="font-size: inherit; vertical-align: middle;">emergency</span> Request Emergency SOS / Bed</a>
                 </div>
             </article>
         </div>
