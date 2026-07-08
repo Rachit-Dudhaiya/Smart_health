@@ -96,31 +96,33 @@
 <body data-path-prefix="../../" data-restricted-roles="pharmacist,admin">
     
     <div class="container" style="padding: 2rem 0;">
-        
-        <!-- Tab Controls -->
-        <div class="tabs-header">
-            <button class="tab-btn active" onclick="switchTab('inventory-tab')">💊 Medicine Inventory</button>
-            <button class="tab-btn" onclick="switchTab('billing-tab')">💳 Create Patient Invoice</button>
-            <button class="tab-btn" onclick="switchTab('history-tab')">📜 Billing History Ledger</button>
-        </div>
-
-        <!-- TAB 1: MEDICINE INVENTORY -->
-        <div id="inventory-tab" class="tab-content active">
-            <div class="dashboard-grid">
-                <!-- Sidebar -->
-                <aside class="dashboard-sidebar">
-                    <h4 style="margin-bottom: 1.5rem;">Inventory Alerts</h4>
-                    
-                    <div class="card" style="padding: 1.5rem; background-color: var(--bg-primary);">
-                        <h4>Low & Expired Drugs</h4>
-                        <div id="critical-meds-container" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.8rem;">
-                            <!-- Injected dynamically -->
-                        </div>
-                    </div>
-                </aside>
+        <div class="dashboard-grid">
+            
+            <!-- Sidebar Navigation & Inventory Alerts -->
+            <aside class="dashboard-sidebar">
+                <h4 style="margin-bottom: 1rem; color: var(--color-text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Pharmacist Console</h4>
+                <div class="sidebar-nav" style="margin-top: 1rem; margin-bottom: 2rem;">
+                    <button class="nav-tab-btn active" data-tab="inventory">💊 Medicine Inventory</button>
+                    <button class="nav-tab-btn" data-tab="billing">💳 Create Patient Invoice</button>
+                    <button class="nav-tab-btn" data-tab="history">📜 Billing History Ledger</button>
+                </div>
                 
-                <!-- Main Area -->
-                <main class="dashboard-main">
+                <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 1.5rem 0;" />
+                
+                <h4 style="margin-bottom: 1rem; color: var(--color-text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Inventory Alerts</h4>
+                <div class="card" style="padding: 1.2rem; background-color: var(--bg-primary);">
+                    <h5 style="margin-bottom: 0.5rem; font-size: 0.9rem;">Low & Expired Drugs</h5>
+                    <div id="critical-meds-container" style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.6rem;">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- Main Content Panels -->
+            <main class="dashboard-main">
+                
+                <!-- PANEL 1: MEDICINE INVENTORY -->
+                <div id="panel-inventory" class="dashboard-panel">
                     <!-- Add Medicine Card -->
                     <section class="card" style="padding: 2rem; margin-bottom: 2rem;">
                         <h3>Add New Medicine / Drug Item</h3>
@@ -183,120 +185,120 @@
                             <!-- Injected dynamically -->
                         </div>
                     </section>
-                </main>
-            </div>
-        </div>
+                </div>
 
-        <!-- TAB 2: CREATE PATIENT INVOICE -->
-        <div id="billing-tab" class="tab-content">
-            <div class="billing-grid">
-                <!-- Left: Form selectors -->
-                <div class="card" style="padding: 2.5rem;">
-                    <h3>New Billing Details</h3>
-                    <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Assemble prescription items and generate billing statements.</p>
-                    
-                    <form id="invoice-builder-form" class="auth-form" novalidate>
-                        <label>
-                            Select Patient
-                            <select id="bill-patient-select" required>
-                                <option value="">-- Choose Patient --</option>
-                            </select>
-                        </label>
-                        
-                        <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 1.5rem 0;" />
-                        
-                        <h4 style="margin-bottom: 1rem;">Add Medicine Line Item</h4>
-                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                            <label style="flex: 2; min-width: 180px;">
-                                Drug / Item Name
-                                <select id="bill-item-select">
-                                    <option value="">-- Choose Drug --</option>
-                                </select>
-                            </label>
-                            <label style="flex: 1; min-width: 80px;">
-                                Quantity
-                                <input type="number" id="bill-item-qty" value="1" min="1" />
-                            </label>
-                            <label style="flex: 1; min-width: 90px;">
-                                Price (₹)
-                                <input type="number" id="bill-item-price" value="50.00" min="0" step="0.5" />
-                            </label>
+                <!-- PANEL 2: CREATE PATIENT INVOICE -->
+                <div id="panel-billing" class="dashboard-panel" style="display: none;">
+                    <div class="billing-grid">
+                        <!-- Left: Form selectors -->
+                        <div class="card" style="padding: 2.5rem;">
+                            <h3>New Billing Details</h3>
+                            <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Assemble prescription items and generate billing statements.</p>
+                            
+                            <form id="invoice-builder-form" class="auth-form" novalidate>
+                                <label>
+                                    Select Patient
+                                    <select id="bill-patient-select" required>
+                                        <option value="">-- Choose Patient --</option>
+                                    </select>
+                                </label>
+                                
+                                <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 1.5rem 0;" />
+                                
+                                <h4 style="margin-bottom: 1rem;">Add Medicine Line Item</h4>
+                                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                    <label style="flex: 2; min-width: 180px;">
+                                        Drug / Item Name
+                                        <select id="bill-item-select">
+                                            <option value="">-- Choose Drug --</option>
+                                        </select>
+                                    </label>
+                                    <label style="flex: 1; min-width: 80px;">
+                                        Quantity
+                                        <input type="number" id="bill-item-qty" value="1" min="1" />
+                                    </label>
+                                    <label style="flex: 1; min-width: 90px;">
+                                        Price (₹)
+                                        <input type="number" id="bill-item-price" value="50.00" min="0" step="0.5" />
+                                    </label>
+                                </div>
+                                <button type="button" class="btn btn-secondary btn-full" onclick="addInvoiceLineItem()" style="margin-top: 0.5rem;">➕ Add Item to List</button>
+                                
+                                <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 1.5rem 0;" />
+                                
+                                <label>
+                                    Discount Amount (₹)
+                                    <input type="number" id="bill-discount" value="0.00" min="0" />
+                                </label>
+                                
+                                <button type="submit" class="btn btn-primary btn-full" style="margin-top: 1rem;">💰 Finalize & Generate Invoice</button>
+                            </form>
                         </div>
-                        <button type="button" class="btn btn-secondary btn-full" onclick="addInvoiceLineItem()" style="margin-top: 0.5rem;">➕ Add Item to List</button>
-                        
-                        <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 1.5rem 0;" />
-                        
-                        <label>
-                            Discount Amount (₹)
-                            <input type="number" id="bill-discount" value="0.00" min="0" />
-                        </label>
-                        
-                        <button type="submit" class="btn btn-primary btn-full" style="margin-top: 1rem;">💰 Finalize & Generate Invoice</button>
-                    </form>
-                </div>
 
-                <!-- Right: Added Items Preview -->
-                <div class="card" style="padding: 2.5rem;">
-                    <h3>Invoice Lines Preview</h3>
-                    <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Current active items on draft statement.</p>
-                    
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Item Name</th>
-                                    <th>Quantity</th>
-                                    <th>Unit Price</th>
-                                    <th>Total Price</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="invoice-items-tbody">
-                                <tr>
-                                    <td colspan="5" class="auth-subtitle" style="text-align: center; padding: 2rem;">No items added to current draft yet.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end;" id="invoice-preview-totals">
-                        <div>Subtotal: <strong>₹0.00</strong></div>
-                        <div>Discount: <strong>₹0.00</strong></div>
-                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-primary);">Grand Total: <strong>₹0.00</strong></div>
+                        <!-- Right: Added Items Preview -->
+                        <div class="card" style="padding: 2.5rem;">
+                            <h3>Invoice Lines Preview</h3>
+                            <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Current active items on draft statement.</p>
+                            
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Item Name</th>
+                                            <th>Quantity</th>
+                                            <th>Unit Price</th>
+                                            <th>Total Price</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="invoice-items-tbody">
+                                        <tr>
+                                            <td colspan="5" class="auth-subtitle" style="text-align: center; padding: 2rem;">No items added to current draft yet.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end;" id="invoice-preview-totals">
+                                <div>Subtotal: <strong>₹0.00</strong></div>
+                                <div>Discount: <strong>₹0.00</strong></div>
+                                <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-primary);">Grand Total: <strong>₹0.00</strong></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- TAB 3: BILLING LEDGER -->
-        <div id="history-tab" class="tab-content">
-            <div class="card" style="padding: 2.5rem;">
-                <h3>Billing Transaction Ledger</h3>
-                <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Review all historical pharmacy invoices and payment states.</p>
-                
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Invoice ID</th>
-                                <th>Patient Name</th>
-                                <th>Billing Date</th>
-                                <th>Grand Total</th>
-                                <th>Discount</th>
-                                <th>Final Amount</th>
-                                <th>Payment Method</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="billing-history-tbody">
-                            <!-- Injected dynamically -->
-                        </tbody>
-                    </table>
+                <!-- PANEL 3: BILLING LEDGER -->
+                <div id="panel-history" class="dashboard-panel" style="display: none;">
+                    <div class="card" style="padding: 2.5rem;">
+                        <h3>Billing Transaction Ledger</h3>
+                        <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Review all historical pharmacy invoices and payment states.</p>
+                        
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Invoice ID</th>
+                                        <th>Patient Name</th>
+                                        <th>Billing Date</th>
+                                        <th>Grand Total</th>
+                                        <th>Discount</th>
+                                        <th>Final Amount</th>
+                                        <th>Payment Method</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="billing-history-tbody">
+                                    <!-- Injected dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
 
+            </main>
+        </div>
     </div>
 
     <!-- Print Bill Modal -->
@@ -420,19 +422,26 @@
             loadData();
             populateInvoicingDropdowns();
             renderBillingHistory();
+
+            // Setup tabs switching
+            const tabButtons = document.querySelectorAll('.nav-tab-btn');
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tabButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    const panels = document.querySelectorAll('.dashboard-panel');
+                    panels.forEach(p => p.style.display = 'none');
+                    
+                    const targetTab = btn.getAttribute('data-tab');
+                    document.getElementById(`panel-${targetTab}`).style.display = 'block';
+                    
+                    renderTabCounts();
+                });
+            });
+
             renderTabCounts();
         });
-
-        // Tab Switching
-        window.switchTab = function(tabId) {
-            renderTabCounts();
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.add('active');
-            const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.outerHTML.includes(tabId));
-            if (activeBtn) activeBtn.classList.add('active');
-        };
 
         function renderTabCounts() {
             const meds = db.getMedicines();
@@ -440,19 +449,15 @@
             const criticalCount = meds.filter(m => m.status === 'low' || m.status === 'critical' || m.status === 'expired').length;
 
             const tabsConfig = {
-                'inventory-tab': { text: `Medicine Inventory (${meds.length})`, icon: '💊', badge: criticalCount },
-                'billing-tab': { text: 'Create Patient Invoice', icon: '💳' },
-                'history-tab': { text: `Billing History Ledger (${bills.length})`, icon: '📜' }
+                inventory: { text: `Medicine Inventory (${meds.length})`, icon: '💊', badge: criticalCount },
+                billing: { text: 'Create Patient Invoice', icon: '💳' },
+                history: { text: `Billing History Ledger (${bills.length})`, icon: '📜' }
             };
 
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                const clickAttr = btn.getAttribute('onclick') || '';
-                let key = '';
-                if (clickAttr.includes('inventory-tab')) key = 'inventory-tab';
-                else if (clickAttr.includes('billing-tab')) key = 'billing-tab';
-                else if (clickAttr.includes('history-tab')) key = 'history-tab';
-
-                const config = tabsConfig[key];
+            const btns = document.querySelectorAll('.nav-tab-btn');
+            btns.forEach(btn => {
+                const tabName = btn.getAttribute('data-tab');
+                const config = tabsConfig[tabName];
                 if (config) {
                     let label = `${config.icon} ${config.text}`;
                     let html = `<span>${label}</span>`;

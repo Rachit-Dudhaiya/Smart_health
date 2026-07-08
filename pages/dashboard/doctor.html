@@ -46,41 +46,42 @@
 <body data-path-prefix="../../" data-restricted-roles="admin,doctor">
     
     <div class="container" style="padding: 2rem 0;">
-        
-        <!-- Tab Controls -->
-        <div class="tabs-header">
-            <button class="tab-btn active" onclick="switchTab('consults-tab')">🩺 Consultations Queue</button>
-            <button class="tab-btn" onclick="switchTab('appointments-tab')">📅 Appointments Console</button>
-            <button class="tab-btn" onclick="switchTab('schedule-tab')">🕒 Manage Schedule</button>
-        </div>
-
-        <!-- TAB 1: CONSULTATIONS QUEUE -->
-        <div id="consults-tab" class="tab-content active">
-            <div class="dashboard-grid">
-                <!-- Sidebar Clocking Module -->
-                <aside class="dashboard-sidebar">
-                    <h4 style="margin-bottom: 1.5rem;">Clock Terminal</h4>
-                    
-                    <div style="text-align: center; margin-bottom: 2rem;">
-                        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🩺</div>
-                        <h3 id="doctor-portal-name">Dr. Loading...</h3>
-                        <p class="badge badge-success" style="margin-top: 0.5rem;" id="availability-badge">On Call</p>
-                    </div>
-                    
-                    <div class="card" style="padding: 1.5rem; text-align: center; background-color: var(--bg-primary);">
-                        <h4>Shift Roster Status</h4>
-                        <div style="margin: 1rem 0;" id="roster-status-container">
-                            <!-- Injected dynamically -->
-                        </div>
-                        
-                        <div id="roster-btn-container">
-                            <!-- Injected dynamically -->
-                        </div>
-                    </div>
-                </aside>
+        <div class="dashboard-grid">
+            
+            <!-- Sidebar Navigation & Clock Terminal -->
+            <aside class="dashboard-sidebar">
+                <h4 style="margin-bottom: 1rem; color: var(--color-text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Doctor Console</h4>
+                <div class="sidebar-nav" style="margin-top: 1rem; margin-bottom: 2rem;">
+                    <button class="nav-tab-btn active" data-tab="consults">🩺 Consultations Queue</button>
+                    <button class="nav-tab-btn" data-tab="appointments">📅 Appointments Console</button>
+                    <button class="nav-tab-btn" data-tab="schedule">🕒 Manage Schedule</button>
+                </div>
                 
-                <!-- Main Content Area -->
-                <main class="dashboard-main">
+                <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 1.5rem 0;" />
+                
+                <h4 style="margin-bottom: 1rem; color: var(--color-text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Clock Terminal</h4>
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🩺</div>
+                    <h3 id="doctor-portal-name" style="font-size: 1.2rem;">Dr. Loading...</h3>
+                    <p class="badge badge-success" style="margin-top: 0.3rem;" id="availability-badge">On Call</p>
+                </div>
+                
+                <div class="card" style="padding: 1.2rem; text-align: center; background-color: var(--bg-primary);">
+                    <h5 style="margin-bottom: 0.5rem; font-size: 0.9rem;">Shift Roster Status</h5>
+                    <div style="margin: 0.8rem 0;" id="roster-status-container">
+                        <!-- Injected dynamically -->
+                    </div>
+                    <div id="roster-btn-container">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- Main Content Panels -->
+            <main class="dashboard-main">
+                
+                <!-- TAB 1: CONSULTATIONS QUEUE -->
+                <div id="panel-consults" class="dashboard-panel">
                     <!-- Active Consultation Box -->
                     <div id="active-consultation-container">
                         <!-- Injected dynamically when a checkup is running -->
@@ -126,60 +127,55 @@
                             </table>
                         </div>
                     </section>
-                </main>
-            </div>
-        </div>
-
-        <!-- TAB 2: APPOINTMENTS CONSOLE -->
-        <div id="appointments-tab" class="tab-content">
-            <div class="card" style="padding: 2.5rem; margin-bottom: 2rem;">
-                <h3>Pending Booking Requests</h3>
-                <div class="table-wrap" style="margin-top: 1.2rem;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Patient Name</th>
-                                <th>Date Requested</th>
-                                <th>Preferred Time Slot</th>
-                                <th>Symptoms</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pending-appointments-tbody">
-                            <!-- Injected dynamically -->
-                        </tbody>
-                    </table>
                 </div>
-            </div>
 
-            <div class="card" style="padding: 2.5rem;">
-                <h3>Upcoming / Approved Appointments</h3>
-                <div class="table-wrap" style="margin-top: 1.2rem;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Patient Name</th>
-                                <th>Email</th>
-                                <th>Date</th>
-                                <th>Time Slot</th>
-                                <th>Symptoms</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="approved-appointments-tbody">
-                            <!-- Injected dynamically -->
-                        </tbody>
-                    </table>
+                <!-- TAB 2: APPOINTMENTS CONSOLE -->
+                <div id="panel-appointments" class="dashboard-panel" style="display: none;">
+                    <div class="card" style="padding: 2.5rem; margin-bottom: 2rem;">
+                        <h3>Pending Booking Requests</h3>
+                        <div class="table-wrap" style="margin-top: 1.2rem;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Patient Name</th>
+                                        <th>Date Requested</th>
+                                        <th>Preferred Time Slot</th>
+                                        <th>Symptoms</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pending-appointments-tbody">
+                                    <!-- Injected dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card" style="padding: 2.5rem;">
+                        <h3>Upcoming / Approved Appointments</h3>
+                        <div class="table-wrap" style="margin-top: 1.2rem;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Patient Name</th>
+                                        <th>Email</th>
+                                        <th>Date</th>
+                                        <th>Time Slot</th>
+                                        <th>Symptoms</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="approved-appointments-tbody">
+                                    <!-- Injected dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- TAB 3: MANAGE SCHEDULE -->
-        <div id="schedule-tab" class="tab-content">
-            <div class="dashboard-grid">
-                <!-- Add slot form -->
-                <aside class="dashboard-sidebar">
-                    <div class="card" style="padding: 2rem;">
+                <!-- TAB 3: MANAGE SCHEDULE -->
+                <div id="panel-schedule" class="dashboard-panel" style="display: none;">
+                    <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
                         <h3>Define Availability Slot</h3>
                         <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Declare hours when patients can request appointments with you.</p>
                         
@@ -202,10 +198,7 @@
                             <button type="submit" class="btn btn-primary btn-full" style="margin-top: 0.5rem;">Publish Available Slot</button>
                         </form>
                     </div>
-                </aside>
 
-                <!-- List slots -->
-                <main class="dashboard-main">
                     <div class="card" style="padding: 2.5rem;">
                         <h3>My Scheduled Availability Blocks</h3>
                         <div class="table-wrap" style="margin-top: 1.2rem;">
@@ -224,10 +217,10 @@
                             </table>
                         </div>
                     </div>
-                </main>
-            </div>
-        </div>
+                </div>
 
+            </main>
+        </div>
     </div>
 
     <!-- Site Core Client Scripts -->
@@ -244,6 +237,23 @@
             
             document.getElementById('doctor-portal-name').textContent = 'Dr. ' + currentDoc.name;
             
+            // Setup tabs switching
+            const tabButtons = document.querySelectorAll('.nav-tab-btn');
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tabButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    const panels = document.querySelectorAll('.dashboard-panel');
+                    panels.forEach(p => p.style.display = 'none');
+                    
+                    const targetTab = btn.getAttribute('data-tab');
+                    document.getElementById(`panel-${targetTab}`).style.display = 'block';
+                    
+                    renderTabCounts();
+                });
+            });
+
             renderClockTerminal();
             renderQueues();
             renderAppointmentsConsole();
@@ -272,22 +282,12 @@
                     scheduleForm.reset();
                     document.getElementById('sched-date').value = new Date().toISOString().split('T')[0];
                     renderDoctorScheduleSlots();
+                    renderTabCounts();
                 } else {
                     showToast(res.message || 'Failed to publish slot.', 'error');
                 }
             });
         });
-
-        // Tab switches
-        window.switchTab = function(tabId) {
-            renderTabCounts();
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.add('active');
-            const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.outerHTML.includes(tabId));
-            if (activeBtn) activeBtn.classList.add('active');
-        };
 
         function renderTabCounts() {
             if (!currentDoc) return;
@@ -299,19 +299,15 @@
             const pendingAppts = appts.filter(a => a.status === 'pending').length;
 
             const tabsConfig = {
-                'consults-tab': { text: `Consultations Queue (${waitingQueue.length})`, icon: '🩺', badge: waitingQueue.length },
-                'appointments-tab': { text: `Appointments Console (${appts.length})`, icon: '📅', badge: pendingAppts },
-                'schedule-tab': { text: `Manage Schedule (${scheds.length})`, icon: '🕒' }
+                consults: { text: `Consultations Queue (${waitingQueue.length})`, icon: '🩺', badge: waitingQueue.length },
+                appointments: { text: `Appointments Console (${appts.length})`, icon: '📅', badge: pendingAppts },
+                schedule: { text: `Manage Schedule (${scheds.length})`, icon: '🕒' }
             };
 
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                const clickAttr = btn.getAttribute('onclick') || '';
-                let key = '';
-                if (clickAttr.includes('consults-tab')) key = 'consults-tab';
-                else if (clickAttr.includes('appointments-tab')) key = 'appointments-tab';
-                else if (clickAttr.includes('schedule-tab')) key = 'schedule-tab';
-
-                const config = tabsConfig[key];
+            const btns = document.querySelectorAll('.nav-tab-btn');
+            btns.forEach(btn => {
+                const tabName = btn.getAttribute('data-tab');
+                const config = tabsConfig[tabName];
                 if (config) {
                     let label = `${config.icon} ${config.text}`;
                     let html = `<span>${label}</span>`;

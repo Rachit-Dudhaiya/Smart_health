@@ -86,57 +86,60 @@
 <body data-path-prefix="../../" data-restricted-roles="admin,patient">
     
     <div class="container" style="padding: 2rem 0;">
-        
-        <!-- Tab Navigation Header -->
-        <div class="tabs-header">
-            <button class="tab-btn active" onclick="switchTab('queue-tab')">🏥 Consult Queue & Beds</button>
-            <button class="tab-btn" onclick="switchTab('appointments-tab')">📅 Appointments</button>
-            <button class="tab-btn" onclick="switchTab('billing-tab')">💵 Bills & Receipts</button>
-            <button class="tab-btn" onclick="switchTab('ambulance-tab')">🚑 Ambulance Tracking</button>
-        </div>
-
-        <!-- TAB 1: CONSULT QUEUE & BED STATUS -->
-        <div id="queue-tab" class="tab-content active">
-            <div class="dashboard-grid">
-                <!-- Sidebar tools -->
-                <aside class="dashboard-sidebar">
-                    <h4 style="margin-bottom: 1.5rem;">Emergency Tools</h4>
-                    
-                    <div class="card" style="padding: 1.5rem; text-align: center; border-color: var(--color-danger); background-color: #fef2f2;">
-                        <span style="font-size: 3rem;">🚑</span>
-                        <h4 style="color: var(--color-danger); margin-top: 0.5rem;">Emergency Ambulance</h4>
-                        <p style="font-size: 0.8rem; color: #7f1d1d; margin: 0.5rem 0 1rem;">Request a live ambulance, monitor its movement, and receive dispatch updates in real time.</p>
-                        
-                        <div id="ambulance-request-status" style="margin-bottom: 1rem;"></div>
-                        <div id="ambulance-request-form" style="text-align: left; display: none;">
-                            <label>
-                                Priority
-                                <select id="ambulance-priority" style="margin-top: 0.3rem; margin-bottom: 0.8rem;">
-                                    <option value="critical">Critical</option>
-                                    <option value="high">High</option>
-                                    <option value="medium" selected>Medium</option>
-                                    <option value="low">Low</option>
-                                </select>
-                            </label>
-                            <label>
-                                Symptoms / Notes
-                                <textarea id="ambulance-symptoms" rows="2" style="margin-top: 0.3rem;" placeholder="Describe the emergency briefly"></textarea>
-                            </label>
-                        </div>
-                        <div id="ambulance-request-actions" style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.8rem;"></div>
-                        <a href="../../pages/ambulance-tracker.html" class="btn btn-secondary btn-full" style="margin-top: 0.7rem; display: inline-block; text-align: center;">🗺️ Open Live Tracker</a>
-                    </div>
-                    
-                    <div class="card" style="padding: 1.5rem; margin-top: 1.5rem; text-align: center;">
-                        <h4>Ward Bed Status</h4>
-                        <div id="bed-status-sidebar" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem; text-align: left;">
-                            <!-- Injected dynamically -->
-                        </div>
-                    </div>
-                </aside>
+        <div class="dashboard-grid">
+            
+            <!-- Sidebar Navigation & Status Widgets -->
+            <aside class="dashboard-sidebar">
+                <h4 style="margin-bottom: 1rem; color: var(--color-text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Patient Dashboard</h4>
+                <div class="sidebar-nav" style="margin-top: 1rem; margin-bottom: 2rem;">
+                    <button class="nav-tab-btn active" data-tab="queue">🏥 Consult Queue & Beds</button>
+                    <button class="nav-tab-btn" data-tab="appointments">📅 Appointments</button>
+                    <button class="nav-tab-btn" data-tab="billing">💵 Bills & Receipts</button>
+                    <button class="nav-tab-btn" data-tab="ambulance">🚑 Ambulance Tracking</button>
+                </div>
                 
-                <!-- Main Area -->
-                <main class="dashboard-main">
+                <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 1.5rem 0;" />
+                
+                <!-- Emergency tools -->
+                <h4 style="margin-bottom: 1rem; color: var(--color-text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Emergency Tools</h4>
+                <div class="card" style="padding: 1.2rem; text-align: center; border-color: var(--color-danger); background-color: #fef2f2; margin-bottom: 1.5rem;">
+                    <span style="font-size: 2.5rem;">🚑</span>
+                    <h4 style="color: var(--color-danger); margin-top: 0.3rem; font-size: 1rem;">Emergency Ambulance</h4>
+                    <p style="font-size: 0.75rem; color: #7f1d1d; margin: 0.4rem 0 0.8rem; line-height: 1.3;">Request a live ambulance, monitor its movement, and receive dispatch updates in real time.</p>
+                    
+                    <div id="ambulance-request-status" style="margin-bottom: 0.8rem;"></div>
+                    <div id="ambulance-request-form" style="text-align: left; display: none;">
+                        <label style="font-size: 0.8rem;">
+                            Priority
+                            <select id="ambulance-priority" style="margin-top: 0.2rem; margin-bottom: 0.6rem; padding: 0.3rem 0.5rem; font-size: 0.8rem;">
+                                <option value="critical">Critical</option>
+                                <option value="high">High</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </label>
+                        <label style="font-size: 0.8rem;">
+                            Symptoms / Notes
+                            <textarea id="ambulance-symptoms" rows="2" style="margin-top: 0.2rem; font-size: 0.8rem;" placeholder="Describe the emergency briefly"></textarea>
+                        </label>
+                    </div>
+                    <div id="ambulance-request-actions" style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.6rem;"></div>
+                    <a href="../../pages/ambulance-tracker.html" class="btn btn-secondary btn-full" style="margin-top: 0.5rem; display: inline-block; text-align: center; font-size: 0.8rem; padding: 0.4rem 0.8rem;">🗺️ Open Live Tracker</a>
+                </div>
+                
+                <h4 style="margin-bottom: 1rem; color: var(--color-text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Ward Bed Status</h4>
+                <div class="card" style="padding: 1.2rem;">
+                    <div id="bed-status-sidebar" style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.8rem; text-align: left;">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- Main Content Panels -->
+            <main class="dashboard-main">
+                
+                <!-- TAB 1: CONSULT QUEUE & BED STATUS -->
+                <div id="panel-queue" class="dashboard-panel">
                     <!-- Active Queue Status Card -->
                     <div id="active-queue-card-container" style="margin-bottom: 2rem;">
                         <!-- Injected dynamically -->
@@ -183,16 +186,11 @@
                             </table>
                         </div>
                     </div>
-                </main>
-            </div>
-        </div>
+                </div>
 
-        <!-- TAB 2: APPOINTMENTS SCHEDULING -->
-        <div id="appointments-tab" class="tab-content">
-            <div class="dashboard-grid">
-                <!-- Book Slot Form -->
-                <aside class="dashboard-sidebar">
-                    <div class="card" style="padding: 2rem;">
+                <!-- TAB 2: APPOINTMENTS SCHEDULING -->
+                <div id="panel-appointments" class="dashboard-panel" style="display: none;">
+                    <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
                         <h3>Book Appointment</h3>
                         <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Request an appointment slot based on physician schedules.</p>
                         
@@ -230,10 +228,7 @@
                             <button type="submit" class="btn btn-primary btn-full" style="margin-top: 0.5rem;">Request Appointment</button>
                         </form>
                     </div>
-                </aside>
 
-                <!-- Appointments History -->
-                <main class="dashboard-main">
                     <div class="card" style="padding: 2.5rem;">
                         <h3>My Appointments Schedule</h3>
                         <div class="table-wrap" style="margin-top: 1.2rem;">
@@ -254,45 +249,45 @@
                             </table>
                         </div>
                     </div>
-                </main>
-            </div>
-        </div>
-
-        <!-- TAB 3: BILLING & RECEIPTS -->
-        <div id="billing-tab" class="tab-content">
-            <div class="card" style="padding: 2.5rem;">
-                <h3>My Billings & Invoices</h3>
-                <p class="auth-subtitle" style="margin-bottom: 1.5rem;">View bills generated by the pharmacy and make payments or print receipts.</p>
-                
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Invoice ID</th>
-                                <th>Date</th>
-                                <th>Grand Total</th>
-                                <th>Discount</th>
-                                <th>Final Paid Amount</th>
-                                <th>Payment Method</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="billing-tbody">
-                            <!-- Injected dynamically -->
-                        </tbody>
-                    </table>
                 </div>
-            </div>
-        </div>
 
-        <!-- TAB 4: AMBULANCE TRACKING -->
-        <div id="ambulance-tab" class="tab-content">
-            <div class="card" style="padding: 1rem; height: 75vh; min-height: 500px;">
-                <iframe src="../ambulance-tracker.html" style="width: 100%; height: 100%; border: none; border-radius: var(--radius-md);"></iframe>
-            </div>
-        </div>
+                <!-- TAB 3: BILLING & RECEIPTS -->
+                <div id="panel-billing" class="dashboard-panel" style="display: none;">
+                    <div class="card" style="padding: 2.5rem;">
+                        <h3>My Billings & Invoices</h3>
+                        <p class="auth-subtitle" style="margin-bottom: 1.5rem;">View bills generated by the pharmacy and make payments or print receipts.</p>
+                        
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Invoice ID</th>
+                                        <th>Date</th>
+                                        <th>Grand Total</th>
+                                        <th>Discount</th>
+                                        <th>Final Paid Amount</th>
+                                        <th>Payment Method</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="billing-tbody">
+                                    <!-- Injected dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- TAB 4: AMBULANCE TRACKING -->
+                <div id="panel-ambulance" class="dashboard-panel" style="display: none;">
+                    <div class="card" style="padding: 1rem; height: 75vh; min-height: 500px;">
+                        <iframe src="../ambulance-tracker.html" style="width: 100%; height: 100%; border: none; border-radius: var(--radius-md);"></iframe>
+                    </div>
+                </div>
+
+            </main>
+        </div>
     </div>
 
     <!-- Print Bill Modal -->
@@ -322,9 +317,27 @@
             
             renderSidebarBeds();
             renderPatientDashboard();
-            renderAmbulancePanel();
             renderAppointments();
             renderBillingHistory();
+            renderAmbulancePanel();
+
+            // Setup tabs switching
+            const tabButtons = document.querySelectorAll('.nav-tab-btn');
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tabButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    const panels = document.querySelectorAll('.dashboard-panel');
+                    panels.forEach(p => p.style.display = 'none');
+                    
+                    const targetTab = btn.getAttribute('data-tab');
+                    document.getElementById(`panel-${targetTab}`).style.display = 'block';
+                    
+                    renderTabCounts();
+                });
+            });
+
             renderTabCounts();
             setInterval(() => renderAmbulancePanel(), 3000);
             
@@ -352,6 +365,7 @@
                 if (res.success) {
                     showToast(res.message, 'success');
                     renderPatientDashboard();
+                    renderTabCounts();
                 } else {
                     showToast(res.message || 'Failed to join queue.', 'error');
                 }
@@ -377,60 +391,42 @@
                     apptForm.reset();
                     document.getElementById('appt-date').value = new Date().toISOString().split('T')[0];
                     renderAppointments();
+                    renderTabCounts();
                 } else {
                     showToast(res.message || 'Booking failed.', 'error');
                 }
             });
         });
 
-        // Tab Switching controller
-        window.switchTab = function(tabId) {
-            renderTabCounts();
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.add('active');
-            const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.outerHTML.includes(tabId));
-            if (activeBtn) activeBtn.classList.add('active');
-        };
-
         function renderTabCounts() {
-            if (!curPatient) return;
-            const flow = db.getPatientFlow().filter(f => f.patient_id === curPatient.id);
-            const appts = db.getAppointments().filter(a => a.patient_id === curPatient.id);
-            const bills = db.getBills().filter(b => b.patient_id === curPatient.id);
-            const beds = db.getBeds();
+             if (!curPatient) return;
+             const flow = db.getPatientFlow().filter(f => f.patient_id === curPatient.id);
+             const appts = db.getAppointments().filter(a => a.patient_id === curPatient.id);
+             const bills = db.getBills().filter(b => b.patient_id === curPatient.id);
 
-            const activeQueue = flow.filter(f => f.status === 'waiting' || f.status === 'in-consultation').length;
-            const pendingBills = bills.filter(b => b.payment_status === 'unpaid').length;
+             const activeQueue = flow.filter(f => f.status === 'waiting' || f.status === 'in-consultation').length;
+             const pendingBills = bills.filter(b => b.payment_status === 'unpaid').length;
 
-            const tabsConfig = {
-                'consult-tab': { text: `Consultation Queue (${flow.length})`, icon: '🩺', badge: activeQueue },
-                'appointments-tab': { text: `Appointments (${appts.length})`, icon: '📅' },
-                'tracker-tab': { text: 'Ambulance Tracking', icon: '🚑' },
-                'bed-tab': { text: `Bed Vacancies (${beds.length})`, icon: '🛏️' },
-                'billing-tab': { text: `Invoice Payments (${bills.length})`, icon: '💵', badge: pendingBills }
-            };
+             const tabsConfig = {
+                 queue: { text: `Consult Queue & Beds (${flow.length})`, icon: '🏥', badge: activeQueue },
+                 appointments: { text: `Appointments (${appts.length})`, icon: '📅' },
+                 billing: { text: `Bills & Receipts (${bills.length})`, icon: '💵', badge: pendingBills },
+                 ambulance: { text: 'Ambulance Tracking', icon: '🚑' }
+             };
 
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                const clickAttr = btn.getAttribute('onclick') || '';
-                let key = '';
-                if (clickAttr.includes('consult-tab')) key = 'consult-tab';
-                else if (clickAttr.includes('appointments-tab')) key = 'appointments-tab';
-                else if (clickAttr.includes('tracker-tab')) key = 'tracker-tab';
-                else if (clickAttr.includes('bed-tab')) key = 'bed-tab';
-                else if (clickAttr.includes('billing-tab')) key = 'billing-tab';
-
-                const config = tabsConfig[key];
-                if (config) {
-                    let label = `${config.icon} ${config.text}`;
-                    let html = `<span>${label}</span>`;
-                    if (config.badge !== undefined && config.badge > 0) {
-                        html += `<span class="nav-badge">${config.badge}</span>`;
-                    }
-                    btn.innerHTML = html;
-                }
-            });
+             const btns = document.querySelectorAll('.nav-tab-btn');
+             btns.forEach(btn => {
+                 const tabName = btn.getAttribute('data-tab');
+                 const config = tabsConfig[tabName];
+                 if (config) {
+                     let label = `${config.icon} ${config.text}`;
+                     let html = `<span>${label}</span>`;
+                     if (config.badge !== undefined && config.badge > 0) {
+                         html += `<span class="nav-badge">${config.badge}</span>`;
+                     }
+                     btn.innerHTML = html;
+                 }
+             });
         }
 
         function renderSidebarBeds() {
