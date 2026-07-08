@@ -53,6 +53,16 @@
                     </div>
                 </label>
                 
+                <label>
+                    Account Role Type
+                    <select id="register-role" required>
+                        <option value="patient">Patient (OPD / Queue)</option>
+                        <option value="doctor">Facility Doctor (Roster)</option>
+                        <option value="pharmacist">Pharmacist Staff (Inventory)</option>
+                        <option value="admin">System Admin (All access)</option>
+                    </select>
+                </label>
+                
                 <button class="btn btn-primary btn-full" type="submit" style="margin-top: 0.5rem;">Register Now</button>
             </form>
             
@@ -106,7 +116,7 @@
                 const email = document.getElementById('register-email').value.trim();
                 const password = document.getElementById('register-password').value;
                 const confirmPassword = document.getElementById('register-confirm').value;
-                const role = 'patient';
+                const role = document.getElementById('register-role').value;
                 
                 if (!name || !email || !password || !confirmPassword) {
                     errorMsg.textContent = 'Please fill in all fields.';
@@ -182,7 +192,7 @@
                     sessionStorage.setItem('sh_current_user', JSON.stringify(userToLogin));
                     db.logActivity('Registered and logged in', userToLogin.id);
                     setFlashMessage(`Account created successfully! Welcome, ${name}!`, 'success');
-                    window.location.href = '../dashboard/patient.html';
+                    window.location.href = `../dashboard/${role}.html`;
 
                 } catch (err) {
                     let errMsg = err.message;
