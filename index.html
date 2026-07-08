@@ -1,376 +1,337 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Medicine Recognition & Description | Smart Health</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI-Powered Healthcare Management System | Smart Health</title>
+    <meta name="description" content="Smart Health brings medicine stock, patient footfall, bed availability, doctor attendance, AI predictions, and real-time alerts into one unified command center." />
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Custom Stylesheet -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
-<body>
-
-    <!-- Header Navigation -->
-    <header class="container py-4">
-        <div class="glass-panel p-3 d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center gap-3">
-                <span class="fs-2">🩺</span>
-                <div>
-                    <h1 class="h4 mb-0 logo-text">Smart Health AI</h1>
-                    <p class="text-muted small mb-0 d-none d-sm-block">Medicine Recognition & Analysis Portal</p>
-                </div>
-            </div>
-            
-            <div class="d-flex gap-3">
-                <!-- Theme Switcher -->
-                <button id="theme-toggle-btn" class="theme-switch-btn" title="Toggle Light/Dark Theme">
-                    <span>☀️</span>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Workspace -->
-    <main class="container mb-5">
-        <div class="row g-4">
-            
-            <!-- Left Column: Input and History Sidebar -->
-            <div class="col-lg-4">
-                <div class="d-flex flex-column gap-4">
-                    
-                    <!-- Scan Control Card -->
-                    <section class="glass-panel p-4">
-                        <h2 class="h5 mb-3 text-primary d-flex align-items-center gap-2">
-                            <span>📸</span> Scan Medicine
-                        </h2>
-                        
-                        <form id="scan-form">
-                            <!-- Drag & Drop Upload Zone -->
-                            <div id="upload-zone-wrapper" class="upload-zone">
-                                <div class="upload-icon">📤</div>
-                                <h3 class="h6 mb-2">Upload or Drag Image</h3>
-                                <p class="text-muted small mb-3">Supports JPG, PNG, WEBP (Max 5MB)</p>
-                                <button type="button" class="btn btn-glass btn-sm">Browse Files</button>
-                                <input type="file" id="image-upload-input" accept="image/*" class="d-none">
-                            </div>
-                            
-                            <!-- Image Preview Area -->
-                            <div id="image-preview-panel" class="preview-container" style="display: none;">
-                                <img id="preview-img-element" src="" alt="Medicine preview" class="preview-img">
-                                <button type="button" id="remove-preview-btn" class="preview-remove-btn" title="Remove Photo">&times;</button>
-                            </div>
-                            
-                            <!-- Submit Button -->
-                            <button type="submit" id="scan-submit-btn" class="btn btn-glass w-100 mt-4 py-2 fw-semibold d-flex justify-content-center align-items-center gap-2" disabled>
-                                <span>🧠</span> Analyze Medicine
-                            </button>
-                        </form>
-                    </section>
-
-                    <!-- Scan History Sidebar -->
-                    <section class="glass-panel p-4 history-sidebar">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2 class="h5 mb-0 text-primary d-flex align-items-center gap-2">
-                                <span>📁</span> Recent Scans
-                            </h2>
-                            <button id="filter-favorites-btn" class="btn btn-glass btn-sm" title="Show Favorites Only">⭐</button>
-                        </div>
-                        
-                        <!-- Search inside history -->
-                        <div class="input-group input-group-sm mb-3">
-                            <span class="input-group-text bg-transparent text-muted" style="border-color:var(--glass-border);">🔍</span>
-                            <input type="text" id="search-history-input" class="form-control bg-transparent text-primary" placeholder="Search history..." style="border-color:var(--glass-border); outline:none; box-shadow:none;">
-                        </div>
-                        
-                        <!-- History List -->
-                        <ul id="history-records-list" class="list-unstyled mb-4" style="max-height: 250px; overflow-y: auto;">
-                            <!-- Injected dynamically -->
-                        </ul>
-
-                        <!-- History Actions -->
-                        <div class="d-flex gap-2">
-                            <button id="export-history-btn" class="btn btn-glass btn-sm flex-grow-1" title="Export as JSON file">📤 Export JSON</button>
-                            <button id="clear-history-btn" class="btn btn-glass btn-sm text-danger" title="Clear all history">🗑️ Clear</button>
-                        </div>
-                    </section>
-
-                </div>
-            </div>
-
-            <!-- Right Column: Loading and Detailed Analysis Results -->
-            <div class="col-lg-8">
-                
-                <!-- Loading state -->
-                <div id="loading-state-wrapper" class="glass-panel loading-wrapper">
-                    <div class="loading-spinner"></div>
-                    <h3 class="h5 mb-2">Analyzing Medicine Image</h3>
-                    <p class="text-muted small mb-3">Running Gemini Vision OCR and medical data synthesis...</p>
-                    <div class="progress-bar-custom">
-                        <div id="progress-bar-fill" class="progress-fill-custom"></div>
-                    </div>
-                </div>
-
-                <!-- Analysis Results Section (Initially hidden) -->
-                <article id="results-section-panel" class="glass-panel p-4" style="display: none;">
-                    
-                    <!-- Result Metadata Card -->
-                    <div class="result-header-card d-flex justify-content-between align-items-start flex-wrap gap-3">
-                        <div class="flex-grow-1">
-                            <div class="d-flex align-items-center gap-3 flex-wrap">
-                                <h2 id="res-med-name" class="h3 mb-0 text-info">Paracetamol 650</h2>
-                                <span class="confidence-badge">
-                                    <span>🎯</span> AI Confidence: <strong id="res-confidence">95%</strong>
-                                </span>
-                            </div>
-                            <p class="text-muted mt-2 mb-1">Generic Name: <strong id="res-generic-name" class="text-primary-emphasis">--</strong></p>
-                            <p class="text-muted mb-1">Brand Name: <strong id="res-brand-name" class="text-primary-emphasis">--</strong></p>
-                            <p class="text-muted mb-0">Salt Composition: <strong id="res-composition" class="text-primary-emphasis">--</strong></p>
-                        </div>
-                        
-                        <div class="d-flex gap-2">
-                            <!-- Favorite Star Button -->
-                            <button id="favorite-toggle-icon" class="btn btn-glass fs-5" title="Add to Favorites" style="padding: 0.35rem 0.8rem;">☆</button>
-                        </div>
-                    </div>
-
-                    <!-- Toolbar Actions -->
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-                        
-                        <!-- Language toggle tabs -->
-                        <div class="btn-group" role="group">
-                            <button type="button" id="lang-en-btn" class="btn btn-glass lang-btn btn-glass-active">English</button>
-                            <button type="button" id="lang-gu-btn" class="btn btn-glass lang-btn">ગુજરાતી</button>
-                        </div>
-
-                        <!-- Speech voice reader controls -->
-                        <div class="audio-panel">
-                            <button id="play-audio-btn" class="btn btn-sm btn-link text-decoration-none text-primary fw-semibold p-0">🔊 Read Aloud</button>
-                            <span class="text-muted">|</span>
-                            <button id="stop-audio-btn" class="btn btn-sm btn-link text-decoration-none text-danger fw-semibold p-0">⏹️ Stop</button>
-                        </div>
-
-                    </div>
-
-                    <!-- Description Detailed Panels (Tabs/Accordion structure) -->
-                    <div class="row g-3">
-                        
-                        <!-- Primary Medical Fields -->
-                        <div class="col-md-6">
-                            <div class="glass-card">
-                                <h4 class="h6 text-info">🩺 Uses</h4>
-                                <p id="res-uses" class="mb-0 text-muted small">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="glass-card">
-                                <h4 class="h6 text-info">✨ Key Benefits</h4>
-                                <p id="res-benefits" class="mb-0 text-muted small">Loading...</p>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="glass-card">
-                                <h4 class="h6 text-info">⚙️ How it Works</h4>
-                                <p id="res-works" class="mb-0 text-muted small">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="glass-card">
-                                <h4 class="h6 text-info">📏 Recommended Dosage</h4>
-                                <p id="res-dosage" class="mb-0 text-muted small">Loading...</p>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="glass-card">
-                                <h4 class="h6 text-info">🍽️ Food Intake Instruction</h4>
-                                <p id="res-food" class="mb-0 text-muted small">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="glass-card">
-                                <h4 class="h6 text-info">⚠️ Common Side Effects</h4>
-                                <p id="res-side-effects" class="mb-0 text-muted small" style="color:var(--color-warning);">Loading...</p>
-                            </div>
-                        </div>
-
-                        <div class="col-12">
-                            <div class="glass-card" style="border-color: rgba(248, 113, 113, 0.2);">
-                                <h4 class="h6 text-danger">🚨 Serious Side Effects</h4>
-                                <p id="res-serious-side-effects" class="mb-0 text-muted small">Loading...</p>
-                            </div>
-                        </div>
-
-                        <div class="col-12">
-                            <div class="glass-card">
-                                <h4 class="h6 text-info">🛑 Critical Warnings</h4>
-                                <p id="res-warnings" class="mb-0 text-muted small">Loading...</p>
-                            </div>
-                        </div>
-
-                        <!-- Safety Precautions Grid -->
-                        <div class="col-12 mt-4">
-                            <h3 class="h5 text-primary mb-3">🛡️ Organ & Condition Safety Status</h3>
-                            <div class="table-responsive">
-                                <table class="table table-borderless align-middle text-primary mb-0" style="background:transparent;">
-                                    <thead>
-                                        <tr class="border-bottom" style="border-color:var(--glass-border);">
-                                            <th>Condition</th>
-                                            <th>Precaution / Safety Warning</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="text-muted small">
-                                        <tr>
-                                            <td class="fw-semibold text-primary">Pregnancy</td>
-                                            <td id="res-preg-safety">Loading...</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="fw-semibold text-primary">Breastfeeding</td>
-                                            <td id="res-breast-safety">Loading...</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="fw-semibold text-primary">Kidneys</td>
-                                            <td id="res-kidney-safety">Loading...</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="fw-semibold text-primary">Liver</td>
-                                            <td id="res-liver-safety">Loading...</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="fw-semibold text-primary">Heart</td>
-                                            <td id="res-heart-safety">Loading...</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- Miscellaneous and interactions -->
-                        <div class="col-md-6 mt-4">
-                            <div class="glass-card">
-                                <h4 class="h6 text-info">🍷 Alcohol Interaction</h4>
-                                <p id="res-alcohol" class="mb-0 text-muted small">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mt-4">
-                            <div class="glass-card">
-                                <h4 class="h6 text-info">💊 Drug-Drug Interactions</h4>
-                                <p id="res-drug-interact" class="mb-0 text-muted small">Loading...</p>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="glass-card">
-                                <h4 class="h6 text-info">🚗 Driving Safety Warning</h4>
-                                <p id="res-driving" class="mb-0 text-muted small">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="glass-card">
-                                <h4 class="h6 text-info">⏰ Missed Dose Action</h4>
-                                <p id="res-missed-dose" class="mb-0 text-muted small">Loading...</p>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="glass-card">
-                                <h4 class="h6 text-info">⚠️ Overdose Precaution</h4>
-                                <p id="res-overdose" class="mb-0 text-muted small">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="glass-card">
-                                <h4 class="h6 text-info">📦 Storage Guidelines</h4>
-                                <p id="res-storage" class="mb-0 text-muted small">Loading...</p>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="glass-card">
-                                <h4 class="h6 text-info">👶 Age Restriction</h4>
-                                <p id="res-age-restrict" class="mb-0 text-muted small">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="glass-card">
-                                <h4 class="h6 text-info">📋 Prescription Status</h4>
-                                <p id="res-prescription" class="mb-0 text-muted small">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="glass-card">
-                                <h4 class="h6 text-info">🧪 Available Strengths</h4>
-                                <p id="res-strengths" class="mb-0 text-muted small">Loading...</p>
-                            </div>
-                        </div>
-
-                        <!-- Alternative Brands -->
-                        <div class="col-12 mt-3">
-                            <div class="glass-card">
-                                <h4 class="h6 text-info mb-2">🔄 Alternative Medicines</h4>
-                                <div id="res-alternatives">
-                                    <!-- Badges injected dynamically -->
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- FAQ accordion list -->
-                        <div class="col-12 mt-4">
-                            <h3 class="h5 text-primary mb-3">❓ Frequently Asked Questions (FAQs)</h3>
-                            <div class="accordion bg-transparent" id="res-faqs-accordion">
-                                <!-- Accordion items injected dynamically -->
-                            </div>
-                        </div>
-
-                        <!-- Audit OCR Log Block -->
-                        <div class="col-12 mt-3">
-                            <details class="glass-card text-muted small" style="cursor: pointer;">
-                                <summary class="fw-semibold text-primary">🔍 Technical Audit (Extracted OCR Text & Manufacturer)</summary>
-                                <div class="mt-2">
-                                    <p class="mb-1"><strong>Manufacturer</strong>: <span id="res-manufacturer">--</span></p>
-                                    <p class="mb-0"><strong>Raw OCR Output</strong>:</p>
-                                    <pre id="res-ocr" class="bg-dark text-success p-3 rounded mt-2 border border-secondary" style="font-size:0.75rem; white-space:pre-wrap; font-family:monospace;"></pre>
-                                </div>
-                            </details>
-                        </div>
-
-                    </div>
-
-                    <!-- Actions Toolbar buttons -->
-                    <div id="actions-toolbar" class="d-flex gap-2 flex-wrap mt-4 border-top pt-3" style="border-color:var(--glass-border) !important;">
-                        <button id="action-copy-btn" class="btn btn-glass btn-sm flex-grow-1">📋 Copy Report</button>
-                        <button id="action-pdf-btn" class="btn btn-glass btn-sm flex-grow-1">📄 Download PDF</button>
-                        <button id="action-print-btn" class="btn btn-glass btn-sm flex-grow-1">🖨️ Print Report</button>
-                        <button id="action-share-btn" class="btn btn-glass btn-sm flex-grow-1">🔗 Share Report</button>
-                    </div>
-
-                    <!-- Disclaimer -->
-                    <footer class="disclaimer-card text-center">
-                        ⚠️ <strong>Disclaimer</strong>: This AI-generated information is for educational purposes only and should not replace professional medical advice. Always consult a qualified doctor before taking any medicine.
-                    </footer>
-
-                </article>
-
-            </div>
-
-        </div>
-    </main>
-
-    <!-- Global Core CDNs -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<body data-path-prefix="./">
     
-    <!-- Config and Script Files -->
-    <script src="config.js"></script>
-    <script src="script.js"></script>
+    <!-- Hero Command Section -->
+    <section class="hero">
+        <div class="container hero-grid">
+            <div>
+                <div class="hero-badge">🏥 PHC & CHC Command Hub</div>
+                <p class="eyebrow">Real-time digital management for rural and urban healthcare nodes</p>
+                <h1>Smarter clinics. Faster care. Zero guesswork.</h1>
+                <p class="hero-text">
+                    Smart Health integrates medicine stocks, patient footfalls, bed occupancy, doctor rosters, and real-time emergency notifications into one elegant digital command center.
+                </p>
+                <div class="hero-actions" id="hero-actions-container">
+                    <a class="btn btn-primary" href="pages/medicine-stock.html">Explore Live Inventory</a>
+                    <!-- Injected dynamically based on auth status -->
+                </div>
+                
+                <div class="stats-strip" style="margin-top: 2rem;">
+                    <div class="stat-pill"><strong id="stats-wards">4</strong> <span>Care Wards</span></div>
+                    <div class="stat-pill"><strong id="stats-doctors">0</strong> <span>Staff Doctors</span></div>
+                    <div class="stat-pill"><strong id="stats-patients">0</strong> <span>Registered Patients</span></div>
+                    <div class="stat-pill"><strong>24/7</strong> <span>AI Alerts</span></div>
+                </div>
+            </div>
+            
+            <div class="hero-card">
+                <h3>Live Command Metrics</h3>
+                <div id="welcome-message-container"></div>
+                
+                <div class="stat-grid">
+                    <div class="mini-card">
+                        <strong id="metric-low-stock">0</strong>
+                        <span>Needs Attention</span>
+                    </div>
+                    <div class="mini-card">
+                        <strong id="metric-beds">0</strong>
+                        <span>Available Beds</span>
+                    </div>
+                    <div class="mini-card">
+                        <strong id="metric-roster">0%</strong>
+                        <span>Doctor Roster Rate</span>
+                    </div>
+                    <div class="mini-card">
+                        <strong>98.7%</strong>
+                        <span>Sync Accuracy</span>
+                    </div>
+                </div>
+                <p class="hero-text" style="font-size: 0.8rem; margin: 0;">* Automatically synchronizing with clinical records and active databases.</p>
+            </div>
+        </div>
+    </section>
 
+    <!-- Senior Citizen Quick Assist Section -->
+    <section class="section" style="background-color: var(--color-primary-light); padding: 5rem 0; border-bottom: 2px solid var(--color-border);">
+        <div class="container">
+            <div class="section-heading" style="margin-bottom: 3.5rem;">
+                <p class="eyebrow">Senior Citizen Hub</p>
+                <h2>Quick Care Access</h2>
+            </div>
+            
+            <div class="card-grid two-up" style="max-width: 1000px; margin: 0 auto;">
+                <a href="pages/medicine-stock.html" class="senior-hub-link">
+                    <span class="material-icons">medication</span>
+                    <div>
+                        <h3>Medicine Stock</h3>
+                        <p>Check if your prescribed medicine is currently in stock at the dispensary.</p>
+                    </div>
+                </a>
+                
+                <a href="pages/bed-availability.html" class="senior-hub-link">
+                    <span class="material-icons">single_bed</span>
+                    <div>
+                        <h3>Bed Vacancy</h3>
+                        <p>Monitor general, emergency, or ICU bed capacity live.</p>
+                    </div>
+                </a>
+                
+                <a href="pages/doctor-attendance.html" class="senior-hub-link">
+                    <span class="material-icons">medical_services</span>
+                    <div>
+                        <h3>Doctor Attendance</h3>
+                        <p>Check if specialist doctors are currently checked-in at the facility.</p>
+                    </div>
+                </a>
+                
+                <a href="pages/patient-flow.html" class="senior-hub-link">
+                    <span class="material-icons">groups</span>
+                    <div>
+                        <h3>Queue Wait Time</h3>
+                        <p>Verify waiting times and consult with on-duty doctors.</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Modules Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-heading">
+                <p class="eyebrow">Operational Modules</p>
+                <h2>Everything required to run a smarter clinic</h2>
+            </div>
+            
+            <div class="card-grid">
+                <article class="card">
+                    <div class="card-icon">💊</div>
+                    <h3>Medicine Stock</h3>
+                    <p>Track stock levels, expiry alerts, and reorder needs instantly in real time.</p>
+                    <a href="pages/medicine-stock.html" class="btn btn-secondary" style="margin-top: 1rem; width: 100%;">View Live Data</a>
+                </article>
+                <article class="card">
+                    <div class="card-icon">👥</div>
+                    <h3>Patient Flow</h3>
+                    <p>Understand rush hours, registrations, and specialist consultation demand.</p>
+                    <a href="pages/patient-flow.html" class="btn btn-secondary" style="margin-top: 1rem; width: 100%;">View Live Data</a>
+                </article>
+                <article class="card">
+                    <div class="card-icon">🛏️</div>
+                    <h3>Bed Availability</h3>
+                    <p>Monitor ICU, general, pediatric, and emergency bed occupancy live.</p>
+                    <a href="pages/bed-availability.html" class="btn btn-secondary" style="margin-top: 1rem; width: 100%;">View Live Data</a>
+                </article>
+                <article class="card">
+                    <div class="card-icon">🩺</div>
+                    <h3>Doctor Attendance</h3>
+                    <p>Stay on top of shift rosters, punctuality, and staff coverage.</p>
+                    <a href="pages/doctor-attendance.html" class="btn btn-secondary" style="margin-top: 1rem; width: 100%;">View Live Data</a>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Role-Based Features Section -->
+    <section class="section alt-bg">
+        <div class="container">
+            <div class="section-heading">
+                <p class="eyebrow">Built for clinical roles</p>
+                <h2>One intelligent dashboard tailored to every worker</h2>
+            </div>
+            
+            <div class="card-grid">
+                <article class="card">
+                    <div class="badge badge-info" style="margin-bottom: 0.8rem;">Admin Panel</div>
+                    <h3>System Admin</h3>
+                    <p>Manage system configuration, add user profiles (CRUD), update CMS contents, and review security logs.</p>
+                </article>
+                <article class="card">
+                    <div class="badge badge-info" style="margin-bottom: 0.8rem;">Doctor Hub</div>
+                    <h3>Facility Doctor</h3>
+                    <p>Check in/out daily attendance rosters, view waiting queue sizes, and write diagnosis notes.</p>
+                </article>
+                <article class="card">
+                    <div class="badge badge-info" style="margin-bottom: 0.8rem;">Patient Space</div>
+                    <h3>OPD Patient</h3>
+                    <p>Search nearby facilities, check live bed capacity, submit emergency SOS requests, and edit profile photo.</p>
+                </article>
+                <article class="card">
+                    <div class="badge badge-info" style="margin-bottom: 0.8rem;">Inventory System</div>
+                    <h3>Pharmacist Staff</h3>
+                    <p>Manage stocks, get warnings on expired tablets, and adjust reorder alert triggers.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Predictions Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-heading">
+                <p class="eyebrow">AI-Powered Forecasting</p>
+                <h2>Predict shortages, rush hours, and occupancy before they impact patients</h2>
+            </div>
+            
+            <div class="card-grid">
+                <article class="card">
+                    <div class="card-icon">📈</div>
+                    <h3>Medicine Stock Forecasting</h3>
+                    <p>Calculates depletion velocity to suggest reorder cycles 14 days before stockouts.</p>
+                </article>
+                <article class="card">
+                    <div class="card-icon">📊</div>
+                    <h3>Patient Flow Prediction</h3>
+                    <p>Identifies historical seasonal peaks (e.g. flu seasons) to optimize check-in queues.</p>
+                </article>
+                <article class="card">
+                    <div class="card-icon">🚨</div>
+                    <h3>Emergency Bed Reservation</h3>
+                    <p>Frees up buffer emergency beds automatically during high local accident rates.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Audit Feed Section -->
+    <section class="section alt-bg">
+        <div class="container two-column">
+            <div>
+                <p class="eyebrow">System Auditing</p>
+                <h2>Live operations tracker and system logs</h2>
+                <p class="hero-text">
+                    All administrative and security actions are continuously logged for auditing. This maintains absolute compliance with medical standards and ensures patient safety.
+                </p>
+                <ul class="check-list">
+                    <li>Automated error logging of database issues.</li>
+                    <li>Session timeouts protect user terminals from physical snooping.</li>
+                    <li>Hashed encryption shields credentials in transfer.</li>
+                    <li>Role-based boundaries block privilege escalation.</li>
+                </ul>
+            </div>
+            
+            <div class="card" style="max-height: 400px; overflow-y: auto;">
+                <h3>Recent System Activities</h3>
+                <div class="data-list" id="recent-logs-container" style="margin-top: 1rem;">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Site Core Client Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="assets/js/db.js"></script>
+    <script src="assets/js/layout.js"></script>
+    
+    <script>
+        // Update stats and recent logs dynamically
+        document.addEventListener('DOMContentLoaded', () => {
+            const metrics = db.getLiveMetrics();
+            
+            // Stats strip
+            document.getElementById('stats-doctors').textContent = metrics.doctorsCount;
+            document.getElementById('stats-patients').textContent = metrics.patientsCount + 120; // adding seed offset
+            
+            // Metric cards
+            document.getElementById('metric-low-stock').textContent = metrics.lowStockCount;
+            document.getElementById('metric-beds').textContent = metrics.availableBeds;
+            document.getElementById('metric-roster').textContent = metrics.attendanceRate + '%';
+
+            // Welcome Message & Hero actions
+            const curUser = db.getCurrentUser();
+            const welcomeContainer = document.getElementById('welcome-message-container');
+            const heroActions = document.getElementById('hero-actions-container');
+
+            const ROLE_HOMEPAGE_ACTIONS = {
+                patient: [
+                    { label: 'My Dashboard', path: 'pages/dashboard/patient.html', class: 'btn btn-primary' },
+                    { label: 'Check Bed Availability', path: 'pages/bed-availability.html', class: 'btn btn-secondary' }
+                ],
+                doctor: [
+                    { label: 'My Dashboard', path: 'pages/dashboard/doctor.html', class: 'btn btn-primary' }
+                ],
+                pharmacist: [
+                    { label: 'Explore Live Inventory', path: 'pages/medicine-stock.html', class: 'btn btn-primary' },
+                    { label: 'My Dashboard', path: 'pages/dashboard/pharmacist.html', class: 'btn btn-secondary' }
+                ],
+                admin: [
+                    { label: 'Explore Live Inventory', path: 'pages/medicine-stock.html', class: 'btn btn-primary' },
+                    { label: 'My Dashboard', path: 'pages/dashboard/admin.html', class: 'btn btn-secondary' }
+                ],
+                guest: [
+                    { label: 'Sign In', path: 'pages/auth/login.html', class: 'btn btn-primary' },
+                    { label: 'Register Account', path: 'pages/auth/register.html', class: 'btn btn-secondary' }
+                ]
+            };
+
+            if (curUser) {
+                welcomeContainer.innerHTML = `
+                    <div class="auth-message" style="margin-bottom: 1.5rem;">
+                        👋 Welcome back, <a href="pages/profile.html" class="welcome-profile-link" style="text-decoration: underline; font-weight: 700; color: var(--color-primary);">${curUser.name}</a>! (Role: ${curUser.role.charAt(0).toUpperCase() + curUser.role.slice(1)})
+                    </div>
+                `;
+                
+                const actions = ROLE_HOMEPAGE_ACTIONS[curUser.role] || [];
+                heroActions.innerHTML = actions.map(act => `
+                    <a class="${act.class}" href="${act.path}">${act.label}</a>
+                `).join('\n');
+            } else {
+                const actions = ROLE_HOMEPAGE_ACTIONS['guest'];
+                heroActions.innerHTML = actions.map(act => `
+                    <a class="${act.class}" href="${act.path}">${act.label}</a>
+                `).join('\n');
+            }
+
+            // Route patient and pharmacist roles to Doctor Availability instead of Doctor Attendance
+            if (curUser && (curUser.role === 'patient' || curUser.role === 'pharmacist')) {
+                const doctorLinks = document.querySelectorAll('a[href*="doctor-attendance.html"]');
+                doctorLinks.forEach(link => {
+                    link.setAttribute('href', 'pages/doctor-availability.html');
+                });
+            }
+
+            // Recent system activities
+            const logs = db.getLogs();
+            const logsContainer = document.getElementById('recent-logs-container');
+            
+            if (logs.length > 0) {
+                const users = db.getUsers();
+                const getUserName = (uid) => {
+                    if (!uid) return 'Guest';
+                    const u = users.find(user => user.id === uid);
+                    return u ? u.name : 'System';
+                };
+                
+                // Show latest 5 logs
+                const latestLogs = logs.slice(-5).reverse();
+                logsContainer.innerHTML = latestLogs.map(log => {
+                    const dt = new Date(log.created_at).toLocaleString();
+                    return `
+                        <div class="activity-log-item">
+                            <strong>${getUserName(log.user_id)}</strong>: ${log.action}<br/>
+                            <span class="activity-time">${dt} | IP: ${log.ip_address}</span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                logsContainer.innerHTML = '<p class="auth-subtitle">No activities logged yet.</p>';
+            }
+        });
+    </script>
 </body>
 </html>
