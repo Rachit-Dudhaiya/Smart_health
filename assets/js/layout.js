@@ -58,11 +58,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 3. Inject Site Header and Navigation
-    injectHeader(pathPrefix, currentUser);
-
-    // 4. Inject Site Footer
-    injectFooter(pathPrefix);
+    // 3. Inject Site Header and Navigation (if not in an iframe)
+    const isIframe = window.self !== window.top;
+    if (!isIframe) {
+        injectHeader(pathPrefix, currentUser);
+        injectFooter(pathPrefix);
+    }
 
     // Start real-time Firestore database sync for user roles/profiles
     if (currentUser) {
@@ -151,16 +152,18 @@ function injectHeader(pathPrefix, currentUser) {
 
     headerEl.innerHTML = `
         <div class="container nav-row">
-            <a href="${pathPrefix}index.html" class="brand">
-                <span class="brand-icon">🏥</span>
-                <span>Smart Health</span>
-            </a>
-            
-            <div class="nav-controls">
-                <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme" type="button">
+            <div class="brand-wrapper" style="display: flex; align-items: center; gap: 0.75rem;">
+                <a href="${pathPrefix}index.html" class="brand">
+                    <span class="brand-icon">🏥</span>
+                    <span>Smart Health</span>
+                </a>
+                <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme" type="button" style="margin-left: 0.25rem;">
                     <span class="sun-icon">☀️</span>
                     <span class="moon-icon">🌙</span>
                 </button>
+            </div>
+            
+            <div class="nav-controls">
                 <button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false" id="menu-toggle">
                     <span></span><span></span><span></span>
                 </button>
@@ -591,26 +594,36 @@ let currentUtterance = null;
 
 // 3. Main Initialization Function
 function initAccessibilitySystem() {
+    const isIframe = window.self !== window.top;
+
     // 3.0 Load Google Translate dynamically
-    loadGoogleTranslate();
+    if (!isIframe) {
+        loadGoogleTranslate();
+    }
 
     // 3.0.5 Load Google Material Icons dynamically
     loadMaterialIcons();
 
     // 3.1 Inject top bar
-    injectAccessibilityBar();
+    if (!isIframe) {
+        injectAccessibilityBar();
+    }
 
     // 3.2 Inject Emergency SOS Modal
-    injectSOSModal();
+    if (!isIframe) {
+        injectSOSModal();
+    }
 
     // 3.3 Apply stored states
     applyFontSize(currentFontSize);
     applyContrast();
     applyVoiceHover();
-    updateLanguageButtons();
-
-    // 3.4 Bind Controls Events
-    bindAccessibilityEvents();
+    
+    if (!isIframe) {
+        updateLanguageButtons();
+        // 3.4 Bind Controls Events
+        bindAccessibilityEvents();
+    }
 
     // 3.5 Run Page Translation (Hindi Fallback)
     if (window.currentLanguage === 'hi') {
@@ -768,8 +781,7 @@ const emojiToIconMap = {
     "👋": "waving_hand",
     "📞": "phone",
     "🚑": "airport_shuttle",
-    "✏️": "edit",
-    "🔊": "volume_up"
+    "✏️": "edit"
 };
 
 function replaceEmojisWithIcons(node) {
@@ -1295,6 +1307,8 @@ function getCleanText(el) {
 }
 
 function injectSpeakerButtonsForNode(container) {
+    // Disabled to remove all page sound icons
+    return;
     // Only scan headings and card labels
     const selectors = ['h1', 'h2', 'h3', '.card-icon + h3', '.mini-card strong', '.section-heading h2'];
     const elements = container.querySelectorAll ? container.querySelectorAll(selectors.join(',')) : [];

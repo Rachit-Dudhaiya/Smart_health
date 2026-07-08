@@ -51,14 +51,18 @@
             background: rgba(0,0,0,0.5);
             z-index: 1100;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
+            overflow-y: auto;
+            padding: 2rem 1rem;
+            box-sizing: border-box;
         }
         .print-modal-content {
             background: var(--bg-surface);
-            padding: 2.5rem;
+            padding: clamp(1.5rem, 5vw, 2.5rem);
             border-radius: var(--radius-lg);
-            width: min(600px, 90vw);
+            width: min(600px, 100%);
             box-shadow: var(--shadow-hover);
+            margin: auto 0;
         }
         @media print {
             body * {
@@ -88,6 +92,7 @@
             <button class="tab-btn active" onclick="switchTab('queue-tab')">🏥 Consult Queue & Beds</button>
             <button class="tab-btn" onclick="switchTab('appointments-tab')">📅 Appointments</button>
             <button class="tab-btn" onclick="switchTab('billing-tab')">💵 Bills & Receipts</button>
+            <button class="tab-btn" onclick="switchTab('ambulance-tab')">🚑 Ambulance Tracking</button>
         </div>
 
         <!-- TAB 1: CONSULT QUEUE & BED STATUS -->
@@ -278,6 +283,13 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: AMBULANCE TRACKING -->
+        <div id="ambulance-tab" class="tab-content">
+            <div class="card" style="padding: 1rem; height: 75vh; min-height: 500px;">
+                <iframe src="../ambulance-tracker.html" style="width: 100%; height: 100%; border: none; border-radius: var(--radius-md);"></iframe>
             </div>
         </div>
 
