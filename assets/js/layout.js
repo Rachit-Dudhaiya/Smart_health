@@ -67,6 +67,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!isIframe) {
         injectHeader(pathPrefix, currentUser);
         injectFooter(pathPrefix);
+        
+        // Inject Nav Backdrop overlay
+        if (!document.querySelector('.nav-backdrop')) {
+            const backdropEl = document.createElement('div');
+            backdropEl.className = 'nav-backdrop';
+            document.body.appendChild(backdropEl);
+        }
     }
 
     // Start real-time Firestore database sync for user roles/profiles
@@ -278,12 +285,64 @@ function bindEvents(pathPrefix) {
     // Mobile Hamburger Menu
     const menuToggle = document.getElementById('menu-toggle');
     const siteNav = document.getElementById('site-nav');
+    const backdrop = document.querySelector('.nav-backdrop');
+    let scrollPos = 0;
 
     if (menuToggle && siteNav) {
-        menuToggle.addEventListener('click', () => {
-            const expanded = menuToggle.getAttribute('aria-expanded') === 'true' || false;
-            menuToggle.setAttribute('aria-expanded', !expanded);
-            siteNav.classList.toggle('open');
+        const toggleMenu = (forceClose = false) => {
+            const isOpen = siteNav.classList.contains('open');
+            const shouldOpen = forceClose ? false : !isOpen;
+            
+            if (shouldOpen) {
+                scrollPos = window.pageYOffset || document.documentElement.scrollTop;
+                siteNav.classList.add('open');
+                menuToggle.setAttribute('aria-expanded', 'true');
+                if (backdrop) backdrop.classList.add('active');
+                document.documentElement.classList.add('menu-open');
+                document.body.classList.add('menu-open');
+                document.body.style.top = `-${scrollPos}px`;
+            } else {
+                siteNav.classList.remove('open');
+                menuToggle.setAttribute('aria-expanded', 'false');
+                if (backdrop) backdrop.classList.remove('active');
+                document.documentElement.classList.remove('menu-open');
+                document.body.classList.remove('menu-open');
+                document.body.style.top = '';
+                window.scrollTo(0, scrollPos);
+            }
+        };
+
+        menuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleMenu();
+        });
+
+        // Close on backdrop click
+        if (backdrop) {
+            backdrop.addEventListener('click', () => {
+                toggleMenu(true);
+            });
+        }
+
+        // Close on document click outside drawer/toggle
+        document.addEventListener('click', (e) => {
+            const isClickInsideMenu = siteNav.contains(e.target);
+            const isClickToggle = menuToggle.contains(e.target);
+            if (!isClickInsideMenu && !isClickToggle && siteNav.classList.contains('open')) {
+                toggleMenu(true);
+            }
+        });
+
+        // Close on link click
+        siteNav.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                toggleMenu(true);
+            });
+        });
+        
+        // Prevent menu clicks from propagating
+        siteNav.addEventListener('click', (e) => {
+            e.stopPropagation();
         });
     }
 
