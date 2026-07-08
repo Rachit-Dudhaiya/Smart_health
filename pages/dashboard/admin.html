@@ -53,26 +53,60 @@
         }
         .sidebar-nav {
             display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
         }
         .nav-tab-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
             text-align: left;
-            background: none;
-            border: none;
-            padding: 0.8rem 1.2rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--color-border);
+            padding: 0.85rem 1.1rem;
             font-size: 0.95rem;
             font-weight: 600;
             color: var(--color-text-main);
-            border-radius: var(--radius-md);
+            border-radius: var(--radius-full);
             cursor: pointer;
             transition: all var(--transition-fast);
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
         }
         .nav-tab-btn:hover {
-            background-color: var(--bg-primary);
+            border-color: var(--color-accent);
+            background-color: #fffdf7;
         }
         .nav-tab-btn.active {
-            background-color: var(--color-primary);
+            background-color: #ffffff;
+            color: var(--color-text-main);
+            border-color: var(--color-accent);
+            box-shadow: 0 10px 20px rgba(217, 119, 6, 0.12);
+        }
+        .tab-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .tab-count {
+            min-width: 1.65rem;
+            padding: 0.15rem 0.45rem;
+            border-radius: var(--radius-full);
+            background: #e5eef8;
+            color: var(--color-primary);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .nav-tab-btn.active .tab-count {
+            background: #ef4444;
             color: #ffffff;
         }
     </style>
@@ -85,17 +119,17 @@
             <!-- Sidebar Navigation -->
             <aside class="dashboard-sidebar">
                 <h4>Control Center</h4>
-                <div class="sidebar-nav" style="margin-top: 1rem;">
-                    <button class="nav-tab-btn active" data-tab="overview">📊 Operations Overview</button>
-                    <button class="nav-tab-btn" data-tab="users">👥 User Directory</button>
-                    <button class="nav-tab-btn" data-tab="beds">🛏️ Manage Wards</button>
-                    <button class="nav-tab-btn" data-tab="appointments">📅 Appointments Console</button>
-                    <button class="nav-tab-btn" data-tab="ambulance">🚑 Ambulance Dispatch</button>
-                    <button class="nav-tab-btn" data-tab="bills">💵 Billings Ledger</button>
-                    <button class="nav-tab-btn" data-tab="cms">📝 CMS Manager</button>
-                    <button class="nav-tab-btn" data-tab="queries">📬 Inquiries Feed</button>
-                    <button class="nav-tab-btn" data-tab="logs">📁 Activity Audits</button>
-                </div>
+                    <div class="sidebar-nav">
+                        <button class="nav-tab-btn active" data-tab="overview"><span class="tab-label">📊 Operations Overview</span><span class="tab-count" data-count-for="overview">0</span></button>
+                        <button class="nav-tab-btn" data-tab="users"><span class="tab-label">👥 User Directory</span><span class="tab-count" data-count-for="users">0</span></button>
+                        <button class="nav-tab-btn" data-tab="beds"><span class="tab-label">🛏️ Manage Wards</span><span class="tab-count" data-count-for="beds">0</span></button>
+                        <button class="nav-tab-btn" data-tab="appointments"><span class="tab-label">📅 Appointments Console</span><span class="tab-count" data-count-for="appointments">0</span></button>
+                        <button class="nav-tab-btn" data-tab="ambulance"><span class="tab-label">🚑 Ambulance Dispatch</span><span class="tab-count" data-count-for="ambulance">0</span></button>
+                        <button class="nav-tab-btn" data-tab="bills"><span class="tab-label">💵 Billings Ledger</span><span class="tab-count" data-count-for="bills">0</span></button>
+                        <button class="nav-tab-btn" data-tab="cms"><span class="tab-label">📝 CMS Manager</span><span class="tab-count" data-count-for="cms">0</span></button>
+                        <button class="nav-tab-btn" data-tab="queries"><span class="tab-label">📬 Inquiries Feed</span><span class="tab-count" data-count-for="queries">0</span></button>
+                        <button class="nav-tab-btn" data-tab="logs"><span class="tab-label">📁 Activity Audits</span><span class="tab-count" data-count-for="logs">0</span></button>
+                    </div>
             </aside>
             
             <!-- Main Content Panels -->
@@ -414,6 +448,7 @@
             });
             
             // Initial load Overview tab
+            renderTabCounts();
             loadPanelData('overview');
             
             // Handle CMS Selector Change
@@ -440,6 +475,7 @@
         });
         
         function loadPanelData(tab) {
+            renderTabCounts();
             if (tab === 'overview') {
                 renderOverview();
             } else if (tab === 'users') {
@@ -459,6 +495,46 @@
             } else if (tab === 'logs') {
                 renderLogs();
             }
+        }
+
+        function renderTabCounts() {
+            const users = db.getUsers();
+            const beds = db.getBeds();
+            const appts = db.getAppointments();
+            const amb = db.getAmbulanceRequests();
+            const bills = db.getBills();
+            const feedbacks = db.getFeedback();
+            const logs = db.getLogs();
+
+            const pendingAppts = appts.filter(a => a.status === 'pending').length;
+            const pendingAmb = amb.filter(r => r.status === 'pending').length;
+            const pendingQueries = feedbacks.length;
+
+            const tabButtonsConfig = {
+                overview: { text: 'Overview', icon: '📊' },
+                users: { text: `Users (${users.length})`, icon: '👥' },
+                beds: { text: `Wards (${beds.length})`, icon: '🛏️' },
+                appointments: { text: `Bookings (${appts.length})`, icon: '📅', badge: pendingAppts },
+                ambulance: { text: `Ambulance (${amb.length})`, icon: '🚑', badge: pendingAmb },
+                bills: { text: `Bills (${bills.length})`, icon: '💵' },
+                cms: { text: 'CMS Editor', icon: '📝' },
+                queries: { text: `Inquiries (${feedbacks.length})`, icon: '📬', badge: pendingQueries },
+                logs: { text: `Audits (${logs.length})`, icon: '📁' }
+            };
+
+            const btns = document.querySelectorAll('.nav-tab-btn');
+            btns.forEach(btn => {
+                const tabName = btn.getAttribute('data-tab');
+                const config = tabButtonsConfig[tabName];
+                if (config) {
+                    let label = `${config.icon} ${config.text}`;
+                    let html = `<span>${label}</span>`;
+                    if (config.badge !== undefined && config.badge > 0) {
+                        html += `<span class="nav-badge">${config.badge}</span>`;
+                    }
+                    btn.innerHTML = html;
+                }
+            });
         }
         
         // --- 1. OVERVIEW RENDERING ---

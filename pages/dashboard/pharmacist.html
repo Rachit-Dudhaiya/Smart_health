@@ -420,10 +420,12 @@
             loadData();
             populateInvoicingDropdowns();
             renderBillingHistory();
+            renderTabCounts();
         });
 
         // Tab Switching
         window.switchTab = function(tabId) {
+            renderTabCounts();
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             
@@ -431,6 +433,36 @@
             const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.outerHTML.includes(tabId));
             if (activeBtn) activeBtn.classList.add('active');
         };
+
+        function renderTabCounts() {
+            const meds = db.getMedicines();
+            const bills = db.getBills();
+            const criticalCount = meds.filter(m => m.status === 'low' || m.status === 'critical' || m.status === 'expired').length;
+
+            const tabsConfig = {
+                'inventory-tab': { text: `Medicine Inventory (${meds.length})`, icon: '💊', badge: criticalCount },
+                'billing-tab': { text: 'Create Patient Invoice', icon: '💳' },
+                'history-tab': { text: `Billing History Ledger (${bills.length})`, icon: '📜' }
+            };
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                const clickAttr = btn.getAttribute('onclick') || '';
+                let key = '';
+                if (clickAttr.includes('inventory-tab')) key = 'inventory-tab';
+                else if (clickAttr.includes('billing-tab')) key = 'billing-tab';
+                else if (clickAttr.includes('history-tab')) key = 'history-tab';
+
+                const config = tabsConfig[key];
+                if (config) {
+                    let label = `${config.icon} ${config.text}`;
+                    let html = `<span>${label}</span>`;
+                    if (config.badge !== undefined && config.badge > 0) {
+                        html += `<span class="nav-badge">${config.badge}</span>`;
+                    }
+                    btn.innerHTML = html;
+                }
+            });
+        }
 
         // Populate dropdowns
         function populateInvoicingDropdowns() {

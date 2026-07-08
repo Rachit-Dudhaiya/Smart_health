@@ -248,6 +248,7 @@
             renderQueues();
             renderAppointmentsConsole();
             renderDoctorScheduleSlots();
+            renderTabCounts();
 
             // Set default date picker
             document.getElementById('sched-date').value = new Date().toISOString().split('T')[0];
@@ -279,6 +280,7 @@
 
         // Tab switches
         window.switchTab = function(tabId) {
+            renderTabCounts();
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             
@@ -286,6 +288,40 @@
             const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.outerHTML.includes(tabId));
             if (activeBtn) activeBtn.classList.add('active');
         };
+
+        function renderTabCounts() {
+            if (!currentDoc) return;
+            const flow = db.getPatientFlow();
+            const appts = db.getAppointments().filter(a => a.doctor_id === currentDoc.id);
+            const scheds = db.getDoctorSchedules().filter(s => s.doctor_id === currentDoc.id);
+
+            const waitingQueue = flow.filter(f => f.doctor_id === currentDoc.id && f.status === 'waiting');
+            const pendingAppts = appts.filter(a => a.status === 'pending').length;
+
+            const tabsConfig = {
+                'consults-tab': { text: `Consultations Queue (${waitingQueue.length})`, icon: '🩺', badge: waitingQueue.length },
+                'appointments-tab': { text: `Appointments Console (${appts.length})`, icon: '📅', badge: pendingAppts },
+                'schedule-tab': { text: `Manage Schedule (${scheds.length})`, icon: '🕒' }
+            };
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                const clickAttr = btn.getAttribute('onclick') || '';
+                let key = '';
+                if (clickAttr.includes('consults-tab')) key = 'consults-tab';
+                else if (clickAttr.includes('appointments-tab')) key = 'appointments-tab';
+                else if (clickAttr.includes('schedule-tab')) key = 'schedule-tab';
+
+                const config = tabsConfig[key];
+                if (config) {
+                    let label = `${config.icon} ${config.text}`;
+                    let html = `<span>${label}</span>`;
+                    if (config.badge !== undefined && config.badge > 0) {
+                        html += `<span class="nav-badge">${config.badge}</span>`;
+                    }
+                    btn.innerHTML = html;
+                }
+            });
+        }
 
         // --- 1. SHIFT TERMINAL ---
         function renderClockTerminal() {
