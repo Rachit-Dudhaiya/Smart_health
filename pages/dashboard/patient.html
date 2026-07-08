@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Patient Dashboard | Smart Health</title>
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <link rel="stylesheet" href="../../assets/css/styles.css?v=ambulance-1" />
     <style>
         .tabs-header {
@@ -20,6 +23,7 @@
             padding-bottom: 0.5rem;
             flex-wrap: wrap;
         }
+
         .tab-btn {
             background: none;
             border: none;
@@ -31,16 +35,20 @@
             border-radius: var(--radius-sm);
             transition: all var(--transition-fast);
         }
+
         .tab-btn.active {
             background-color: var(--color-primary);
             color: #ffffff;
         }
+
         .tab-content {
             display: none;
         }
+
         .tab-content.active {
             display: block;
         }
+
         .print-modal {
             display: none;
             position: fixed;
@@ -48,7 +56,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 1100;
             justify-content: center;
             align-items: flex-start;
@@ -56,6 +64,7 @@
             padding: 2rem 1rem;
             box-sizing: border-box;
         }
+
         .print-modal-content {
             background: var(--bg-surface);
             padding: clamp(1.5rem, 5vw, 2.5rem);
@@ -64,54 +73,68 @@
             box-shadow: var(--shadow-hover);
             margin: auto 0;
         }
+
         @media print {
             body * {
                 visibility: hidden;
             }
-            .print-area, .print-area * {
+
+            .print-area,
+            .print-area * {
                 visibility: visible;
             }
+
             .print-area {
                 position: absolute;
                 left: 0;
                 top: 0;
                 width: 100%;
             }
+
             .no-print {
                 display: none !important;
             }
         }
     </style>
 </head>
+
 <body data-path-prefix="../../" data-restricted-roles="admin,patient">
-    
+
     <div class="container" style="padding: 2rem 0;">
         <div class="dashboard-grid">
-            
+
             <!-- Sidebar Navigation & Status Widgets -->
             <aside class="dashboard-sidebar">
-                <h4 style="margin-bottom: 1rem; color: var(--color-text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Patient Dashboard</h4>
+                <h4
+                    style="margin-bottom: 1rem; color: var(--color-text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    Patient Dashboard</h4>
                 <div class="sidebar-nav" style="margin-top: 1rem; margin-bottom: 2rem;">
                     <button class="nav-tab-btn active" data-tab="queue">🏥 Consult Queue & Beds</button>
                     <button class="nav-tab-btn" data-tab="appointments">📅 Appointments</button>
                     <button class="nav-tab-btn" data-tab="billing">💵 Bills & Receipts</button>
                     <button class="nav-tab-btn" data-tab="ambulance">🚑 Ambulance Tracking</button>
                 </div>
-                
+
                 <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 1.5rem 0;" />
-                
+
                 <!-- Emergency tools -->
-                <h4 style="margin-bottom: 1rem; color: var(--color-text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Emergency Tools</h4>
-                <div class="card" style="padding: 1.2rem; text-align: center; border-color: var(--color-danger); background-color: #fef2f2; margin-bottom: 1.5rem;">
+                <h4
+                    style="margin-bottom: 1rem; color: var(--color-text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    Emergency Tools</h4>
+                <div class="card"
+                    style="padding: 1.2rem; text-align: center; border-color: var(--color-danger); background-color: #fef2f2; margin-bottom: 1.5rem;">
                     <span style="font-size: 2.5rem;">🚑</span>
-                    <h4 style="color: var(--color-danger); margin-top: 0.3rem; font-size: 1rem;">Emergency Ambulance</h4>
-                    <p style="font-size: 0.75rem; color: #7f1d1d; margin: 0.4rem 0 0.8rem; line-height: 1.3;">Request a live ambulance, monitor its movement, and receive dispatch updates in real time.</p>
-                    
+                    <h4 style="color: var(--color-danger); margin-top: 0.3rem; font-size: 1rem;">Emergency Ambulance
+                    </h4>
+                    <p style="font-size: 0.75rem; color: #7f1d1d; margin: 0.4rem 0 0.8rem; line-height: 1.3;">Request a
+                        live ambulance, monitor its movement, and receive dispatch updates in real time.</p>
+
                     <div id="ambulance-request-status" style="margin-bottom: 0.8rem;"></div>
                     <div id="ambulance-request-form" style="text-align: left; display: none;">
                         <label style="font-size: 0.8rem;">
                             Priority
-                            <select id="ambulance-priority" style="margin-top: 0.2rem; margin-bottom: 0.6rem; padding: 0.3rem 0.5rem; font-size: 0.8rem;">
+                            <select id="ambulance-priority"
+                                style="margin-top: 0.2rem; margin-bottom: 0.6rem; padding: 0.3rem 0.5rem; font-size: 0.8rem;">
                                 <option value="critical">Critical</option>
                                 <option value="high">High</option>
                                 <option value="medium" selected>Medium</option>
@@ -120,36 +143,45 @@
                         </label>
                         <label style="font-size: 0.8rem;">
                             Symptoms / Notes
-                            <textarea id="ambulance-symptoms" rows="2" style="margin-top: 0.2rem; font-size: 0.8rem;" placeholder="Describe the emergency briefly"></textarea>
+                            <textarea id="ambulance-symptoms" rows="2" style="margin-top: 0.2rem; font-size: 0.8rem;"
+                                placeholder="Describe the emergency briefly"></textarea>
                         </label>
                     </div>
-                    <div id="ambulance-request-actions" style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.6rem;"></div>
-                    <a href="../../pages/ambulance-tracker.html" class="btn btn-secondary btn-full" style="margin-top: 0.5rem; display: inline-block; text-align: center; font-size: 0.8rem; padding: 0.4rem 0.8rem;">🗺️ Open Live Tracker</a>
+                    <div id="ambulance-request-actions"
+                        style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.6rem;"></div>
+                    <a href="../../pages/ambulance-tracker.html" class="btn btn-secondary btn-full"
+                        style="margin-top: 0.5rem; display: inline-block; text-align: center; font-size: 0.8rem; padding: 0.4rem 0.8rem;">🗺️
+                        Open Live Tracker</a>
                 </div>
-                
-                <h4 style="margin-bottom: 1rem; color: var(--color-text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Ward Bed Status</h4>
+
+                <h4
+                    style="margin-bottom: 1rem; color: var(--color-text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    Ward Bed Status</h4>
                 <div class="card" style="padding: 1.2rem;">
-                    <div id="bed-status-sidebar" style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.8rem; text-align: left;">
+                    <div id="bed-status-sidebar"
+                        style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.8rem; text-align: left;">
                         <!-- Injected dynamically -->
                     </div>
                 </div>
             </aside>
-            
+
             <!-- Main Content Panels -->
             <main class="dashboard-main">
-                
+
                 <!-- TAB 1: CONSULT QUEUE & BED STATUS -->
                 <div id="panel-queue" class="dashboard-panel">
                     <!-- Active Queue Status Card -->
                     <div id="active-queue-card-container" style="margin-bottom: 2rem;">
                         <!-- Injected dynamically -->
                     </div>
-                    
+
                     <!-- Join Queue Form (Hidden if already in queue) -->
-                    <div id="book-consult-card" class="card" style="padding: 2.5rem; margin-bottom: 2rem; display: none;">
+                    <div id="book-consult-card" class="card"
+                        style="padding: 2.5rem; margin-bottom: 2rem; display: none;">
                         <h3>Book Live Consultation / Join Queue</h3>
-                        <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Select an on-duty doctor from the list to join their live queue.</p>
-                        
+                        <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Select an on-duty doctor from the list
+                            to join their live queue.</p>
+
                         <form id="book-consult-form" class="auth-form" novalidate>
                             <label>
                                 Choose Physician
@@ -158,15 +190,17 @@
                                     <!-- Injected dynamically -->
                                 </select>
                             </label>
-                            
-                            <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Join Doctor's Queue</button>
+
+                            <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Join Doctor's
+                                Queue</button>
                         </form>
-                        
-                        <div id="no-doctors-alert" style="background-color: #fee2e2; color: #991b1b; padding: 1rem; border-radius: var(--radius-md); display: none;">
+
+                        <div id="no-doctors-alert"
+                            style="background-color: #fee2e2; color: #991b1b; padding: 1rem; border-radius: var(--radius-md); display: none;">
                             ⚠️ No doctors are currently checked-in or on call. Please try again later.
                         </div>
                     </div>
-                    
+
                     <!-- Prescription History -->
                     <div class="card" style="padding: 2rem;">
                         <h3>My Consultation History & Prescriptions</h3>
@@ -192,8 +226,9 @@
                 <div id="panel-appointments" class="dashboard-panel" style="display: none;">
                     <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
                         <h3>Book Appointment</h3>
-                        <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Request an appointment slot based on physician schedules.</p>
-                        
+                        <p class="auth-subtitle" style="margin-bottom: 1.5rem;">Request an appointment slot based on
+                            physician schedules.</p>
+
                         <form id="book-appt-form" class="auth-form" novalidate>
                             <label>
                                 Select Physician
@@ -201,12 +236,12 @@
                                     <option value="">-- Select Doctor --</option>
                                 </select>
                             </label>
-                            
+
                             <label>
                                 Select Date
                                 <input type="date" id="appt-date" required />
                             </label>
-                            
+
                             <label>
                                 Preferred Slot
                                 <select id="appt-slot-select" required>
@@ -219,13 +254,16 @@
                                     <option value="04:00 PM">04:00 PM</option>
                                 </select>
                             </label>
-                            
+
                             <label>
                                 Briefly Explain Symptoms
-                                <textarea id="appt-symptoms" rows="3" placeholder="e.g. Regular cardiac check-up / High fever since 2 days" required></textarea>
+                                <textarea id="appt-symptoms" rows="3"
+                                    placeholder="e.g. Regular cardiac check-up / High fever since 2 days"
+                                    required></textarea>
                             </label>
-                            
-                            <button type="submit" class="btn btn-primary btn-full" style="margin-top: 0.5rem;">Request Appointment</button>
+
+                            <button type="submit" class="btn btn-primary btn-full" style="margin-top: 0.5rem;">Request
+                                Appointment</button>
                         </form>
                     </div>
 
@@ -255,8 +293,9 @@
                 <div id="panel-billing" class="dashboard-panel" style="display: none;">
                     <div class="card" style="padding: 2.5rem;">
                         <h3>My Billings & Invoices</h3>
-                        <p class="auth-subtitle" style="margin-bottom: 1.5rem;">View bills generated by the pharmacy and make payments or print receipts.</p>
-                        
+                        <p class="auth-subtitle" style="margin-bottom: 1.5rem;">View bills generated by the pharmacy and
+                            make payments or print receipts.</p>
+
                         <div class="table-wrap">
                             <table>
                                 <thead>
@@ -282,7 +321,8 @@
                 <!-- TAB 4: AMBULANCE TRACKING -->
                 <div id="panel-ambulance" class="dashboard-panel" style="display: none;">
                     <div class="card" style="padding: 1rem; height: 75vh; min-height: 500px;">
-                        <iframe src="../ambulance-tracker.html" style="width: 100%; height: 100%; border: none; border-radius: var(--radius-md);"></iframe>
+                        <iframe src="../ambulance-tracker.html"
+                            style="width: 100%; height: 100%; border: none; border-radius: var(--radius-md);"></iframe>
                     </div>
                 </div>
 
@@ -307,14 +347,14 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="../../assets/js/db.js?v=ambulance-1"></script>
     <script src="../../assets/js/layout.js?v=ambulance-1"></script>
-    
+
     <script>
         let curPatient = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             curPatient = db.getCurrentUser();
             if (!curPatient) return;
-            
+
             renderSidebarBeds();
             renderPatientDashboard();
             renderAppointments();
@@ -327,23 +367,23 @@
                 btn.addEventListener('click', () => {
                     tabButtons.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    
+
                     const panels = document.querySelectorAll('.dashboard-panel');
                     panels.forEach(p => p.style.display = 'none');
-                    
+
                     const targetTab = btn.getAttribute('data-tab');
                     document.getElementById(`panel-${targetTab}`).style.display = 'block';
-                    
+
                     renderTabCounts();
                 });
             });
 
             renderTabCounts();
             setInterval(() => renderAmbulancePanel(), 3000);
-            
+
             // Set default date picker to today
             document.getElementById('appt-date').value = new Date().toISOString().split('T')[0];
-            
+
             // Populates booking select boxes
             const doctors = db.getUsers().filter(u => u.role === 'doctor' && u.status === 'active');
             const apptDocSelect = document.getElementById('appt-doctor-select');
@@ -360,7 +400,7 @@
                     showToast('Please select a doctor.', 'error');
                     return;
                 }
-                
+
                 const res = db.joinQueue(curPatient.id, docId);
                 if (res.success) {
                     showToast(res.message, 'success');
@@ -399,34 +439,34 @@
         });
 
         function renderTabCounts() {
-             if (!curPatient) return;
-             const flow = db.getPatientFlow().filter(f => f.patient_id === curPatient.id);
-             const appts = db.getAppointments().filter(a => a.patient_id === curPatient.id);
-             const bills = db.getBills().filter(b => b.patient_id === curPatient.id);
+            if (!curPatient) return;
+            const flow = db.getPatientFlow().filter(f => f.patient_id === curPatient.id);
+            const appts = db.getAppointments().filter(a => a.patient_id === curPatient.id);
+            const bills = db.getBills().filter(b => b.patient_id === curPatient.id);
 
-             const activeQueue = flow.filter(f => f.status === 'waiting' || f.status === 'in-consultation').length;
-             const pendingBills = bills.filter(b => b.payment_status === 'unpaid').length;
+            const activeQueue = flow.filter(f => f.status === 'waiting' || f.status === 'in-consultation').length;
+            const pendingBills = bills.filter(b => b.payment_status === 'unpaid').length;
 
-             const tabsConfig = {
-                 queue: { text: `Consult Queue & Beds (${flow.length})`, icon: '🏥', badge: activeQueue },
-                 appointments: { text: `Appointments (${appts.length})`, icon: '📅' },
-                 billing: { text: `Bills & Receipts (${bills.length})`, icon: '💵', badge: pendingBills },
-                 ambulance: { text: 'Ambulance Tracking', icon: '🚑' }
-             };
+            const tabsConfig = {
+                queue: { text: `Consult Queue & Beds (${flow.length})`, icon: '🏥', badge: activeQueue },
+                appointments: { text: `Appointments (${appts.length})`, icon: '📅' },
+                billing: { text: `Bills & Receipts (${bills.length})`, icon: '💵', badge: pendingBills },
+                ambulance: { text: 'Ambulance Tracking', icon: '🚑' }
+            };
 
-             const btns = document.querySelectorAll('.nav-tab-btn');
-             btns.forEach(btn => {
-                 const tabName = btn.getAttribute('data-tab');
-                 const config = tabsConfig[tabName];
-                 if (config) {
-                     let label = `${config.icon} ${config.text}`;
-                     let html = `<span>${label}</span>`;
-                     if (config.badge !== undefined && config.badge > 0) {
-                         html += `<span class="nav-badge">${config.badge}</span>`;
-                     }
-                     btn.innerHTML = html;
-                 }
-             });
+            const btns = document.querySelectorAll('.nav-tab-btn');
+            btns.forEach(btn => {
+                const tabName = btn.getAttribute('data-tab');
+                const config = tabsConfig[tabName];
+                if (config) {
+                    let label = `${config.icon} ${config.text}`;
+                    let html = `<span>${label}</span>`;
+                    if (config.badge !== undefined && config.badge > 0) {
+                        html += `<span class="nav-badge">${config.badge}</span>`;
+                    }
+                    btn.innerHTML = html;
+                }
+            });
         }
 
         function renderSidebarBeds() {
@@ -446,29 +486,29 @@
         function renderPatientDashboard() {
             const flow = db.getPatientFlow();
             const users = db.getUsers();
-            
+
             const active = flow.find(f => f.patient_id === curPatient.id && (f.status === 'waiting' || f.status === 'in-consultation'));
             const activeContainer = document.getElementById('active-queue-card-container');
             const bookCard = document.getElementById('book-consult-card');
-            
+
             const getUserDetails = (uid) => {
                 const u = users.find(user => user.id === uid);
                 return u ? u.name : 'Doctor';
             };
-            
+
             if (active) {
                 bookCard.style.display = 'none';
-                
+
                 const docName = getUserDetails(active.doctor_id);
                 const dt = new Date(active.queue_time).toLocaleString();
-                
+
                 let badgeText = 'WAITING IN QUEUE';
                 let statusMarkup = `
                     <div style="background-color: var(--color-primary-light); padding: 1rem; border-radius: var(--radius-md);">
                         ⏳ <strong>Current Status</strong>: Please wait near the Out-Patient block. Dr. ${docName} has been notified and will call your name soon.
                     </div>
                 `;
-                
+
                 if (active.status === 'in-consultation') {
                     badgeText = 'IN CONSULTATION ROOM';
                     statusMarkup = `
@@ -477,7 +517,7 @@
                         </div>
                     `;
                 }
-                
+
                 activeContainer.innerHTML = `
                     <div class="card" style="border-left: 6px solid var(--color-primary); padding: 2.5rem;">
                         <div class="badge badge-info" style="margin-bottom: 0.8rem;">${badgeText}</div>
@@ -488,12 +528,12 @@
                 `;
             } else {
                 activeContainer.innerHTML = '';
-                
+
                 const doctors = users.filter(u => u.role === 'doctor' && u.status === 'active');
                 const docSelect = document.getElementById('doctor-select');
                 const alertNoDocs = document.getElementById('no-doctors-alert');
                 const form = document.getElementById('book-consult-form');
-                
+
                 if (doctors.length > 0) {
                     docSelect.style.display = 'block';
                     alertNoDocs.style.display = 'none';
@@ -506,13 +546,13 @@
                     alertNoDocs.style.display = 'block';
                     form.style.display = 'none';
                 }
-                
+
                 bookCard.style.display = 'block';
             }
-            
+
             const history = flow.filter(f => f.patient_id === curPatient.id && f.status === 'completed');
             const historyTbody = document.getElementById('history-tbody');
-            
+
             if (history.length > 0) {
                 const historySorted = history.slice().reverse();
                 historyTbody.innerHTML = historySorted.map(row => {
@@ -578,7 +618,7 @@
             }
         }
 
-        window.cancelAppt = function(aid) {
+        window.cancelAppt = function (aid) {
             if (confirm('Are you sure you want to cancel this appointment request?')) {
                 const res = db.updateAppointmentStatus(aid, 'cancelled', 'Cancelled by Patient');
                 if (res.success) {
@@ -604,7 +644,7 @@
             if (bills.length > 0) {
                 tbody.innerHTML = bills.slice().reverse().map(b => {
                     let badgeClass = b.payment_status === 'paid' ? 'badge-success' : 'badge-danger';
-                    
+
                     const actionBtn = b.payment_status === 'unpaid'
                         ? `<button class="btn btn-primary" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="payInvoice(${b.id})">💳 Pay Invoice</button>`
                         : `<button class="btn btn-secondary" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="printInvoice(${b.id})">🖨️ Print Receipt</button>`;
@@ -631,7 +671,7 @@
             }
         }
 
-        window.payInvoice = function(bid) {
+        window.payInvoice = function (bid) {
             const method = prompt('Choose payment method: Cash / Card / UPI', 'Card');
             if (method) {
                 const res = db.payBill(bid, method);
@@ -644,7 +684,7 @@
             }
         };
 
-        window.printInvoice = function(bid) {
+        window.printInvoice = function (bid) {
             const bill = db.getBills().find(b => b.id === bid);
             if (!bill) return;
 
@@ -714,7 +754,7 @@
             document.getElementById('bill-print-modal').style.display = 'flex';
         };
 
-        window.closePrintModal = function() {
+        window.closePrintModal = function () {
             document.getElementById('bill-print-modal').style.display = 'none';
         };
 
@@ -759,7 +799,7 @@
             `;
         }
 
-        window.requestAmbulance = function() {
+        window.requestAmbulance = function () {
             const priority = document.getElementById('ambulance-priority').value;
             const symptoms = document.getElementById('ambulance-symptoms').value.trim() || 'Emergency assistance requested';
             const res = db.createAmbulanceRequest(curPatient.id, { priority, symptoms, patient_name: curPatient.name });
@@ -771,7 +811,7 @@
             }
         };
 
-        window.cancelAmbulanceRequest = function() {
+        window.cancelAmbulanceRequest = function () {
             const existing = db.getActiveAmbulanceRequest(curPatient.id);
             if (!existing) return;
             const res = db.updateAmbulanceRequestStatus(existing.id, 'cancelled');
@@ -781,17 +821,17 @@
             }
         };
 
-        window.openTrackingPage = function() {
+        window.openTrackingPage = function () {
             const existing = db.getActiveAmbulanceRequest(curPatient.id);
             const requestId = existing ? existing.id : '';
             window.location.href = `../../pages/ambulance-tracker.html${requestId ? `?requestId=${requestId}` : ''}`;
         };
 
-        window.callDriver = function() {
+        window.callDriver = function () {
             showToast('📞 Simulated call connected to the ambulance driver.', 'success');
         };
 
-        window.triggerSOS = function() {
+        window.triggerSOS = function () {
             const priority = document.getElementById('ambulance-priority') ? document.getElementById('ambulance-priority').value : 'critical';
             const symptoms = document.getElementById('ambulance-symptoms') ? document.getElementById('ambulance-symptoms').value.trim() || 'Critical emergency' : 'Critical emergency';
             const res = db.createAmbulanceRequest(curPatient.id, { priority, symptoms, patient_name: curPatient.name });
@@ -802,4 +842,5 @@
         };
     </script>
 </body>
+
 </html>

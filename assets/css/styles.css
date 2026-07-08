@@ -55,7 +55,8 @@
     padding: 0;
 }
 
-html, body {
+html,
+body {
     overflow-x: hidden;
     width: 100%;
 }
@@ -2173,7 +2174,8 @@ body {
 
 @media(max-width: 768px) {
 
-    th, td {
+    th,
+    td {
         padding: 0.6rem 0.8rem !important;
     }
 
